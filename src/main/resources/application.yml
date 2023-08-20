@@ -1,0 +1,17 @@
+server:
+  port: 9095
+
+#The following flyway section is mandatory
+spring:
+  flyway:
+    locations: classpath:db/migration/{vendor}
+    out-of-order: true
+
+#Api prefix for out-of-box REST API
+apiPrefix: /api/v1
+
+logging:
+  file:
+    name: ./logs/yaci-store.log
+
+## Other Yaci Store properties can be configured here or in application properties under config folder. ##
