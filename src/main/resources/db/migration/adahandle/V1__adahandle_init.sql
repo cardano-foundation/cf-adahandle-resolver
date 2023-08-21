@@ -9,7 +9,7 @@ create table ada_handle
     primary key (name)
 );
 
-create table ada_handle_history
+create table ada_handle_history_item
 (
     id                   identity not null primary key,
     name                 varchar(100) not null,
@@ -21,4 +21,4 @@ create table ada_handle_history
 CREATE INDEX idx_ada_handle_stake_address ON ada_handle(stake_address);
 CREATE INDEX idx_ada_handle_payment_address ON ada_handle(payment_address);
 
-CREATE INDEX idx_ada_handle_history_slot ON ada_handle_history(slot);
+CREATE INDEX idx_ada_handle_history_item_slot ON ada_handle_history_item(slot);

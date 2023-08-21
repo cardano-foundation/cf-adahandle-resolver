@@ -6,6 +6,7 @@ import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.UtxoStorageImpl;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.mapper.UtxoMapper;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.model.AddressUtxoEntity;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.repository.UtxoRepository;
+import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Component;
@@ -18,18 +19,20 @@ public class AdaHandleStorage extends UtxoStorageImpl {
     private final UtxoMapper mapper = UtxoMapper.INSTANCE;
     private final UtxoRepository utxoRepository;
     private final AdaHandleService adaHandleService;
+    private final AdaHandleHistoryService adaHandleHistoryService;
 
-    public AdaHandleStorage(UtxoRepository utxoRepository, DSLContext dsl, AdaHandleService adaHandleService) {
+    public AdaHandleStorage(UtxoRepository utxoRepository, DSLContext dsl, AdaHandleService adaHandleService, AdaHandleHistoryService adaHandleHistoryService) {
         super(utxoRepository, dsl);
         this.utxoRepository = utxoRepository;
         this.adaHandleService = adaHandleService;
+        this.adaHandleHistoryService = adaHandleHistoryService;
     }
 
     public boolean includesAdaHandle(AddressUtxoEntity addressUtxoEntity) {
         final String ADA_HANDLE_POLICY_ID = "f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a";
         List<Amt> amounts = addressUtxoEntity.getAmounts();
 
-        if (amounts != null) {
+        if (addressUtxoEntity.getSpent() == null && amounts != null) {
             for (final Amt amount : amounts) {
                 if (amount.getPolicyId() != null && amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {
                     return true;
@@ -46,13 +49,19 @@ public class AdaHandleStorage extends UtxoStorageImpl {
                 .filter(this::includesAdaHandle).toList();
 
         if (!addressUtxoEntities.isEmpty()) {
-            System.out.println(addressUtxoEntities.size());
             adaHandleService.saveAllAdaHandles(addressUtxoEntities);
+            adaHandleHistoryService.saveAdaHandleHistoryItems(addressUtxoEntities);
         }
 
         addressUtxoEntities = utxoRepository.saveAll(addressUtxoEntities);
         return Optional.of(addressUtxoEntities.stream()
                 .map(mapper::toAddressUtxo)
                 .toList());
+    }
+
+    @Override
+    public int deleteBySlotGreaterThan(Long slot) {
+        adaHandleHistoryService.rollbackToSlot(slot);
+        return super.deleteBySlotGreaterThan(slot);
     }
 }

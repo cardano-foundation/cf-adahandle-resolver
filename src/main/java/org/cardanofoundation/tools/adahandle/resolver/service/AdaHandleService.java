@@ -1,7 +1,9 @@
 package org.cardanofoundation.tools.adahandle.resolver.service;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.model.AddressUtxoEntity;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
-import org.cardanofoundation.tools.adahandle.resolver.mapper.AddressUtxoAdaHandleMapper;
+import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
+import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleHistoryMapper;
+import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleMapper;
 import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,11 +17,10 @@ public class AdaHandleService {
 
     public void saveAllAdaHandles(List<AddressUtxoEntity> addressUtxoList) {
         List<AdaHandle> adaHandles = addressUtxoList.stream()
-                .map(AddressUtxoAdaHandleMapper::toAdaHandles).flatMap(List::stream)
+                .map(AdaHandleMapper::toAdaHandles).flatMap(List::stream)
                 .toList();
 
         adaHandleRepository.saveAll(adaHandles);
-        System.out.println(adaHandles);
     }
 
     public String getStakeAddressByAdaHandle(String adaHandle) {
@@ -37,5 +38,11 @@ public class AdaHandleService {
 
     public List<String> getAdaHandlesByPaymentAddress(String paymentAddress) {
         return adaHandleRepository.findAdaHandlesByPaymentAddress(paymentAddress);
+    }
+
+    public void recalculateAdaHandlesFromHistory(List<AdaHandleHistoryItem> adaHandleHistoryItems) {
+        adaHandleRepository.deleteAll();
+        List<AdaHandle> adaHandles = adaHandleHistoryItems.stream().map(AdaHandleHistoryMapper::toAdaHandle).toList();
+        adaHandleRepository.saveAll(adaHandles);
     }
 }

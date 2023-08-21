@@ -1,5 +1,6 @@
 package org.cardanofoundation.tools.adahandle.resolver.controller;
 
+import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,11 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/adahandles/")
+@RequestMapping("/api/v1/ada-handles/")
 public class AdaHandleController {
 
     @Autowired
     private AdaHandleService adaHandleService;
+    @Autowired
+    private AdaHandleHistoryService adaHandleHistoryService;
 
     @GetMapping("/by-stake-address/{stakeAddress}")
     public ResponseEntity<List<String>> getAdaHandlesByStakeAddress(

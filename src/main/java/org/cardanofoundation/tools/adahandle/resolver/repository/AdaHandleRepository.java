@@ -15,8 +15,8 @@ public interface AdaHandleRepository extends JpaRepository<AdaHandle, String> {
     List<String> findStakeAddressByAdaHandle(@Param("adaHandle") String adaHandle);
 
     @Query("SELECT name FROM AdaHandle WHERE stakeAddress = :stakeAddress")
-    List<String> findAdaHandlesByStakeAddress(String stakeAddress);
+    List<String> findAdaHandlesByStakeAddress(@Param("stakeAddress") String stakeAddress);
 
     @Query("SELECT name FROM AdaHandle WHERE paymentAddress = :paymentAddress")
-    List<String> findAdaHandlesByPaymentAddress(String paymentAddress);
+    List<String> findAdaHandlesByPaymentAddress(@Param("paymentAddress") String paymentAddress);
 }

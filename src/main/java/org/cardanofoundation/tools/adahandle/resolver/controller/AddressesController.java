@@ -15,7 +15,7 @@ public class AddressesController {
     @Autowired
     private AdaHandleService adaHandleService;
 
-    @GetMapping("/by-adahandle/{adaHandle}")
+    @GetMapping("/by-ada-handle/{adaHandle}")
     public ResponseEntity<String> getStakeAddressByAdaHandle(
             @PathVariable String adaHandle) {
         return ResponseEntity.ok(adaHandleService.getStakeAddressByAdaHandle(adaHandle));
