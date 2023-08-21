@@ -8,16 +8,24 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/v1/address")
+@RequestMapping("/api/v1/adahandles/")
 public class AdaHandleController {
 
     @Autowired
     private AdaHandleService adaHandleService;
 
-    @GetMapping("/{adaHandle}")
-    public ResponseEntity<String> getStakeAddressByAdaHandle(
-            @PathVariable String adaHandle) {
-        return ResponseEntity.ok(adaHandleService.getStakeAddressByAdaHandle(adaHandle));
+    @GetMapping("/by-stake-address/{stakeAddress}")
+    public ResponseEntity<List<String>> getAdaHandlesByStakeAddress(
+            @PathVariable String stakeAddress) {
+        return ResponseEntity.ok(adaHandleService.getAdaHandlesByStakeAddress(stakeAddress));
+    }
+
+    @GetMapping("/by-payment-address/{paymentAddress}")
+    public ResponseEntity<List<String>> getAdaHandlesByPaymentAddress(
+            @PathVariable String paymentAddress) {
+        return ResponseEntity.ok(adaHandleService.getAdaHandlesByPaymentAddress(paymentAddress));
     }
 }

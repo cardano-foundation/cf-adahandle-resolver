@@ -30,4 +30,12 @@ public class AdaHandleService {
             return adaHandles.get(0);
         }
     }
+
+    public List<String> getAdaHandlesByStakeAddress(String stakeAddress) {
+        return adaHandleRepository.findAdaHandlesByStakeAddress(stakeAddress);
+    }
+
+    public List<String> getAdaHandlesByPaymentAddress(String paymentAddress) {
+        return adaHandleRepository.findAdaHandlesByPaymentAddress(paymentAddress);
+    }
 }

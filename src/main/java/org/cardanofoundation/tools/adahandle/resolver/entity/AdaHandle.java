@@ -21,4 +21,6 @@ public class AdaHandle {
     private String name;
     @Column(name = "stake_address")
     private String stakeAddress;
+    @Column(name = "payment_address")
+    private String paymentAddress;
 }

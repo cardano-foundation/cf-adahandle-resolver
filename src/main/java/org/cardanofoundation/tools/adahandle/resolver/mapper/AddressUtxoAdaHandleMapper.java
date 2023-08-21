@@ -12,7 +12,7 @@ public class AddressUtxoAdaHandleMapper {
         for (final Amt amount : addressUtxoEntity.getAmounts()) {
             if (amount.getPolicyId() != null) {
                 if (amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {
-                    adaHandles.add(new AdaHandle(amount.getAssetName(), addressUtxoEntity.getOwnerStakeAddr()));
+                    adaHandles.add(new AdaHandle(amount.getAssetName(), addressUtxoEntity.getOwnerStakeAddr(), addressUtxoEntity.getOwnerAddr()));
                 }
             }
         }
