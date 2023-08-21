@@ -34,14 +34,14 @@
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-spring-boot-starter</artifactId>
-            <version>0.0.11-beta4</version>
+            <version>0.0.11</version>
         </dependency>
 
         <!-- Yaci Store utxo spring boot starter -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-utxo-spring-boot-starter</artifactId>
-            <version>0.0.11-beta4</version>
+            <version>0.0.11</version>
         </dependency>
 
         <dependency>

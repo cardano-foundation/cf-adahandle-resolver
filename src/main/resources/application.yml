@@ -4,7 +4,9 @@ server:
 #The following flyway section is mandatory
 spring:
   flyway:
-    locations: classpath:db/migration/{vendor}
+    locations:
+      - classpath:db/migration/{vendor}
+      - classpath:db/migration/adahandle
     out-of-order: true
 
 #Api prefix for out-of-box REST API
