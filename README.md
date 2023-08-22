@@ -8,14 +8,13 @@
 <a href="https://discord.gg/4WVNHgQ7bP"><img alt="Discord" src="https://img.shields.io/discord/1022471509173882950"></a>
 </p>
 
-This project aims to provide a scoped indexer for retrieving ADA Handle information from the Cardano blockchain 
-and exposing it via REST using [Yaci Store](https://github.com/bloxbean/yaci-store).
+This project aims to provide a scoped indexer for retrieving ADA Handle information from the Cardano blockchain and exposing it via REST using [Yaci Store](https://github.com/bloxbean/yaci-store).
 
 ## 🧪 Test Reports
 
 To ensure the stability and reliability of this project, unit tests have been implemented. By clicking on the link below, you can access the detailed test report.
 
-📊 [Coverage Report](https://cardano-foundation.github.io/cf-ledger-consumer/coverage-report/)
+📊 [Coverage Report](https://cardano-foundation.github.io/adahandle-resolver/coverage-report/)
 
 ## Getting Started
 
