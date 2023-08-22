@@ -11,24 +11,37 @@
 
 This project aims to provide a scoped indexer for retrieving ADA Handle information from the Cardano blockchain and exposing it via REST using [Yaci Store](https://github.com/bloxbean/yaci-store).
 
+## 🚀 Getting Started
+
+### 🐳 Docker
+
+```zsh
+docker run -p 9095:9095 cardanofoundation/adahandle-resolver:latest
+```
+
+### 🪶 Maven 
+
+#### Prerequisites
+
+Java 17
+
+#### Build & Run
+
+```
+git clone https://github.com/cardano-foundation/adahandle-resolver.git
+cd adahandle-resolver
+./mvnw clean package
+java -jar target/adahandle-resolver-0.0.1-SNAPSHOT.jar
+```
+
 ## 🧪 Test Reports
 
 To ensure the stability and reliability of this project, unit tests have been implemented. By clicking on the link below, you can access the detailed test report.
 
 📊 [Coverage Report](https://cardano-foundation.github.io/adahandle-resolver/coverage-report/)
 
-## Getting Started
 
-### Prerequisites
-
-Java 17
-
-```
-./mvnw clean package
-java -jar target/adahandle-resolver-0.0.1-SNAPSHOT.jar
-```
-
-## API Endpoints
+## 🤖API Endpoints
 
 | Endpoint                                                         | Description                                             |
 |------------------------------------------------------------------|---------------------------------------------------------|
