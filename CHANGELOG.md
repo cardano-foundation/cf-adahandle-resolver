@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.2](https://github.com/cardano-foundation/adahandle-resolver/compare/v0.0.1...v0.0.2) (2023-08-22)
+
+
+### Features
+
+* add publish to dockerhub pipeline ([aa5916b](https://github.com/cardano-foundation/adahandle-resolver/commit/aa5916b04e6088a440b737302a711036c1cc00ea))
+
 ## 0.0.1 (2023-08-22)
 
 
