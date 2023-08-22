@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3](https://github.com/cardano-foundation/adahandle-resolver/compare/v0.0.2...v0.0.3) (2023-08-22)
+
+
+### Bug Fixes
+
+* **docker:** change short description to have less than 100 bytes as required by DockerHub ([b6516d2](https://github.com/cardano-foundation/adahandle-resolver/commit/b6516d2a621d7a42b01152637ef1ea09a574062d))
+* prevent error 'no matching manifest for linux/arm64/v8' by rollback the gh action to v3 and add push for the readme description ([9aeaeca](https://github.com/cardano-foundation/adahandle-resolver/commit/9aeaeca3c8ec477a58c8d5d379a65013fec0571c))
+
 ## [0.0.2](https://github.com/cardano-foundation/adahandle-resolver/compare/v0.0.1...v0.0.2) (2023-08-22)
 
 
