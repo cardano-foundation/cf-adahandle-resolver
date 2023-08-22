@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdaHandleMapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.mapper</a> &gt; <span class="el_source">AdaHandleMapper.java</span></div><h1>AdaHandleMapper.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.mapper;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.model.AddressUtxoEntity;
+import com.bloxbean.cardano.yaci.store.common.domain.Amt;
+import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
+
+import java.util.ArrayList;
+
+<span class="nc" id="L8">public class AdaHandleMapper {</span>
+    public static ArrayList&lt;AdaHandle&gt; toAdaHandles(AddressUtxoEntity addressUtxoEntity) {
+<span class="nc" id="L10">        final ArrayList&lt;AdaHandle&gt; adaHandles = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L11">        final String ADA_HANDLE_POLICY_ID = &quot;f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a&quot;;</span>
+<span class="nc bnc" id="L12" title="All 2 branches missed.">        for (final Amt amount : addressUtxoEntity.getAmounts()) {</span>
+<span class="nc bnc" id="L13" title="All 2 branches missed.">            if (amount.getPolicyId() != null) {</span>
+<span class="nc bnc" id="L14" title="All 2 branches missed.">                if (amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {</span>
+<span class="nc" id="L15">                    adaHandles.add(new AdaHandle(amount.getAssetName(), addressUtxoEntity.getOwnerStakeAddr(), addressUtxoEntity.getOwnerAddr()));</span>
+                }
+            }
+<span class="nc" id="L18">        }</span>
+<span class="nc" id="L19">        return adaHandles;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

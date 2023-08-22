@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdaHandleHistoryMapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.mapper</a> &gt; <span class="el_source">AdaHandleHistoryMapper.java</span></div><h1>AdaHandleHistoryMapper.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.mapper;
+
+import com.bloxbean.cardano.yaci.store.common.domain.Amt;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.model.AddressUtxoEntity;
+import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
+import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
+
+import java.util.ArrayList;
+
+<span class="nc" id="L10">public class AdaHandleHistoryMapper {</span>
+    public static ArrayList&lt;AdaHandleHistoryItem&gt; fromAddressUtxoEntities(AddressUtxoEntity addressUtxoEntity) {
+<span class="nc" id="L12">        final ArrayList&lt;AdaHandleHistoryItem&gt; adaHandleHistoryItems = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L13">        final String ADA_HANDLE_POLICY_ID = &quot;f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a&quot;;</span>
+<span class="nc bnc" id="L14" title="All 2 branches missed.">        for (final Amt amount : addressUtxoEntity.getAmounts()) {</span>
+<span class="nc bnc" id="L15" title="All 2 branches missed.">            if (amount.getPolicyId() != null) {</span>
+<span class="nc bnc" id="L16" title="All 2 branches missed.">                if (amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {</span>
+<span class="nc" id="L17">                    AdaHandleHistoryItem adaHandleHistoryItem = new AdaHandleHistoryItem();</span>
+<span class="nc" id="L18">                    adaHandleHistoryItem.setName(amount.getAssetName());</span>
+<span class="nc" id="L19">                    adaHandleHistoryItem.setStakeAddress(addressUtxoEntity.getOwnerStakeAddr());</span>
+<span class="nc" id="L20">                    adaHandleHistoryItem.setPaymentAddress(addressUtxoEntity.getOwnerAddr());</span>
+<span class="nc" id="L21">                    adaHandleHistoryItem.setSlot(addressUtxoEntity.getSlot());</span>
+<span class="nc" id="L22">                    adaHandleHistoryItems.add(adaHandleHistoryItem);</span>
+                }
+            }
+<span class="nc" id="L25">        }</span>
+<span class="nc" id="L26">        return adaHandleHistoryItems;</span>
+    }
+
+    public static AdaHandle toAdaHandle(AdaHandleHistoryItem adaHandleHistoryItem) {
+<span class="fc" id="L30">        return new AdaHandle(adaHandleHistoryItem.getName(), adaHandleHistoryItem.getStakeAddress(), adaHandleHistoryItem.getPaymentAddress());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>
