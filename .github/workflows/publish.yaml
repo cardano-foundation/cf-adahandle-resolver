@@ -74,5 +74,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ env.DOCKER_LATEST_IMAGE_TAG }}
-            ${{ env.DOCKER_IMAGE_NAME }}:${{ env.ARTIFACT_VERSION }}
+            cardanofoundation/${{ env.DOCKER_LATEST_IMAGE_TAG }}
+            cardanofoundation/${{ env.DOCKER_IMAGE_NAME }}:${{ env.ARTIFACT_VERSION }}
