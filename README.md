@@ -1,9 +1,10 @@
 # ADA Handle Resolver 🚧️ Under Construction 🚧️
 
 <p align="left">
-<img alt="Tests" src="https://github.com/cardano-foundation/adahandle-resolver/actions/workflows/tests.yaml/badge.svg" />
+<img alt="Tests" src="https://github.com/cardano-foundation/adahandle-resolver/actions/workflows/tests.yaml/badge.svg?branch=main" />
 <img alt="Coverage" src="https://github.com/cardano-foundation/adahandle-resolver/blob/gh-pages/badges/jacoco.svg?raw=true" />
 <img alt="Release" src="https://github.com/cardano-foundation/adahandle-resolver/actions/workflows/release.yaml/badge.svg?branch=main" />
+<img alt="Publish" src="https://github.com/cardano-foundation/adahandle-resolver/actions/workflows/publish.yaml/badge.svg?branch=main" />
 <a href="https://conventionalcommits.org"><img alt="conventionalcommits" src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits" /></a>
 <a href="https://discord.gg/4WVNHgQ7bP"><img alt="Discord" src="https://img.shields.io/discord/1022471509173882950"></a>
 </p>
@@ -29,9 +30,12 @@ java -jar target/adahandle-resolver-0.0.1-SNAPSHOT.jar
 
 ## API Endpoints
 
-- http://localhost:9095/api/v1/ada-handles/by-stake-address : [GET]s the ADA Handle held by a given stake address
-- http://localhost:9095/api/v1/ada-handles/by-payment-address : [GET]s the ADA Handle held by a given payment address
-- http://localhost:9095/api/v1/addresses/by-ada-handle/{adaHandle} : [GET]s the stake address behind a provided ADA Handle
-- http://localhost:9095/api/v1/ada-handles/by-payment-address : [GET]s the payment address behind a provided ADA Handle
-**Swagger UI:**  http://localhost:9095/swagger-ui.html
+| Endpoint                                                         | Description                                             |
+|------------------------------------------------------------------|---------------------------------------------------------|
+| http://localhost:9095/swagger-ui.html                            | **Swagger UI** for the API endpoints                    |
+| http://localhost:9095/api/v1/ada-handles/by-stake-address        | [GET]s the ADA Handle held by a given stake address     |
+| http://localhost:9095/api/v1/ada-handles/by-payment-address      | [GET]s the ADA Handle held by a given payment address   |
+| http://localhost:9095/api/v1/addresses/by-ada-handle/{adaHandle} | [GET]s the stake address behind a provided ADA Handle   |
+| http://localhost:9095/api/v1/ada-handles/by-payment-address      | [GET]s the payment address behind a provided ADA Handle |
+
 
