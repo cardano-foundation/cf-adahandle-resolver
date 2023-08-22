@@ -10,7 +10,7 @@
 
     <groupId>org.cardanofoundation.tools</groupId>
     <artifactId>adahandle-resolver</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.0.3-SNAPSHOT</version>
     <name>ADA Handle Resolver</name>
     <description>A scoped indexer for retrieving ADA Handle information from the Cardano blockchain and exposing it via REST using yaci-store</description>
 
