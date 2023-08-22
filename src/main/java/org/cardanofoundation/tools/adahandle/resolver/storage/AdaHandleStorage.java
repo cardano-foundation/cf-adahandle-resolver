@@ -11,6 +11,7 @@ import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,7 +54,7 @@ public class AdaHandleStorage extends UtxoStorageImpl {
             adaHandleHistoryService.saveAdaHandleHistoryItems(addressUtxoEntities);
         }
 
-        addressUtxoEntities = utxoRepository.saveAll(addressUtxoEntities);
+        addressUtxoEntities = utxoRepository.saveAll(new ArrayList<>());
         return Optional.of(addressUtxoEntities.stream()
                 .map(mapper::toAddressUtxo)
                 .toList());
