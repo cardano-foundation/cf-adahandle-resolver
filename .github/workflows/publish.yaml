@@ -70,7 +70,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: cardanofoundation/adahandle-resolver
-          short-description: ${{ github.event.repository.description }}
+          short-description: Scoped indexer for ADA Handle information, exposed via REST using Yaci Store
 
       - name: Build and Push docker image
         uses: docker/build-push-action@v3
