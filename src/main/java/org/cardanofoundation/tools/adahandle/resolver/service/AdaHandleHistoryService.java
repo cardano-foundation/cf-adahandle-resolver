@@ -33,4 +33,12 @@ public class AdaHandleHistoryService {
                 .map(AdaHandleHistoryMapper::fromAddressUtxoEntities).flatMap(List::stream).toList();
         adaHandleHistoryRepository.saveAll(adaHandleHistoryItems);
     }
+
+    public void saveAll(List<AdaHandleHistoryItem> adaHandleHistoryItems) {
+        adaHandleHistoryRepository.saveAll(adaHandleHistoryItems);
+    }
+
+    public void deleteAll() {
+        adaHandleHistoryRepository.deleteAll();
+    }
 }
