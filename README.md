@@ -30,8 +30,8 @@ java -jar target/adahandle-resolver-0.0.1-SNAPSHOT.jar
 
 ## API Endpoints
 
-- http://localhost:9095/ada-handles/by-stake-address : [GET]s the ADA Handle held by a given stake address
-- http://localhost:9095/ada-handles/by-payment-address : [GET]s the ADA Handle held by a given payment address
-- http://localhost:9095/addresses/by-ada-handle/{adaHandle} : [GET]s the stake address behind a provided ADA Handle
-- http://localhost:9095/ada-handles/by-payment-address : [GET]s the payment address behind a provided ADA Handle
+- http://localhost:9095/api/v1/ada-handles/by-stake-address : [GET]s the ADA Handle held by a given stake address
+- http://localhost:9095/api/v1/ada-handles/by-payment-address : [GET]s the ADA Handle held by a given payment address
+- http://localhost:9095/api/v1/addresses/by-ada-handle/{adaHandle} : [GET]s the stake address behind a provided ADA Handle
+- http://localhost:9095/api/v1/ada-handles/by-payment-address : [GET]s the payment address behind a provided ADA Handle
 **Swagger UI:**  http://localhost:9095/swagger-ui.html
