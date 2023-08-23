@@ -29,10 +29,10 @@ import java.util.List;
     }
 
     public void saveAdaHandleHistoryItems(List&lt;AddressUtxoEntity&gt; addressUtxoList) {
-<span class="nc" id="L32">        List&lt;AdaHandleHistoryItem&gt; adaHandleHistoryItems = addressUtxoList.stream()</span>
-<span class="nc" id="L33">                .map(AdaHandleHistoryMapper::fromAddressUtxoEntities).flatMap(List::stream).toList();</span>
-<span class="nc" id="L34">        adaHandleHistoryRepository.saveAll(adaHandleHistoryItems);</span>
-<span class="nc" id="L35">    }</span>
+<span class="fc" id="L32">        List&lt;AdaHandleHistoryItem&gt; adaHandleHistoryItems = addressUtxoList.stream()</span>
+<span class="fc" id="L33">                .map(AdaHandleHistoryMapper::fromAddressUtxoEntities).flatMap(List::stream).toList();</span>
+<span class="fc" id="L34">        adaHandleHistoryRepository.saveAll(adaHandleHistoryItems);</span>
+<span class="fc" id="L35">    }</span>
 
     public void saveAll(List&lt;AdaHandleHistoryItem&gt; adaHandleHistoryItems) {
 <span class="fc" id="L38">        adaHandleHistoryRepository.saveAll(adaHandleHistoryItems);</span>

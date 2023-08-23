@@ -16,12 +16,12 @@ import java.util.List;
     private AdaHandleRepository adaHandleRepository;
 
     public void saveAllAdaHandles(List&lt;AddressUtxoEntity&gt; addressUtxoList) {
-<span class="nc" id="L19">        List&lt;AdaHandle&gt; adaHandles = addressUtxoList.stream()</span>
-<span class="nc" id="L20">                .map(AdaHandleMapper::toAdaHandles).flatMap(List::stream)</span>
-<span class="nc" id="L21">                .toList();</span>
+<span class="fc" id="L19">        List&lt;AdaHandle&gt; adaHandles = addressUtxoList.stream()</span>
+<span class="fc" id="L20">                .map(AdaHandleMapper::toAdaHandles).flatMap(List::stream)</span>
+<span class="fc" id="L21">                .toList();</span>
 
-<span class="nc" id="L23">        adaHandleRepository.saveAll(adaHandles);</span>
-<span class="nc" id="L24">    }</span>
+<span class="fc" id="L23">        adaHandleRepository.saveAll(adaHandles);</span>
+<span class="fc" id="L24">    }</span>
 
     public String getStakeAddressByAdaHandle(String adaHandle) {
 <span class="fc" id="L27">        List&lt;String&gt; adaHandles = adaHandleRepository.findStakeAddressByAdaHandle(adaHandle);</span>
