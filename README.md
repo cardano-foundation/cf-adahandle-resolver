@@ -51,4 +51,19 @@ To ensure the stability and reliability of this project, unit tests have been im
 | http://localhost:9095/api/v1/addresses/by-ada-handle/{adaHandle} | [GET]s the stake address behind a provided ADA Handle   |
 | http://localhost:9095/api/v1/ada-handles/by-payment-address      | [GET]s the payment address behind a provided ADA Handle |
 
+## 🌱 Environment Variables
 
+Possible profiles: `mainnet`, `preprod`, `preview`, `local-node`, `h2`
+
+| Name                   | Description                                                    | Default Value                      |
+|------------------------|----------------------------------------------------------------|------------------------------------|
+| SPRING_ACTIVE_PROFILES | The active profile of the application (dev, prod)              | mainnet,h2                         |
+| PORT                   | The port on which the server will listen for incoming requests | 9095                               |
+| DB_URL                 | The URL of the database                                        | jdbc:h2:mem:mydb                   |
+| DB_USERNAME            | The username of the database user                              | sa                                 |
+| DB_PASSWORD            | The password of the database user                              | password                           |
+| REMOTE_NODE_URL        | The URL of the remote node                                     | relays-new.cardano-mainnet.iohk.io |
+| REMOTE_NODE_PORT       | The port of the remote node                                    | 3001                               |
+| LOCAL_NODE_SOCKET_PATH | The path of the local node socket                              |                                    |
+| LOCAL_NODE_HOST        | The host of the local node                                     |                                    |
+| LOCAL_NODE_PORT        | The port of the local node                                     |                                    |
