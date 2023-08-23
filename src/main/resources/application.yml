@@ -1,19 +1,83 @@
 server:
-  port: 9095
+  port: ${PORT:9095}
 
-#The following flyway section is mandatory
 spring:
+  profiles:
+    active: ${SPRING_ACTIVE_PROFILES:"mainnet,h2"}
+  main:
+    banner-mode: off
   flyway:
     locations:
       - classpath:db/migration/{vendor}
       - classpath:db/migration/adahandle
     out-of-order: true
+  datasource:
+    url: ${DB_URL:jdbc:h2:mem:mydb}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:password}
 
-#Api prefix for out-of-box REST API
 apiPrefix: /api/v1
 
 logging:
   file:
-    name: ./logs/yaci-store.log
+    name: ./logs/adahandle-resolver.log
 
-## Other Yaci Store properties can be configured here or in application properties under config folder. ##
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - prometheus
+
+store:
+  cardano:
+    host: ${REMOTE_NODE_URL:relays-new.cardano-mainnet.iohk.io}
+    port: ${REMOTE_NODE_PORT:3001}
+    protocol-magic: 764824073
+    # 47931310 is the slot number close to the first AdaHandle minting transaction
+    # 89f93419845d5... is the hash that corresponds to the block with the above slot number
+    sync-start-slot: 47931310
+    sync-start-blockhash: 89f93419845d5f6ce8040fd5eeedda93d764c8569f7c2cc6802a8429a0da877b
+  blocks:
+    epoch-calculation-interval=14400:  # 14400 = 4 hours
+---
+spring:
+  config:
+    activate:
+      on-profile: h2
+  h2:
+    console:
+      enabled: true
+---
+spring:
+  config:
+    activate:
+      on-profile: preprod
+store:
+  cardano:
+    host: ${REMOTE_NODE_URL:preprod-node.world.dev.cardano.org}
+    port: ${REMOTE_NODE_PORT:30000}
+    protocol-magic: ${PROTOCOL_MAGIC:1}
+---
+spring:
+  config:
+    activate:
+      on-profile: preview
+store:
+  cardano:
+    host: ${REMOTE_NODE_URL:preview-node.world.dev.cardano.org}
+    port: ${REMOTE_NODE_PORT:30002}
+    protocol-magic: ${PROTOCOL_MAGIC:2}
+---
+spring:
+  config:
+    activate:
+      on-profile: local-node
+store:
+  cardano:
+      n2c-node-socket-path: ${LOCAL_NODE_SOCKET_PATH}
+      n2c-host: ${LOCAL_NODE_HOST}
+      n2c-port: ${LOCAL_NODE_PORT}
+---
