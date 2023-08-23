@@ -41,7 +41,7 @@ To ensure the stability and reliability of this project, unit tests have been im
 📊 [Coverage Report](https://cardano-foundation.github.io/adahandle-resolver/coverage-report/)
 
 
-## 🤖API Endpoints
+## 🤖 API Endpoints
 
 | Endpoint                                                         | Description                                             |
 |------------------------------------------------------------------|---------------------------------------------------------|

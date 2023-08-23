@@ -38,6 +38,7 @@ jobs:
 
       - name: Generate JaCoCo Badge
         uses: cicirello/jacoco-badge-generator@v2
+        if: github.ref == 'refs/heads/main'
         with:
           generate-branches-badge: true
           badges-directory: build/reports/jacoco/test/html/badges
