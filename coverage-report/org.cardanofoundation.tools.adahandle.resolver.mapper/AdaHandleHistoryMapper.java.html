@@ -9,25 +9,27 @@ import java.util.ArrayList;
 
 <span class="nc" id="L10">public class AdaHandleHistoryMapper {</span>
     public static ArrayList&lt;AdaHandleHistoryItem&gt; fromAddressUtxoEntities(AddressUtxoEntity addressUtxoEntity) {
-<span class="nc" id="L12">        final ArrayList&lt;AdaHandleHistoryItem&gt; adaHandleHistoryItems = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L13">        final String ADA_HANDLE_POLICY_ID = &quot;f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a&quot;;</span>
-<span class="nc bnc" id="L14" title="All 2 branches missed.">        for (final Amt amount : addressUtxoEntity.getAmounts()) {</span>
-<span class="nc bnc" id="L15" title="All 2 branches missed.">            if (amount.getPolicyId() != null) {</span>
-<span class="nc bnc" id="L16" title="All 2 branches missed.">                if (amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {</span>
-<span class="nc" id="L17">                    AdaHandleHistoryItem adaHandleHistoryItem = new AdaHandleHistoryItem();</span>
-<span class="nc" id="L18">                    adaHandleHistoryItem.setName(amount.getAssetName());</span>
-<span class="nc" id="L19">                    adaHandleHistoryItem.setStakeAddress(addressUtxoEntity.getOwnerStakeAddr());</span>
-<span class="nc" id="L20">                    adaHandleHistoryItem.setPaymentAddress(addressUtxoEntity.getOwnerAddr());</span>
-<span class="nc" id="L21">                    adaHandleHistoryItem.setSlot(addressUtxoEntity.getSlot());</span>
-<span class="nc" id="L22">                    adaHandleHistoryItems.add(adaHandleHistoryItem);</span>
+<span class="fc" id="L12">        final ArrayList&lt;AdaHandleHistoryItem&gt; adaHandleHistoryItems = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L13">        final String ADA_HANDLE_POLICY_ID = &quot;f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a&quot;;</span>
+<span class="fc bfc" id="L14" title="All 2 branches covered.">        if (addressUtxoEntity.getAmounts() != null) {</span>
+<span class="fc bfc" id="L15" title="All 2 branches covered.">            for (final Amt amount : addressUtxoEntity.getAmounts()) {</span>
+<span class="fc bfc" id="L16" title="All 2 branches covered.">                if (amount.getPolicyId() != null) {</span>
+<span class="fc bfc" id="L17" title="All 2 branches covered.">                    if (amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {</span>
+<span class="fc" id="L18">                        AdaHandleHistoryItem adaHandleHistoryItem = new AdaHandleHistoryItem();</span>
+<span class="fc" id="L19">                        adaHandleHistoryItem.setName(amount.getAssetName());</span>
+<span class="fc" id="L20">                        adaHandleHistoryItem.setStakeAddress(addressUtxoEntity.getOwnerStakeAddr());</span>
+<span class="fc" id="L21">                        adaHandleHistoryItem.setPaymentAddress(addressUtxoEntity.getOwnerAddr());</span>
+<span class="fc" id="L22">                        adaHandleHistoryItem.setSlot(addressUtxoEntity.getSlot());</span>
+<span class="fc" id="L23">                        adaHandleHistoryItems.add(adaHandleHistoryItem);</span>
+                    }
                 }
-            }
-<span class="nc" id="L25">        }</span>
-<span class="nc" id="L26">        return adaHandleHistoryItems;</span>
+<span class="fc" id="L26">            }</span>
+        }
+<span class="fc" id="L28">        return adaHandleHistoryItems;</span>
     }
 
     public static AdaHandle toAdaHandle(AdaHandleHistoryItem adaHandleHistoryItem) {
-<span class="fc" id="L30">        return new AdaHandle(adaHandleHistoryItem.getName(), adaHandleHistoryItem.getStakeAddress(), adaHandleHistoryItem.getPaymentAddress());</span>
+<span class="fc" id="L32">        return new AdaHandle(adaHandleHistoryItem.getName(), adaHandleHistoryItem.getStakeAddress(), adaHandleHistoryItem.getPaymentAddress());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

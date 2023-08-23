@@ -11,8 +11,8 @@ import java.util.ArrayList;
 <span class="fc" id="L11">        final String ADA_HANDLE_POLICY_ID = &quot;f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a&quot;;</span>
 <span class="fc bfc" id="L12" title="All 2 branches covered.">        if (addressUtxoEntity.getAmounts() != null) {</span>
 <span class="fc bfc" id="L13" title="All 2 branches covered.">            for (final Amt amount : addressUtxoEntity.getAmounts()) {</span>
-<span class="pc bpc" id="L14" title="1 of 2 branches missed.">                if (amount.getPolicyId() != null) {</span>
-<span class="pc bpc" id="L15" title="1 of 2 branches missed.">                    if (amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {</span>
+<span class="fc bfc" id="L14" title="All 2 branches covered.">                if (amount.getPolicyId() != null) {</span>
+<span class="fc bfc" id="L15" title="All 2 branches covered.">                    if (amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {</span>
 <span class="fc" id="L16">                        adaHandles.add(new AdaHandle(amount.getAssetName(), addressUtxoEntity.getOwnerStakeAddr(), addressUtxoEntity.getOwnerAddr()));</span>
                     }
                 }
