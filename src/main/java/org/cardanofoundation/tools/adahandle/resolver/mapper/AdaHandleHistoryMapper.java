@@ -11,15 +11,17 @@ public class AdaHandleHistoryMapper {
     public static ArrayList<AdaHandleHistoryItem> fromAddressUtxoEntities(AddressUtxoEntity addressUtxoEntity) {
         final ArrayList<AdaHandleHistoryItem> adaHandleHistoryItems = new ArrayList<>();
         final String ADA_HANDLE_POLICY_ID = "f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a";
-        for (final Amt amount : addressUtxoEntity.getAmounts()) {
-            if (amount.getPolicyId() != null) {
-                if (amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {
-                    AdaHandleHistoryItem adaHandleHistoryItem = new AdaHandleHistoryItem();
-                    adaHandleHistoryItem.setName(amount.getAssetName());
-                    adaHandleHistoryItem.setStakeAddress(addressUtxoEntity.getOwnerStakeAddr());
-                    adaHandleHistoryItem.setPaymentAddress(addressUtxoEntity.getOwnerAddr());
-                    adaHandleHistoryItem.setSlot(addressUtxoEntity.getSlot());
-                    adaHandleHistoryItems.add(adaHandleHistoryItem);
+        if (addressUtxoEntity.getAmounts() != null) {
+            for (final Amt amount : addressUtxoEntity.getAmounts()) {
+                if (amount.getPolicyId() != null) {
+                    if (amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {
+                        AdaHandleHistoryItem adaHandleHistoryItem = new AdaHandleHistoryItem();
+                        adaHandleHistoryItem.setName(amount.getAssetName());
+                        adaHandleHistoryItem.setStakeAddress(addressUtxoEntity.getOwnerStakeAddr());
+                        adaHandleHistoryItem.setPaymentAddress(addressUtxoEntity.getOwnerAddr());
+                        adaHandleHistoryItem.setSlot(addressUtxoEntity.getSlot());
+                        adaHandleHistoryItems.add(adaHandleHistoryItem);
+                    }
                 }
             }
         }

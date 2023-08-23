@@ -3,17 +3,18 @@ package org.cardanofoundation.tools.adahandle.resolver.mapper;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.model.AddressUtxoEntity;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
-import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
 import org.junit.jupiter.api.Test;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-public class AdaHandleHistoryMapperTest {
+public class AdaHandleMapperTest {
 
     @Test
-    public void testFromAddressUtxoEntities() {
+    public void testToAdaHandles() {
         ArrayList<AddressUtxoEntity> addressUtxoEntities = new ArrayList<>();
 
         addressUtxoEntities.add(AddressUtxoEntity.builder()
@@ -34,13 +35,6 @@ public class AdaHandleHistoryMapperTest {
                 .assetName("Henry")
                 .build());
 
-        addressUtxoEntities.add(AddressUtxoEntity.builder()
-                .ownerAddr("addr1vk4ua2cf830jqwa3s59dgasertugnu3598pmlwdk3uvpr2mv2xc3x6h7p")
-                .ownerStakeAddr("stake1vk4ua2crberberbrtbdk3uvpr2mv2xc3x6h7p")
-                .amounts(amounts)
-                .slot(1201L)
-                .build());
-
         amounts.add(Amt.builder()
                 .policyId("a0aa112227bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca5678")
                 .assetName("SpaceBoy123")
@@ -50,12 +44,20 @@ public class AdaHandleHistoryMapperTest {
                 .assetName("lovelace")
                 .build());
 
-        List<AdaHandleHistoryItem> adaHandles = addressUtxoEntities.stream()
-                .map(AdaHandleHistoryMapper::fromAddressUtxoEntities).flatMap(List::stream)
+        addressUtxoEntities.add(AddressUtxoEntity.builder()
+                .ownerAddr("addr1vk4ua2cf830jqwa3s59dgasertugnu3598pmlwdk3uvpr2mv2xc3x6h7p")
+                .ownerStakeAddr("stake1vk4ua2crberberbrtbdk3uvpr2mv2xc3x6h7p")
+                .amounts(amounts)
+                .slot(1201L)
+                .build());
+
+        List<AdaHandle> adaHandles = addressUtxoEntities.stream()
+                .map(AdaHandleMapper::toAdaHandles).flatMap(List::stream)
                 .toList();
 
         assertThat(adaHandles, hasSize(2));
         assertThat(adaHandles, hasItem(hasProperty("name", is("Tom"))));
         assertThat(adaHandles, hasItem(hasProperty("name", is("Henry"))));
     }
+
 }
