@@ -64,13 +64,16 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      #- name: Docker Hub Description
-      #  uses: peter-evans/dockerhub-description@v3
-      #  with:
-      #    username: ${{ secrets.DOCKERHUB_USERNAME }}
-      #    password: ${{ secrets.DOCKERHUB_TOKEN }}
-      #    repository: cardanofoundation/adahandle-resolver
-      #    short-description: Scoped indexer for ADA Handle information, exposed via REST using Yaci Store
+      - name: Docker Hub Description
+        uses: peter-evans/dockerhub-description@v3
+        if: |
+          steps.metadata.outputs.BRANCH == 'main' ||
+          steps.metadata.outputs.DEVELOP_SNAPSHOT_OK == 'true'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: cardanofoundation/adahandle-resolver
+          short-description: Scoped indexer for ADA Handle information, exposed via REST using Yaci Store
 
       - name: Build and Push docker image
         uses: docker/build-push-action@v3
