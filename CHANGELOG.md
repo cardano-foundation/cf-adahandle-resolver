@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.5](https://github.com/cardano-foundation/adahandle-resolver/compare/v0.0.4...v0.0.5) (2023-08-23)
+
+
+### Features
+
+* add docker description in pipeline ([c0e0025](https://github.com/cardano-foundation/adahandle-resolver/commit/c0e00255ca9de8c4fd855ef8e38f3d720ced5a71))
+
 ## [0.0.4](https://github.com/cardano-foundation/adahandle-resolver/compare/v0.0.3...v0.0.4) (2023-08-23)
 
 
