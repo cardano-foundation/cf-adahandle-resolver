@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.4](https://github.com/cardano-foundation/adahandle-resolver/compare/v0.0.3...v0.0.4) (2023-08-23)
+
+
+### Features
+
+* add environment variables to make the tool customizable ([4cdf5ac](https://github.com/cardano-foundation/adahandle-resolver/commit/4cdf5acb60f405b102cf6ac3fb5b2787b3eed110))
+
 ## [0.0.3](https://github.com/cardano-foundation/adahandle-resolver/compare/v0.0.2...v0.0.3) (2023-08-22)
 
 
