@@ -7,16 +7,18 @@ import java.util.ArrayList;
 
 <span class="nc" id="L8">public class AdaHandleMapper {</span>
     public static ArrayList&lt;AdaHandle&gt; toAdaHandles(AddressUtxoEntity addressUtxoEntity) {
-<span class="nc" id="L10">        final ArrayList&lt;AdaHandle&gt; adaHandles = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L11">        final String ADA_HANDLE_POLICY_ID = &quot;f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a&quot;;</span>
-<span class="nc bnc" id="L12" title="All 2 branches missed.">        for (final Amt amount : addressUtxoEntity.getAmounts()) {</span>
-<span class="nc bnc" id="L13" title="All 2 branches missed.">            if (amount.getPolicyId() != null) {</span>
-<span class="nc bnc" id="L14" title="All 2 branches missed.">                if (amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {</span>
-<span class="nc" id="L15">                    adaHandles.add(new AdaHandle(amount.getAssetName(), addressUtxoEntity.getOwnerStakeAddr(), addressUtxoEntity.getOwnerAddr()));</span>
+<span class="fc" id="L10">        final ArrayList&lt;AdaHandle&gt; adaHandles = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L11">        final String ADA_HANDLE_POLICY_ID = &quot;f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a&quot;;</span>
+<span class="fc bfc" id="L12" title="All 2 branches covered.">        if (addressUtxoEntity.getAmounts() != null) {</span>
+<span class="fc bfc" id="L13" title="All 2 branches covered.">            for (final Amt amount : addressUtxoEntity.getAmounts()) {</span>
+<span class="pc bpc" id="L14" title="1 of 2 branches missed.">                if (amount.getPolicyId() != null) {</span>
+<span class="pc bpc" id="L15" title="1 of 2 branches missed.">                    if (amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {</span>
+<span class="fc" id="L16">                        adaHandles.add(new AdaHandle(amount.getAssetName(), addressUtxoEntity.getOwnerStakeAddr(), addressUtxoEntity.getOwnerAddr()));</span>
+                    }
                 }
-            }
-<span class="nc" id="L18">        }</span>
-<span class="nc" id="L19">        return adaHandles;</span>
+<span class="fc" id="L19">            }</span>
+        }
+<span class="fc" id="L21">        return adaHandles;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

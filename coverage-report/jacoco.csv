@@ -6,6 +6,6 @@ ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.storage,AdaHa
 ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.service,AdaHandleHistoryService,14,29,0,0,4,10,1,5,1,5
 ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.service,AdaHandleService,16,41,1,1,6,10,2,5,1,5
 ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.entity,AdaHandleHistoryItem,26,30,0,0,3,5,7,5,7,5
-ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.entity,AdaHandle,21,15,0,0,4,2,6,2,6,2
+ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.entity,AdaHandle,18,18,0,0,3,3,5,3,5,3
 ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.mapper,AdaHandleHistoryMapper,56,10,6,0,14,1,5,1,2,1
-ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.mapper,AdaHandleMapper,43,0,6,0,9,0,5,0,2,0
+ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.mapper,AdaHandleMapper,3,43,2,6,1,9,3,3,1,1
