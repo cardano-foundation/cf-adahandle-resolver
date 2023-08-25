@@ -12,7 +12,7 @@ spring:
       - classpath:db/migration/adahandle
     out-of-order: true
   datasource:
-    url: ${DB_URL:jdbc:h2:mem:mydb}
+    url: ${DB_URL:jdbc:h2:./data/db}
     username: ${DB_USERNAME:sa}
     password: ${DB_PASSWORD:password}
 
