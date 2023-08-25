@@ -1,0 +1,23 @@
+{{- $root := . -}}
+{{- range $v := $.Values.adaHandleResolver.ingressDomains }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "adahandle-resolver-{{ $v.name }}"
+spec:
+  rules:
+    - host: "{{ $v.domain }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: adahandle-resolver
+                port:
+                  number: {{ $root.Values.adaHandleResolver.service.port }}
+  tls:
+    - hosts:
+        - "{{ $v.domain }}"
+{{- end }}

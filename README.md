@@ -64,6 +64,6 @@ Possible profiles: `mainnet`, `preprod`, `preview`, `local-node`, `h2`
 | DB_PASSWORD            | The password of the database user                              | password                           |
 | REMOTE_NODE_URL        | The URL of the remote node                                     | relays-new.cardano-mainnet.iohk.io |
 | REMOTE_NODE_PORT       | The port of the remote node                                    | 3001                               |
-| LOCAL_NODE_SOCKET_PATH | The path of the local node socket                              |                                    |
-| LOCAL_NODE_HOST        | The host of the local node                                     |                                    |
-| LOCAL_NODE_PORT        | The port of the local node                                     |                                    |
+| LOCAL_NODE_SOCKET_PATH | The path of the local node socket                              | <No default value>                 |
+| LOCAL_NODE_HOST        | The host of the local node                                     | <No default value>                 |
+| LOCAL_NODE_PORT        | The port of the local node                                     | <No default value>                 |

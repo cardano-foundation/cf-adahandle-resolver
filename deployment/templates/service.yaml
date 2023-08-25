@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: adahandle-resolver
+  labels:
+    app: adahandle-resolver
+spec:
+  selector:
+    app: adahandle-resolver
+  ports:
+    - protocol: TCP
+      name: api
+      port: {{ .Values.adaHandleResolver.service.port }}
+      targetPort: api
+  type: ClusterIP
