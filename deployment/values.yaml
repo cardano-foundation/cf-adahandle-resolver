@@ -1,0 +1,30 @@
+adaHandleResolver:
+  image:
+    repository: cardanofoundation/adahandle-resolver
+    tag: 0.0.6
+    pullPolicy: IfNotPresent
+  replicas: 1
+
+  ingressDomains:
+    - name: cloudfront
+      domain: dev.adahandle-resolver-preprod.metadata.dev.cf-deployments.org
+
+  port: 9095
+  service:
+    port: 80
+  springProfiles: mainnet,h2
+
+  database:
+    url: jdbc:h2:/data/db
+    username: admin
+    secret:
+      name: database-secrets
+      userKey: DB_USER
+      passwordKey: DB_PASSWORD
+    persistence:
+      enabled: true
+      storage:
+        size: 5Gi
+
+  spring:
+    activeProfiles: mainnet,h2
