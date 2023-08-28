@@ -6,8 +6,8 @@ adaHandleResolver:
   replicas: 1
 
   ingressDomains:
-    - name: cloudfront
-      domain: dev.adahandle-resolver-preprod.metadata.dev.cf-deployments.org
+    - name: example
+      domain: example.com
 
   port: 9095
   service:
@@ -17,6 +17,7 @@ adaHandleResolver:
   database:
     url: jdbc:h2:/data/db
     username: admin
+    password: password
     secret:
       name: database-secrets
       userKey: DB_USER
