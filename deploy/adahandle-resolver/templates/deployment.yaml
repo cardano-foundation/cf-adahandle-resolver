@@ -69,6 +69,18 @@ spec:
                   name: postgres-secrets
                   key: POSTGRES_PASSWORD
             {{- else if eq .Values.database.type "h2" }}
+            - name: DB_URL
+              value: {{ .Values.database.h2.url }}
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: h2-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: h2-secrets
+                  key: DB_PASSWORD
             {{- else }}
             {{- raise "Unexpected value in .Values.database.type" }}
             {{- end }}

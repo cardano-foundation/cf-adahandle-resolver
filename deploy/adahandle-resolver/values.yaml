@@ -35,21 +35,33 @@ springProfiles: mainnet,h2
 database:
   # Can be h2 or postgres
   type: h2
-
-#  url: jdbc:h2:/data/db
-  # DB Username
-  username: ""
-  # DB Password
-  password: ""
-  # Use secret object instead of plain username and password
-  secret:
-    # Name of the secret containing db credentials, if specified will override username/password
-    name: ""
-    # Key of the username property
-    userKey: DB_USER
-    # Key of the password property
-    passwordKey: DB_PASSWORD
+  # h2 configuration
+  h2:
+    url: jdbc:h2:/data/db
+    # DB Username
+    username: "adahandle"
+    # DB Password
+    password: "adahandle-CHANGEME"
+  # postgres configuration
+  postgres:
+    username: "adahandle"
+    secret:
+      name: "postgres-secrets"
+      hostKey: POSTGRES_HOST
+      portKey: POSTGRES_PORT
+      dbKey: POSTGRES_DB
+      userKey: POSTGRES_USER
+      passwordKey: POSTGRES_PASSWORD
   persistence:
     enabled: true
     storage:
       size: 5Gi
+
+postgres:
+  enabled: false
+  auth:
+    username: "adahandle"
+    database: "adahandle"
+    existingSecret: "postgres-secrets"
+    secretKeys:
+      userPasswordKey: POSTGRES_PASSWORD
