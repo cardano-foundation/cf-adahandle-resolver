@@ -13,18 +13,9 @@ metadata:
   {{- end }}
 spec:
   rules:
-    - host: "api.{{ .Values.domain }}"
+    - host: "adahandle-resolver.{{ .Values.domain }}"
       http:
         paths:
-{{ if .Values.ingress.disableActuatorEndpoint }}
-          - path: /actuator
-            pathType: Prefix
-            backend:
-              service:
-                name: nginx-not-found
-                port:
-                  number: 80
-{{ end }}
           - path: /
             pathType: Prefix
             backend:
@@ -36,15 +27,6 @@ spec:
     - host: {{ $domain }}
       http:
         paths:
-{{ if $.Values.ingress.disableActuatorEndpoint }}
-          - path: /actuator
-            pathType: Prefix
-            backend:
-              service:
-                name: nginx-not-found
-                port:
-                  number: 80
-{{ end }}
           - path: /
             pathType: Prefix
             backend:
@@ -55,7 +37,7 @@ spec:
     {{- end }}
   tls:
     - hosts:
-        - "api.{{ .Values.domain }}"
+        - "adahandle-resolver.{{ .Values.domain }}"
 {{ with .Values.ingress.additionalDomains }}
         {{- toYaml . | nindent 8 }}
 {{ end }}

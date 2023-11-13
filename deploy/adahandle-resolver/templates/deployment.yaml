@@ -34,6 +34,7 @@ spec:
 
 
             ## Postgres
+            {{- if eq .Values.database.type "postgres" }}
             - name: DB_DRIVER
               value: "org.postgresql.Driver"
             - name: DB_DIALECT
@@ -67,22 +68,13 @@ spec:
                 secretKeyRef:
                   name: postgres-secrets
                   key: POSTGRES_PASSWORD
-            - name: H2_CONSOLE_ENABLED
-              value: "false"
-
-            - name: LEDGER_FOLLOWER_APP_URL
-              value: {{ .Values.ledgerFollowerAppUrl }}
-
-            {{- if .Values.useJwt | default false }}
-            - name: CARDANO_JWT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: adahandle-resolver-secrets
-                  key: JWT_SECRET
+            {{- else if eq .Values.database.type "h2" }}
+            {{- else }}
+            {{- raise "Unexpected value in .Values.database.type" }}
             {{- end }}
 
-            - name: LEADERBOARD_FORCE_RESULTS
-              value: {{ .Values.leaderboardForceResults | quote }}
+            - name: H2_CONSOLE_ENABLED
+              value: "false"
 
           ports:
             - name: http
