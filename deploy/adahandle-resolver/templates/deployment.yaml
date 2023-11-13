@@ -32,7 +32,6 @@ spec:
             - name: PORT
               value: {{ .Values.service.port | quote }}
 
-
             ## Postgres
             {{- if eq .Values.database.type "postgres" }}
             - name: DB_DRIVER
