@@ -30,7 +30,7 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: {{ .Values.springProfiles }}
             - name: PORT
-              value: {{ .Values.service.port }}
+              value: {{ .Values.service.port | quote }}
 
 
             ## Postgres
@@ -82,7 +82,7 @@ spec:
                   name: h2-secrets
                   key: DB_PASSWORD
             {{- else }}
-            {{- raise "Unexpected value in .Values.database.type" }}
+            {{- fail "Unexpected value in .Values.database.type" }}
             {{- end }}
 
             - name: H2_CONSOLE_ENABLED
@@ -92,13 +92,23 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
-#          livenessProbe:
-#            httpGet:
-#              path: /
-#              port: http
-#          readinessProbe:
-#            httpGet:
-#              path: /
-#              port: http
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.database.h2.persistence.enabled }}
+          volumeMounts:
+            - name: data-volume
+              mountPath: /data
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: adahandle-resolver-pvc
+          {{- end }}
+  revisionHistoryLimit: 2

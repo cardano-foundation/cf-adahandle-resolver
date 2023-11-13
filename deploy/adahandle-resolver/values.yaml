@@ -13,6 +13,8 @@ service:
   type: ClusterIP
   port: 9095
 
+domain: "example.com"
+
 ingress:
   enabled: true
   additionalDomains: []
@@ -42,6 +44,10 @@ database:
     username: "adahandle"
     # DB Password
     password: "adahandle-CHANGEME"
+    persistence:
+      enabled: true
+      storage:
+        size: 5Gi
   # postgres configuration
   postgres:
     username: "adahandle"
@@ -52,10 +58,7 @@ database:
       dbKey: POSTGRES_DB
       userKey: POSTGRES_USER
       passwordKey: POSTGRES_PASSWORD
-  persistence:
-    enabled: true
-    storage:
-      size: 5Gi
+
 
 postgres:
   enabled: false

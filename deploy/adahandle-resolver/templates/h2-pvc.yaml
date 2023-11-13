@@ -1,0 +1,15 @@
+{{ with .Values.database.h2.persistence }}
+{{ if .enabled }}
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: adahandle-resolver-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .storage.size }}
+{{ end }}
+{{ end }}
