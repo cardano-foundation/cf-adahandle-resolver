@@ -1,0 +1,33 @@
+apiVersion: v2
+name: adahandle-resolver
+type: application
+appVersion: "0.0.6"
+
+dependencies:
+  - name: postgresql
+    version: 13.1.5
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgres.enabled
+
+description: >
+  A Helm chart for deploying the ADA Handle Resolver app, 
+  which provides a scoped chain indexer for ADA Handle information, 
+  exposed via REST using Yaci Store
+
+keywords:
+  - ada-handle
+  - yaci-store
+  - cardano
+  - indexer
+  - api
+
+annotations:
+  licenses: MIT
+
+maintainers:
+  - name: Cardano Foundation
+    url: https://cardanofoundation.org
+sources:
+  - https://github.com/cardano-foundation/adahandle-resolver
+
+version: 0.1.0

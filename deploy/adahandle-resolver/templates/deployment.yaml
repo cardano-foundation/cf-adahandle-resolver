@@ -1,0 +1,100 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "adahandle-resolver.fullname" . }}
+  labels:
+    {{- include "adahandle-resolver.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "adahandle-resolver.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "adahandle-resolver.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- if .Values.diagnosticMode.enabled }}
+          command: ["bash", "-c", "sleep infinity"]
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.springProfiles }}
+            - name: PORT
+              value: {{ .Values.service.port }}
+
+
+            ## Postgres
+            - name: DB_DRIVER
+              value: "org.postgresql.Driver"
+            - name: DB_DIALECT
+              value: "org.hibernate.dialect.PostgreSQLDialect"
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_PORT
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_DB
+            - name: DB_SCHEMA
+              value: {{ .Values.dbSchema | default "public" }}
+            - name: DB_URL
+              value: jdbc:postgresql://$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?currentSchema=$(DB_SCHEMA)
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_PASSWORD
+            - name: H2_CONSOLE_ENABLED
+              value: "false"
+
+            - name: LEDGER_FOLLOWER_APP_URL
+              value: {{ .Values.ledgerFollowerAppUrl }}
+
+            {{- if .Values.useJwt | default false }}
+            - name: CARDANO_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: adahandle-resolver-secrets
+                  key: JWT_SECRET
+            {{- end }}
+
+            - name: LEADERBOARD_FORCE_RESULTS
+              value: {{ .Values.leaderboardForceResults | quote }}
+
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+#          livenessProbe:
+#            httpGet:
+#              path: /
+#              port: http
+#          readinessProbe:
+#            httpGet:
+#              path: /
+#              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

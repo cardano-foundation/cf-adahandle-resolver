@@ -1,0 +1,55 @@
+replicaCount: 1
+
+image:
+  repository: cardanofoundation/adahandle-resolver
+  tag: "0.0.6"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 9095
+
+ingress:
+  enabled: true
+  additionalDomains: []
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+diagnosticMode:
+  enabled: false
+
+springProfiles: mainnet,h2
+
+database:
+  # Can be h2 or postgres
+  type: h2
+
+#  url: jdbc:h2:/data/db
+  # DB Username
+  username: ""
+  # DB Password
+  password: ""
+  # Use secret object instead of plain username and password
+  secret:
+    # Name of the secret containing db credentials, if specified will override username/password
+    name: ""
+    # Key of the username property
+    userKey: DB_USER
+    # Key of the password property
+    passwordKey: DB_PASSWORD
+  persistence:
+    enabled: true
+    storage:
+      size: 5Gi
