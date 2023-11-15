@@ -57,8 +57,6 @@ spring:
       on-profile: postgres
   datasource:
     driverClassName: ${DB_DRIVER:org.postgresql.Driver}
-    username: ${POSTGRES_USERNAME:cardano}
-    password: ${DB_PASSWORD:password}
     url: ${DB_URL:jdbc:postgresql://localhost:5432/adahandle}
 ---
 spring:
