@@ -57,12 +57,16 @@ spring:
       on-profile: postgres
   datasource:
     driverClassName: ${DB_DRIVER:org.postgresql.Driver}
+    username: ${POSTGRES_USERNAME:cardano}
+    password: ${DB_PASSWORD:password}
     url: ${DB_URL:jdbc:postgresql://localhost:5432/adahandle}
 ---
 spring:
   config:
     activate:
       on-profile: h2
+  jpa:
+    database-platform: ${DB_DIALECT:org.hibernate.dialect.PostgreSQLDialect}
   h2:
     console:
       enabled: true

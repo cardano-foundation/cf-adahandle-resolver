@@ -60,7 +60,7 @@ database:
       passwordKey: POSTGRES_PASSWORD
 
 
-postgres:
+postgresql:
   enabled: false
   auth:
     username: "adahandle"
@@ -68,3 +68,5 @@ postgres:
     existingSecret: "postgres-secrets"
     secretKeys:
       userPasswordKey: POSTGRES_PASSWORD
+      adminPasswordKey: POSTGRES_ADMIN_PASSWORD
+      replicationPasswordKey: POSTGRES_REPLICATION_PASSWORD

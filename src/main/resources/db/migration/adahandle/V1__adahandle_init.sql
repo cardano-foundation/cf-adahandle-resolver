@@ -11,7 +11,7 @@ create table ada_handle
 
 create table ada_handle_history_item
 (
-    id                   identity not null primary key,
+    id                   serial primary key,
     name                 varchar(100) not null,
     stake_address        varchar(255),
     payment_address      varchar(255) not null,

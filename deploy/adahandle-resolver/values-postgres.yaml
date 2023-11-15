@@ -1,6 +1,6 @@
 image:
   repository: pro.registry.gitlab.metadata.dev.cf-deployments.org/base-infrastructure/docker-registry/adahandle-resolver
-  tag: "v0.0.6-6-ge449269"
+  tag: "v0.0.6-7-g9b68fc6"
 
 springProfiles: mainnet,postgres
 
@@ -8,5 +8,5 @@ database:
   # Can be h2 or postgres
   type: postgres
 
-postgres:
+postgresql:
   enabled: true
