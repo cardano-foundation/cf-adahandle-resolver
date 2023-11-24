@@ -4,6 +4,7 @@ import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
 import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleHistoryMapper;
 import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleMapper;
+import org.cardanofoundation.tools.adahandle.resolver.projection.Addresses;
 import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,13 +24,8 @@ public class AdaHandleService {
         adaHandleRepository.saveAll(adaHandles);
     }
 
-    public String getStakeAddressByAdaHandle(String adaHandle) {
-        List<String> adaHandles = adaHandleRepository.findStakeAddressByAdaHandle(adaHandle);
-        if (adaHandles.isEmpty()) {
-            return null;
-        } else {
-            return adaHandles.get(0);
-        }
+    public Addresses getAddressesByAdaHandle(String adaHandle) {
+        return adaHandleRepository.findAddressesByAdaHandle(adaHandle);
     }
 
     public List<String> getAdaHandlesByStakeAddress(String stakeAddress) {
