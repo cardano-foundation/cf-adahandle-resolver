@@ -1,6 +1,13 @@
 # Changelog
 
-## [0.0.5](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v0.0.4...v0.0.5) (2023-08-23)
+## [0.0.6](https://github.com/cardano-foundation/adahandle-resolver/compare/v0.0.5...v0.0.6) (2023-08-31)
+
+
+### Bug Fixes
+
+* make password customizable and use random pw as a fallback ([ce07251](https://github.com/cardano-foundation/adahandle-resolver/commit/ce07251f7e858cc565c4ee4edad4150b13419b68))
+
+## [0.0.5](https://github.com/cardano-foundation/adahandle-resolver/compare/v0.0.4...v0.0.5) (2023-08-23)
 
 
 ### Features
