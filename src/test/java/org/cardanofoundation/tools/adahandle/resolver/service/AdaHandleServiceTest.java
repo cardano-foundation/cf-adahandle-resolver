@@ -59,4 +59,12 @@ public class AdaHandleServiceTest {
         assertThat(adaHandles.size(), equalTo(2));
         assertThat(adaHandles, hasItems("Tom", "Otto"));
     }
+
+    @Test
+    public void testDollarSign() {
+        String stakeAddress = adaHandleService.getStakeAddressByAdaHandle("$Tom");
+        assertThat(stakeAddress, equalTo("stake1q8skl6ew6gu3gglq68n6dfv0p4hltwe3sh0z"));
+        stakeAddress = adaHandleService.getStakeAddressByAdaHandle("Tom");
+        assertThat(stakeAddress, equalTo("stake1q8skl6ew6gu3gglq68n6dfv0p4hltwe3sh0z"));
+    }
 }

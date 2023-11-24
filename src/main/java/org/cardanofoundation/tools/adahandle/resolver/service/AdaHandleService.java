@@ -24,6 +24,10 @@ public class AdaHandleService {
     }
 
     public String getStakeAddressByAdaHandle(String adaHandle) {
+        if (adaHandle.startsWith("$")) {
+            adaHandle = adaHandle.substring(1);
+        }
+
         List<String> adaHandles = adaHandleRepository.findStakeAddressByAdaHandle(adaHandle);
         if (adaHandles.isEmpty()) {
             return null;
