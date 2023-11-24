@@ -1,10 +1,10 @@
 # ADA Handle Resolver 🚧️ Under Construction 🚧️
 
 <p align="left">
-<img alt="Tests" src="https://github.com/cardano-foundation/adahandle-resolver/actions/workflows/tests.yaml/badge.svg?branch=main" />
-<img alt="Coverage" src="https://github.com/cardano-foundation/adahandle-resolver/blob/gh-pages/badges/jacoco.svg?raw=true" />
-<img alt="Release" src="https://github.com/cardano-foundation/adahandle-resolver/actions/workflows/release.yaml/badge.svg?branch=main" />
-<img alt="Publish" src="https://github.com/cardano-foundation/adahandle-resolver/actions/workflows/publish.yaml/badge.svg?branch=main" />
+<img alt="Tests" src="https://github.com/cardano-foundation/cf-adahandle-resolver/actions/workflows/tests.yaml/badge.svg?branch=main" />
+<img alt="Coverage" src="https://github.com/cardano-foundation/cf-adahandle-resolver/blob/gh-pages/badges/jacoco.svg?raw=true" />
+<img alt="Release" src="https://github.com/cardano-foundation/cf-adahandle-resolver/actions/workflows/release.yaml/badge.svg?branch=main" />
+<img alt="Publish" src="https://github.com/cardano-foundation/cf-adahandle-resolver/actions/workflows/publish.yaml/badge.svg?branch=main" />
 <a href="https://conventionalcommits.org"><img alt="conventionalcommits" src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits" /></a>
 <a href="https://discord.gg/4WVNHgQ7bP"><img alt="Discord" src="https://img.shields.io/discord/1022471509173882950"></a>
 </p>
@@ -16,7 +16,7 @@ This project aims to provide a scoped indexer for retrieving ADA Handle informat
 ### 🐳 Docker
 
 ```zsh
-docker run -p 9095:9095 cardanofoundation/adahandle-resolver:latest
+docker run -p 9095:9095 cardanofoundation/cf-adahandle-resolver:latest
 ```
 
 ### 🪶 Maven 
@@ -28,17 +28,17 @@ Java 17
 #### Build & Run
 
 ```
-git clone https://github.com/cardano-foundation/adahandle-resolver.git
-cd adahandle-resolver
+git clone https://github.com/cardano-foundation/cf-adahandle-resolver.git
+cd cf-adahandle-resolver
 ./mvnw clean package
-java -jar target/adahandle-resolver-0.0.1-SNAPSHOT.jar
+java -jar target/cf-adahandle-resolver-0.0.1-SNAPSHOT.jar
 ```
 
 ## 🧪 Test Reports
 
 To ensure the stability and reliability of this project, unit tests have been implemented. By clicking on the link below, you can access the detailed test report.
 
-📊 [Coverage Report](https://cardano-foundation.github.io/adahandle-resolver/coverage-report/)
+📊 [Coverage Report](https://cardano-foundation.github.io/cf-adahandle-resolver/coverage-report/)
 
 
 ## 🤖 API Endpoints
