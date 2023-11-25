@@ -9,6 +9,7 @@ import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.repository.UtxoRepo
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
 import org.jooq.DSLContext;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
+@Profile("!disable-indexer")
 public class AdaHandleStorage extends UtxoStorageImpl {
     private final UtxoMapper mapper = UtxoMapper.INSTANCE;
     private final UtxoRepository utxoRepository;

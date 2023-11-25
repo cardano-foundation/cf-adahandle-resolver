@@ -3,7 +3,7 @@ server:
 
 spring:
   profiles:
-    active: ${SPRING_ACTIVE_PROFILES:"mainnet,h2"}
+    active: ${SPRING_ACTIVE_PROFILES:mainnet,h2}
   main:
     banner-mode: off
   flyway:
@@ -42,6 +42,14 @@ store:
     sync-start-blockhash: 89f93419845d5f6ce8040fd5eeedda93d764c8569f7c2cc6802a8429a0da877b
   blocks:
     epoch-calculation-interval=14400:  # 14400 = 4 hours
+---
+spring:
+  config:
+    activate:
+      on-profile: disable-indexer
+
+store:
+  sync-auto-start: false
 ---
 spring:
   config:
