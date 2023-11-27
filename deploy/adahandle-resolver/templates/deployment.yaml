@@ -97,6 +97,14 @@ spec:
             httpGet:
               path: /actuator/health
               port: http
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: {{ $.Values.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ $.Values.startupProbe.periodSeconds }}
+            failureThreshold: {{ $.Values.startupProbe.failureThreshold }}
+            timeoutSeconds: 5
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           {{- if .Values.database.h2.persistence.enabled }}
@@ -111,3 +119,5 @@ spec:
             claimName: adahandle-resolver-pvc
       {{- end }}
   revisionHistoryLimit: 2
+  strategy:
+    type: Recreate

@@ -1,6 +1,6 @@
 image:
   repository: pro.registry.gitlab.metadata.dev.cf-deployments.org/base-infrastructure/docker-registry/adahandle-resolver
-  tag: "v0.0.6-8-g872a504"
+  tag: "v0.0.6-9-ge229a80"
 
 springProfiles: mainnet,postgres
 
@@ -10,3 +10,5 @@ database:
 
 postgresql:
   enabled: true
+  auth:
+    autoGenerateSecret: true

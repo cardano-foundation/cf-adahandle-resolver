@@ -34,6 +34,12 @@ diagnosticMode:
 
 springProfiles: mainnet,h2
 
+## Configuring the time for the follower startup probe
+startupProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 20
+  failureThreshold: 3
+
 database:
   # Can be h2 or postgres
   type: h2
@@ -63,6 +69,7 @@ database:
 postgresql:
   enabled: false
   auth:
+    autoGenerateSecret: false
     username: "adahandle"
     database: "adahandle"
     existingSecret: "postgres-secrets"
