@@ -1,5 +1,6 @@
 package org.cardanofoundation.tools.adahandle.resolver.controller;
 
+import org.cardanofoundation.tools.adahandle.resolver.projection.Addresses;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +17,8 @@ public class AddressesController {
     private AdaHandleService adaHandleService;
 
     @GetMapping("/by-ada-handle/{adaHandle}")
-    public ResponseEntity<String> getStakeAddressByAdaHandle(
+    public ResponseEntity<Addresses> getAddressesByAdaHandle(
             @PathVariable String adaHandle) {
-        return ResponseEntity.ok(adaHandleService.getStakeAddressByAdaHandle(adaHandle));
+        return ResponseEntity.ok(adaHandleService.getAddressesByAdaHandle(adaHandle));
     }
 }
