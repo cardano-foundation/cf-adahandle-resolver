@@ -24,7 +24,7 @@ public class AdaHandleService {
     }
 
     public String getStakeAddressByAdaHandle(String adaHandle) {
-        if (adaHandle.startsWith("$")) {
+        if (adaHandle.startsWith("$") && adahandle.lenght > 1) {
             adaHandle = adaHandle.substring(1);
         }
 
