@@ -1,4 +1,4 @@
-# ADA Handle Resolver 🚧️ Under Construction 🚧️
+# ADA Handle Resolver
 
 <p align="left">
 <img alt="Tests" src="https://github.com/cardano-foundation/cf-adahandle-resolver/actions/workflows/tests.yaml/badge.svg?branch=main" />
@@ -48,7 +48,7 @@ To ensure the stability and reliability of this project, unit tests have been im
 | http://localhost:9095/swagger-ui.html                            | **Swagger UI** for the API endpoints                    |
 | http://localhost:9095/api/v1/ada-handles/by-stake-address        | [GET]s the ADA Handle held by a given stake address     |
 | http://localhost:9095/api/v1/ada-handles/by-payment-address      | [GET]s the ADA Handle held by a given payment address   |
-| http://localhost:9095/api/v1/addresses/by-ada-handle/{adaHandle} | [GET]s the stake address behind a provided ADA Handle   |
+| http://localhost:9095/api/v1/addresses/by-ada-handle/{adaHandle} | [GET]s the stake and payment addresses behind a provided ADA Handle   |
 | http://localhost:9095/api/v1/ada-handles/by-payment-address      | [GET]s the payment address behind a provided ADA Handle |
 
 ## 👻 Disable Indexer
