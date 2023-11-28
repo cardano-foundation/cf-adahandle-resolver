@@ -16,7 +16,7 @@ This project aims to provide a scoped indexer for retrieving ADA Handle informat
 ### 🐳 Docker
 
 ```zsh
-docker run -p 9095:9095 cardanofoundation/cf-adahandle-resolver:latest
+docker run -p 9095:9095 cardanofoundation/adahandle-resolver:latest
 ```
 
 ### 🪶 Maven 
