@@ -25,21 +25,25 @@ import java.util.List;
 <span class="fc" id="L25">    }</span>
 
     public Addresses getAddressesByAdaHandle(String adaHandle) {
-<span class="fc" id="L28">        return adaHandleRepository.findAddressesByAdaHandle(adaHandle);</span>
+<span class="fc bfc" id="L28" title="All 4 branches covered.">        if (adaHandle.startsWith(&quot;$&quot;) &amp;&amp; adaHandle.length() &gt; 1) {</span>
+<span class="fc" id="L29">            adaHandle = adaHandle.substring(1);</span>
+        }
+
+<span class="fc" id="L32">        return adaHandleRepository.findAddressesByAdaHandle(adaHandle);</span>
     }
 
     public List&lt;String&gt; getAdaHandlesByStakeAddress(String stakeAddress) {
-<span class="fc" id="L32">        return adaHandleRepository.findAdaHandlesByStakeAddress(stakeAddress);</span>
+<span class="fc" id="L36">        return adaHandleRepository.findAdaHandlesByStakeAddress(stakeAddress);</span>
     }
 
     public List&lt;String&gt; getAdaHandlesByPaymentAddress(String paymentAddress) {
-<span class="fc" id="L36">        return adaHandleRepository.findAdaHandlesByPaymentAddress(paymentAddress);</span>
+<span class="fc" id="L40">        return adaHandleRepository.findAdaHandlesByPaymentAddress(paymentAddress);</span>
     }
 
     public void recalculateAdaHandlesFromHistory(List&lt;AdaHandleHistoryItem&gt; adaHandleHistoryItems) {
-<span class="fc" id="L40">        adaHandleRepository.deleteAll();</span>
-<span class="fc" id="L41">        List&lt;AdaHandle&gt; adaHandles = adaHandleHistoryItems.stream().map(AdaHandleHistoryMapper::toAdaHandle).toList();</span>
-<span class="fc" id="L42">        adaHandleRepository.saveAll(adaHandles);</span>
-<span class="fc" id="L43">    }</span>
+<span class="fc" id="L44">        adaHandleRepository.deleteAll();</span>
+<span class="fc" id="L45">        List&lt;AdaHandle&gt; adaHandles = adaHandleHistoryItems.stream().map(AdaHandleHistoryMapper::toAdaHandle).toList();</span>
+<span class="fc" id="L46">        adaHandleRepository.saveAll(adaHandles);</span>
+<span class="fc" id="L47">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>
