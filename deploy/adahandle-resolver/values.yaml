@@ -1,0 +1,79 @@
+replicaCount: 1
+
+image:
+  repository: cardanofoundation/adahandle-resolver
+  tag: "0.0.6"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 9095
+
+domain: "example.com"
+
+ingress:
+  enabled: true
+  additionalDomains: []
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+diagnosticMode:
+  enabled: false
+
+springProfiles: mainnet,h2
+
+## Configuring the time for the follower startup probe
+startupProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 20
+  failureThreshold: 3
+
+database:
+  # Can be h2 or postgres
+  type: h2
+  # h2 configuration
+  h2:
+    url: jdbc:h2:/data/db
+    # DB Username
+    username: "adahandle"
+    # DB Password
+    password: "adahandle-CHANGEME"
+    persistence:
+      enabled: true
+      storage:
+        size: 5Gi
+  # postgres configuration
+  postgres:
+    username: "adahandle"
+    secret:
+      name: "postgres-secrets"
+      hostKey: POSTGRES_HOST
+      portKey: POSTGRES_PORT
+      dbKey: POSTGRES_DB
+      userKey: POSTGRES_USER
+      passwordKey: POSTGRES_PASSWORD
+
+
+postgresql:
+  enabled: false
+  auth:
+    autoGenerateSecret: false
+    username: "adahandle"
+    database: "adahandle"
+    existingSecret: "postgres-secrets"
+    secretKeys:
+      userPasswordKey: POSTGRES_PASSWORD
+      adminPasswordKey: POSTGRES_ADMIN_PASSWORD
+      replicationPasswordKey: POSTGRES_REPLICATION_PASSWORD

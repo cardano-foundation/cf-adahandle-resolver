@@ -54,7 +54,17 @@ store:
 spring:
   config:
     activate:
+      on-profile: postgres
+  datasource:
+    driverClassName: ${DB_DRIVER:org.postgresql.Driver}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/adahandle}
+---
+spring:
+  config:
+    activate:
       on-profile: h2
+  jpa:
+    database-platform: ${DB_DIALECT:org.hibernate.dialect.PostgreSQLDialect}
   h2:
     console:
       enabled: true
@@ -68,6 +78,8 @@ store:
     host: ${REMOTE_NODE_URL:preprod-node.world.dev.cardano.org}
     port: ${REMOTE_NODE_PORT:30000}
     protocol-magic: ${PROTOCOL_MAGIC:1}
+    sync-start-slot: 691200
+    sync-start-blockhash: f600c12d960d1fe3629573717f9f5d2a62b5420245703d1b9435250a8c885c83
 ---
 spring:
   config:
@@ -78,6 +90,8 @@ store:
     host: ${REMOTE_NODE_URL:preview-node.world.dev.cardano.org}
     port: ${REMOTE_NODE_PORT:30002}
     protocol-magic: ${PROTOCOL_MAGIC:2}
+    sync-start-slot: 1468836
+    sync-start-blockhash: 706e7ba53bd141f48c3de44517b67fd8758f46215694891ed486f8d91fb1a51e
 ---
 spring:
   config:

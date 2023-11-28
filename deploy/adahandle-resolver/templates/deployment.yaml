@@ -1,0 +1,123 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "adahandle-resolver.fullname" . }}
+  labels:
+    {{- include "adahandle-resolver.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "adahandle-resolver.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "adahandle-resolver.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- if .Values.diagnosticMode.enabled }}
+          command: ["bash", "-c", "sleep infinity"]
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.springProfiles }}
+            - name: PORT
+              value: {{ .Values.service.port | quote }}
+
+            ## Postgres
+            {{- if eq .Values.database.type "postgres" }}
+            - name: DB_DRIVER
+              value: "org.postgresql.Driver"
+            - name: DB_DIALECT
+              value: "org.hibernate.dialect.PostgreSQLDialect"
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_PORT
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_DB
+            - name: DB_SCHEMA
+              value: {{ .Values.dbSchema | default "public" }}
+            - name: DB_URL
+              value: jdbc:postgresql://$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?currentSchema=$(DB_SCHEMA)
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_PASSWORD
+            {{- else if eq .Values.database.type "h2" }}
+            - name: DB_URL
+              value: {{ .Values.database.h2.url }}
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: h2-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: h2-secrets
+                  key: DB_PASSWORD
+            - name: H2_CONSOLE_ENABLED
+              value: "false"
+            {{- else }}
+            {{- fail "Unexpected value in .Values.database.type" }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: {{ $.Values.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ $.Values.startupProbe.periodSeconds }}
+            failureThreshold: {{ $.Values.startupProbe.failureThreshold }}
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.database.h2.persistence.enabled }}
+          volumeMounts:
+            - name: data-volume
+              mountPath: /data
+          {{- end}}
+      {{- if .Values.database.h2.persistence.enabled }}
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: adahandle-resolver-pvc
+      {{- end }}
+  revisionHistoryLimit: 2
+  strategy:
+    type: Recreate

@@ -1,7 +1,13 @@
 apiVersion: v2
-name: cf-adahandle-resolver
+name: adahandle-resolver
 type: application
 appVersion: "0.0.6"
+
+dependencies:
+  - name: postgresql
+    version: 13.1.5
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
 
 description: >
   A Helm chart for deploying the ADA Handle Resolver app, 
@@ -22,6 +28,6 @@ maintainers:
   - name: Cardano Foundation
     url: https://cardanofoundation.org
 sources:
-  - https://github.com/cardano-foundation/cf-adahandle-resolver
+  - https://github.com/cardano-foundation/adahandle-resolver
 
 version: 0.1.0

@@ -1,5 +1,6 @@
-{{ with .Values.adaHandleResolver.database.persistence }}
-  {{ if .enabled }}
+{{ with .Values.database.h2.persistence }}
+{{ if .enabled }}
+---
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -10,5 +11,5 @@ spec:
   resources:
     requests:
       storage: {{ .storage.size }}
-  {{- end }}
+{{ end }}
 {{ end }}
