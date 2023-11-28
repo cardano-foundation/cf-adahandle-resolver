@@ -1,11 +1,13 @@
 package org.cardanofoundation.tools.adahandle.resolver.service;
 
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
+import org.cardanofoundation.tools.adahandle.resolver.projection.Addresses;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -15,6 +17,7 @@ import java.util.List;
 @DataJpaTest
 @ComponentScan
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles("disable-indexer")
 public class AdaHandleServiceTest {
 
     @Autowired
@@ -50,11 +53,12 @@ public class AdaHandleServiceTest {
 
     @Test
     public void testRollback() {
-        String stakeAddress = adaHandleService.getStakeAddressByAdaHandle("Tom");
-        assertThat(stakeAddress, equalTo("stake1q8skl6ew6gu3gglq68n6dfv0p4hltwe3sh0z"));
+        Addresses addresses = adaHandleService.getAddressesByAdaHandle("Tom");
+        assertThat(addresses.getStakeAddress(), equalTo("stake1q8skl6ew6gu3gglq68n6dfv0p4hltwe3sh0z"));
+        assertThat(addresses.getPaymentAddress(), equalTo("addr1q8skl6ew6ghxrr7g0l2w5wsd6hg70wlm7u3gglq68n6dfv0p4hltws7gdl77ayrt3ls"));
         adaHandleHistoryService.rollbackToSlot(1202L);
-        stakeAddress = adaHandleService.getStakeAddressByAdaHandle("Tom");
-        assertThat(stakeAddress, equalTo("stake1u87ua2crberberbrtbdk3uvpr2mv2xc3x6h7p"));
+        addresses = adaHandleService.getAddressesByAdaHandle("Tom");
+        assertThat(addresses.getStakeAddress(), equalTo("stake1u87ua2crberberbrtbdk3uvpr2mv2xc3x6h7p"));
         List<String> adaHandles = adaHandleService.getAdaHandlesByStakeAddress("stake1u87ua2crberberbrtbdk3uvpr2mv2xc3x6h7p");
         assertThat(adaHandles.size(), equalTo(2));
         assertThat(adaHandles, hasItems("Tom", "Otto"));

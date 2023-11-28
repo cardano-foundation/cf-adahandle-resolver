@@ -3,14 +3,16 @@ package org.cardanofoundation.tools.adahandle.resolver.storage;
 import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.model.AddressUtxoEntity;
+import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleHistoryRepository;
+import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleRepository;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +22,7 @@ import static org.hamcrest.Matchers.*;
 @SpringBootTest
 @ComponentScan
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+
 public class AdaHandleStorageTest {
 
     @Autowired
@@ -28,6 +31,16 @@ public class AdaHandleStorageTest {
     private AdaHandleHistoryService adaHandleHistoryService;
     @Autowired
     private AdaHandleStorage adaHandleStorage;
+    @Autowired
+    private AdaHandleRepository adaHandleRepository;
+    @Autowired
+    private AdaHandleHistoryRepository adaHandleHistoryRepository;
+
+    @BeforeEach
+    public void cleanDatabase() {
+        adaHandleRepository.deleteAll();
+        adaHandleHistoryRepository.deleteAll();
+    }
 
     @Test
     public void testIncludesAdaHandle() {

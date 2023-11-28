@@ -51,13 +51,23 @@ To ensure the stability and reliability of this project, unit tests have been im
 | http://localhost:9095/api/v1/addresses/by-ada-handle/{adaHandle} | [GET]s the stake address behind a provided ADA Handle   |
 | http://localhost:9095/api/v1/ada-handles/by-payment-address      | [GET]s the payment address behind a provided ADA Handle |
 
+## 👻 Disable Indexer
+
+If you intend to scale this service, running multiple instances of the API is advisable. 
+However, you may not want a crawl job on every instance. To disable the indexer (yaci-store), 
+utilize the `disable-indexer` profile as an environment variable.
+
+```zsh
+SPRING_ACTIVE_PROFILES=disable-indexer java -jar target/cf-adahandle-resolver-0.0.1-SNAPSHOT.jar
+```
+
 ## 🌱 Environment Variables
 
-Possible profiles: `mainnet`, `preprod`, `preview`, `local-node`, `h2`
+Possible profiles: `mainnet`, `preprod`, `preview`, `local-node`, `h2`, `disable-indexer`
 
 | Name                   | Description                                                    | Default Value                      |
 |------------------------|----------------------------------------------------------------|------------------------------------|
-| SPRING_ACTIVE_PROFILES | The active profile of the application (dev, prod)              | mainnet,h2                         |
+| SPRING_ACTIVE_PROFILES | The active profile of the application                          | mainnet,h2                         |
 | PORT                   | The port on which the server will listen for incoming requests | 9095                               |
 | DB_URL                 | The URL of the database                                        | jdbc:h2:mem:mydb                   |
 | DB_USERNAME            | The username of the database user                              | sa                                 |

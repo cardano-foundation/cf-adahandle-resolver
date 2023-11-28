@@ -9,13 +9,15 @@
     </parent>
 
     <groupId>org.cardanofoundation.tools</groupId>
-    <artifactId>adahandle-resolver</artifactId>
-    <version>0.0.6</version>
+
+    <artifactId>cf-adahandle-resolver</artifactId>
+    <version>0.0.6-SNAPSHOT</version>
+  
     <name>ADA Handle Resolver</name>
     <description>A scoped indexer for retrieving ADA Handle information from the Cardano blockchain and exposing it via REST using yaci-store</description>
 
     <issueManagement>
-        <url>https://github.com/cardano-foundation/adahandle-resolver/issues</url>
+        <url>https://github.com/cardano-foundation/cf-adahandle-resolver/issues</url>
         <system>GitHub issues</system>
     </issueManagement>
 
@@ -96,6 +98,13 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-all</artifactId>
             <version>1.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>5.3.2</version>
             <scope>test</scope>
         </dependency>
 

@@ -1,6 +1,6 @@
 adaHandleResolver:
   image:
-    repository: cardanofoundation/adahandle-resolver
+    repository: cardanofoundation/cf-adahandle-resolver
     tag: 0.0.6
     pullPolicy: IfNotPresent
   replicas: 1
