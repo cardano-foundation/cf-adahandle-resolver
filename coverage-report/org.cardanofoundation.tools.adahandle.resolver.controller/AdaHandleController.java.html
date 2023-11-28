@@ -23,13 +23,13 @@ import java.util.List;
     @GetMapping(&quot;/by-stake-address/{stakeAddress}&quot;)
     public ResponseEntity&lt;List&lt;String&gt;&gt; getAdaHandlesByStakeAddress(
             @PathVariable String stakeAddress) {
-<span class="nc" id="L26">        return ResponseEntity.ok(adaHandleService.getAdaHandlesByStakeAddress(stakeAddress));</span>
+<span class="fc" id="L26">        return ResponseEntity.ok(adaHandleService.getAdaHandlesByStakeAddress(stakeAddress));</span>
     }
 
     @GetMapping(&quot;/by-payment-address/{paymentAddress}&quot;)
     public ResponseEntity&lt;List&lt;String&gt;&gt; getAdaHandlesByPaymentAddress(
             @PathVariable String paymentAddress) {
-<span class="nc" id="L32">        return ResponseEntity.ok(adaHandleService.getAdaHandlesByPaymentAddress(paymentAddress));</span>
+<span class="fc" id="L32">        return ResponseEntity.ok(adaHandleService.getAdaHandlesByPaymentAddress(paymentAddress));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

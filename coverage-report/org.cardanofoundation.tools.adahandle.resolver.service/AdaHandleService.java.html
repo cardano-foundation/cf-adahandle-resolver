@@ -4,6 +4,7 @@ import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
 import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleHistoryMapper;
 import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleMapper;
+import org.cardanofoundation.tools.adahandle.resolver.projection.Addresses;
 import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,39 +12,34 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-<span class="fc" id="L14">public class AdaHandleService {</span>
+<span class="fc" id="L15">public class AdaHandleService {</span>
     @Autowired
     private AdaHandleRepository adaHandleRepository;
 
     public void saveAllAdaHandles(List&lt;AddressUtxoEntity&gt; addressUtxoList) {
-<span class="fc" id="L19">        List&lt;AdaHandle&gt; adaHandles = addressUtxoList.stream()</span>
-<span class="fc" id="L20">                .map(AdaHandleMapper::toAdaHandles).flatMap(List::stream)</span>
-<span class="fc" id="L21">                .toList();</span>
+<span class="fc" id="L20">        List&lt;AdaHandle&gt; adaHandles = addressUtxoList.stream()</span>
+<span class="fc" id="L21">                .map(AdaHandleMapper::toAdaHandles).flatMap(List::stream)</span>
+<span class="fc" id="L22">                .toList();</span>
 
-<span class="fc" id="L23">        adaHandleRepository.saveAll(adaHandles);</span>
-<span class="fc" id="L24">    }</span>
+<span class="fc" id="L24">        adaHandleRepository.saveAll(adaHandles);</span>
+<span class="fc" id="L25">    }</span>
 
-    public String getStakeAddressByAdaHandle(String adaHandle) {
-<span class="fc" id="L27">        List&lt;String&gt; adaHandles = adaHandleRepository.findStakeAddressByAdaHandle(adaHandle);</span>
-<span class="pc bpc" id="L28" title="1 of 2 branches missed.">        if (adaHandles.isEmpty()) {</span>
-<span class="nc" id="L29">            return null;</span>
-        } else {
-<span class="fc" id="L31">            return adaHandles.get(0);</span>
-        }
+    public Addresses getAddressesByAdaHandle(String adaHandle) {
+<span class="fc" id="L28">        return adaHandleRepository.findAddressesByAdaHandle(adaHandle);</span>
     }
 
     public List&lt;String&gt; getAdaHandlesByStakeAddress(String stakeAddress) {
-<span class="fc" id="L36">        return adaHandleRepository.findAdaHandlesByStakeAddress(stakeAddress);</span>
+<span class="fc" id="L32">        return adaHandleRepository.findAdaHandlesByStakeAddress(stakeAddress);</span>
     }
 
     public List&lt;String&gt; getAdaHandlesByPaymentAddress(String paymentAddress) {
-<span class="fc" id="L40">        return adaHandleRepository.findAdaHandlesByPaymentAddress(paymentAddress);</span>
+<span class="fc" id="L36">        return adaHandleRepository.findAdaHandlesByPaymentAddress(paymentAddress);</span>
     }
 
     public void recalculateAdaHandlesFromHistory(List&lt;AdaHandleHistoryItem&gt; adaHandleHistoryItems) {
-<span class="fc" id="L44">        adaHandleRepository.deleteAll();</span>
-<span class="fc" id="L45">        List&lt;AdaHandle&gt; adaHandles = adaHandleHistoryItems.stream().map(AdaHandleHistoryMapper::toAdaHandle).toList();</span>
-<span class="fc" id="L46">        adaHandleRepository.saveAll(adaHandles);</span>
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L40">        adaHandleRepository.deleteAll();</span>
+<span class="fc" id="L41">        List&lt;AdaHandle&gt; adaHandles = adaHandleHistoryItems.stream().map(AdaHandleHistoryMapper::toAdaHandle).toList();</span>
+<span class="fc" id="L42">        adaHandleRepository.saveAll(adaHandles);</span>
+<span class="fc" id="L43">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

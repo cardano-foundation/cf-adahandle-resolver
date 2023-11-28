@@ -1,11 +1,11 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
 ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver,AdaHandleResolverApplication,5,3,0,0,2,1,1,1,1,1
-ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.controller,AddressesController,6,3,0,0,1,1,1,1,1,1
-ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.controller,AdaHandleController,12,3,0,0,2,1,2,1,2,1
+ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.controller,AddressesController,0,9,0,0,0,2,0,2,0,2
+ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.controller,AdaHandleController,0,15,0,0,0,3,0,3,0,3
 ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.storage,AdaHandleStorage,0,103,0,12,0,26,0,10,0,4
 ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.service,AdaHandleHistoryService,0,43,0,0,0,14,0,6,0,6
-ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.service,AdaHandleService,2,55,1,1,1,15,1,6,0,6
-ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.entity,AdaHandleHistoryItem,10,46,0,0,2,6,3,9,3,9
+ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.service,AdaHandleService,0,47,0,0,0,13,0,6,0,6
 ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.entity,AdaHandle,18,18,0,0,3,3,5,3,5,3
-ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.mapper,AdaHandleHistoryMapper,3,66,0,8,1,15,1,6,1,2
+ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.entity,AdaHandleHistoryItem,10,46,0,0,2,6,3,9,3,9
 ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.mapper,AdaHandleMapper,3,43,0,8,1,9,1,5,1,1
+ADA Handle Resolver,org.cardanofoundation.tools.adahandle.resolver.mapper,AdaHandleHistoryMapper,3,66,0,8,1,15,1,6,1,2
