@@ -25,6 +25,10 @@ public class AdaHandleService {
     }
 
     public Addresses getAddressesByAdaHandle(String adaHandle) {
+        if (adaHandle.startsWith("$") && adaHandle.length() > 1) {
+            adaHandle = adaHandle.substring(1);
+        }
+
         return adaHandleRepository.findAddressesByAdaHandle(adaHandle);
     }
 
