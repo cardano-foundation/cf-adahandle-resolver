@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.1.0](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v0.0.6...v0.1.0) (2023-11-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* add payment address to by-ada-handle endpoint. Fixes #29
+
+### Features
+
+* add payment address to by-ada-handle endpoint. Fixes [#29](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/29) ([69c056e](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/69c056e4f7dc73ac941629136400e4892a56eeea))
+* allow to run the application without the crawl job due to a new disable-indexer profile. Closes [#26](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/26) ([a792025](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/a792025a2b505f65d70b77b21ee03751613cd550))
+
+
+### Bug Fixes
+
+* check case when adahandle would be just a dollar sign ([2645f9a](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/2645f9ad40f2189c4ed7fef29dc4c856fc86cce9))
+* ignore dollar sign if present. Solves [#28](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/28) ([745c223](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/745c2231248c4ab66b64ad50f4ce05f4d23d2a34))
+* repair test and add edge case test ([235dfdb](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/235dfdba14112222a80d2edf9397bb77f44dc97b))
+
 ## [0.0.6](https://github.com/cardano-foundation/adahandle-resolver/compare/v0.0.5...v0.0.6) (2023-08-31)
 
 
