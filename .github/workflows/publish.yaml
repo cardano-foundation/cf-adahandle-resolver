@@ -39,7 +39,7 @@ jobs:
         id: metadata
         run: |
           CURRENT_VERSION=$(xq -r .project.version pom.xml)
-          DOCKER_IMAGE_NAME=$(basename ${GITHUB_REPOSITORY})
+          DOCKER_IMAGE_NAME=adahandle-resolver
           echo "DOCKER_IMAGE_NAME=${DOCKER_IMAGE_NAME}" >> "$GITHUB_ENV"
           
           BRANCH=${GITHUB_REF##*/}
