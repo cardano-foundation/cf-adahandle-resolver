@@ -38,8 +38,8 @@ store:
     protocol-magic: 764824073
     # 47931310 is the slot number close to the first AdaHandle minting transaction
     # 89f93419845d5... is the hash that corresponds to the block with the above slot number
-    sync-start-slot: 47931310
-    sync-start-blockhash: 89f93419845d5f6ce8040fd5eeedda93d764c8569f7c2cc6802a8429a0da877b
+    sync-start-slot: ${YACI_STORE_CARDANO_SYNC_START_SLOT:47931310}
+    sync-start-blockhash: ${YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH:89f93419845d5f6ce8040fd5eeedda93d764c8569f7c2cc6802a8429a0da877b}
   blocks:
     epoch-calculation-interval=14400:  # 14400 = 4 hours
 ---
@@ -78,8 +78,8 @@ store:
     host: ${REMOTE_NODE_URL:preprod-node.world.dev.cardano.org}
     port: ${REMOTE_NODE_PORT:30000}
     protocol-magic: ${PROTOCOL_MAGIC:1}
-    sync-start-slot: 691200
-    sync-start-blockhash: f600c12d960d1fe3629573717f9f5d2a62b5420245703d1b9435250a8c885c83
+    sync-start-slot: ${YACI_STORE_CARDANO_SYNC_START_SLOT:12182404}
+    sync-start-blockhash: ${YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH:4cf06adb94d0bba8b83220878a509896f6d9003fd839691d60db7d7d3047e700}
 ---
 spring:
   config:
@@ -90,8 +90,8 @@ store:
     host: ${REMOTE_NODE_URL:preview-node.world.dev.cardano.org}
     port: ${REMOTE_NODE_PORT:30002}
     protocol-magic: ${PROTOCOL_MAGIC:2}
-    sync-start-slot: 1468836
-    sync-start-blockhash: 706e7ba53bd141f48c3de44517b67fd8758f46215694891ed486f8d91fb1a51e
+    sync-start-slot: ${YACI_STORE_CARDANO_SYNC_START_SLOT:1468836}
+    sync-start-blockhash: ${YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH:706e7ba53bd141f48c3de44517b67fd8758f46215694891ed486f8d91fb1a51e}
 ---
 spring:
   config:
