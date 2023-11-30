@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v0.1.0...v0.1.1) (2023-11-30)
+
+
+### Features
+
+* added env var in spring config to overwrite block hash slot to sycn from ([#36](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/36)) ([a0929d4](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/a0929d4dab09119e91e4f658717c0948c0a455a7))
+
 ## [0.1.0](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v0.0.6...v0.1.0) (2023-11-28)
 
 
