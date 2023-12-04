@@ -11,6 +11,16 @@
 
 This project aims to provide a scoped indexer for retrieving ADA Handle information from the Cardano blockchain and exposing it via REST using [Yaci Store](https://github.com/bloxbean/yaci-store).
 
+## Why ADA Handle resolver?
+One may ask why Ada Handle resolve if there is already: https://github.com/koralabs/handles-public-api
+
+Ada Handler resolver by CF differentiates itself with a number of following traits:
+- it demostrates usage of Yaci-Store modular indexer
+- is written in Java, thus easier extendable and to easier to reason about by Java Developers
+- doesn't have any dependencies to other components, e.g. Ogmios, blockfrost, etc
+- handles db has very small on disk footprint
+- supports embedded DBs such as H2 for easier deployment
+ 
 ## 🚀 Getting Started
 
 ### 🐳 Docker
