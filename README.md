@@ -16,7 +16,7 @@ One may ask why Ada Handle resolve if there is already: https://github.com/koral
 
 Ada Handler resolver by CF differentiates itself with a number of following traits:
 - it demostrates usage of Yaci-Store modular indexer
-- is written in Java, thus easier extendable and to reason about by Java Developers
+- is written in Java, thus easier extendable and to easier to reason about by Java Developers
 - doesn't have any dependencies to other components, e.g. Ogmios, blockfrost, etc
 - handles db has very small on disk footprint
 - supports embedded DBs such as H2 for easier deployment
