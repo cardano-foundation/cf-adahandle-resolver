@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.2](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v0.1.1...v0.1.2) (2023-12-04)
+
+
+### Bug Fixes
+
+* add config to prevent cors issues ([7e2b311](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/7e2b3116f4bfd86a0e71c6062231975fa763103c))
+
+
+### Documentation
+
+* improved docs ([348b183](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/348b1834f1d86646bdbe38d4d94769c89008aedf))
+* introduced why ADA Handle Resolver section ([75c2cd5](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/75c2cd514c43a2fe15e326061ae9526fa0b18ca3))
+
 ## [0.1.1](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v0.1.0...v0.1.1) (2023-11-30)
 
 
