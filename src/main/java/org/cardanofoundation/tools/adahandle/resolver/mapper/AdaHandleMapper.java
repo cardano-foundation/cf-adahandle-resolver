@@ -34,7 +34,7 @@ public class AdaHandleMapper {
                             if(Arrays.equals(Arrays.copyOf(decodedAssetName, 4), CIP68_222_PREFIX)) {
                                 adaHandle = new String(Arrays.copyOfRange(decodedAssetName, 4, decodedAssetName.length));
                             }
-                        } catch (DecoderException e) {
+                        } catch (Exception e) {
                             log.warn("Error decoding asset name: {}", e.getMessage());
                         }
 
