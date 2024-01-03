@@ -13,7 +13,7 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-@ActiveProfiles("disable-indexer")
+@ActiveProfiles("[disable-indexer, test]")
 public class AdaHandleMapperTest {
 
     @Test

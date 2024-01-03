@@ -24,6 +24,7 @@ import static org.hamcrest.Matchers.*;
 @SpringBootTest
 @ComponentScan
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles("test")
 public class AdaHandleStorageTest {
 
     @Autowired
