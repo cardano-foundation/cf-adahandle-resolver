@@ -3,6 +3,7 @@ package org.cardanofoundation.tools.adahandle.resolver.mapper;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.model.AddressUtxoEntity;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
