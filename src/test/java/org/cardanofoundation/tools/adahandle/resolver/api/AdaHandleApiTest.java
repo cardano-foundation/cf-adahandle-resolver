@@ -41,7 +41,6 @@ public class AdaHandleApiTest {
         adaHandleHistoryItems.add(new AdaHandleHistoryItem(1L,"Tom", "stake1u87ua2crberberbrtbdk3uvpr2mv2xc3x6h7p","addr1u87ua2cf830jqwa3s59ds35pe4jnhupmlwdk3uvpr2mv2xc3x6h7p", 1200L));
         adaHandleHistoryItems.add(new AdaHandleHistoryItem(2L,"Otto", "stake1u87ua2crberberbrtbdk3uvpr2mv2xc3x6h7p","addr1u87ua2cf830jqwa3s59drvrt3gko5rvdrtf5pr2mv2xc3x6h7p", 1202L));
         adaHandleHistoryItems.add(new AdaHandleHistoryItem(3L,"Tom", "stake1q8skl6ew6gu3gglq68n6dfv0p4hltwe3sh0z","addr1q8skl6ew6ghxrr7g0l2w5wsd6hg70wlm7u3gglq68n6dfv0p4hltws7gdl77ayrt3ls", 1305L));
-        System.out.println(adaHandleHistoryItems.stream().map(AdaHandleHistoryItem::getStakeAddress).reduce("", (a, b) -> a + "\n" + b));
         adaHandleService.recalculateAdaHandlesFromHistory(adaHandleHistoryItems);
 
         RestAssured.port = serverPort;

@@ -26,7 +26,6 @@ import static org.hamcrest.Matchers.*;
 @ComponentScan
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
-@Disabled
 public class AdaHandleStorageTest {
 
     @Autowired
