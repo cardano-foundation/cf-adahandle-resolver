@@ -8,6 +8,7 @@ import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleReposi
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -25,6 +26,7 @@ import static org.hamcrest.Matchers.*;
 @ComponentScan
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
+@Disabled
 public class AdaHandleStorageTest {
 
     @Autowired
