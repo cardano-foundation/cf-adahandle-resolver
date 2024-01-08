@@ -22,7 +22,6 @@ import java.util.List;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("[disable-indexer, test]")
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AdaHandleApiTest {
 
     @Autowired
@@ -48,7 +47,6 @@ public class AdaHandleApiTest {
     }
 
     @Test
-    @Order(1)
     public void testAdaHandlesByStakeAddress() {
         when().get(ADA_HANDLE_ENDPOINT + "/by-stake-address/stake1q8skl6ew6gu3gglq68n6dfv0p4hltwe3sh0z")
                 .then()
@@ -57,7 +55,6 @@ public class AdaHandleApiTest {
     }
 
     @Test
-    @Order(2)
     public void testAdaHandlesByPaymentAddress() {
         when().get(ADA_HANDLE_ENDPOINT + "/by-payment-address/addr1u87ua2cf830jqwa3s59drvrt3gko5rvdrtf5pr2mv2xc3x6h7p")
                 .then()
@@ -66,7 +63,6 @@ public class AdaHandleApiTest {
     }
 
     @Test
-    @Order(3)
     public void testAddressesByAdaHandle() {
         when().get(ADDRESSES_ENDPOINT + "/by-ada-handle/Tom")
                 .then()
