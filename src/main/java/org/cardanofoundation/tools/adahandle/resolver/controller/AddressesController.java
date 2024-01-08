@@ -19,6 +19,10 @@ public class AddressesController {
     @GetMapping("/by-ada-handle/{adaHandle}")
     public ResponseEntity<Addresses> getAddressesByAdaHandle(
             @PathVariable String adaHandle) {
-        return ResponseEntity.ok(adaHandleService.getAddressesByAdaHandle(adaHandle));
+        Addresses addresses = adaHandleService.getAddressesByAdaHandle(adaHandle);
+        if (addresses == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(addresses);
     }
 }

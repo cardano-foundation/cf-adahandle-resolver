@@ -64,10 +64,24 @@ spring:
     activate:
       on-profile: h2
   jpa:
-    database-platform: ${DB_DIALECT:org.hibernate.dialect.PostgreSQLDialect}
+    database-platform: ${DB_DIALECT:org.hibernate.dialect.H2Dialect}
   h2:
     console:
       enabled: true
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  jpa:
+    database-platform: ${DB_DIALECT:org.hibernate.dialect.H2Dialect}
+  h2:
+    console:
+      enabled: true
+  datasource:
+    url: ${DB_URL:jdbc:h2:mem:adahandle}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:password}
 ---
 spring:
   config:
