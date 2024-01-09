@@ -12,15 +12,14 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "ada_handle_history_item")
+@IdClass(AdaHandleHistoryItemKey.class) // Use IdClass to specify the composite key class
 public class AdaHandleHistoryItem {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
     private String name;
     @Column(name = "stake_address")
     private String stakeAddress;
     @Column(name = "payment_address")
     private String paymentAddress;
-    @Column(name = "slot")
+    @Id
     private long slot;
 }
