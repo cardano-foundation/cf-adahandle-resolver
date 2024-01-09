@@ -19,7 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
     @GetMapping(&quot;/by-ada-handle/{adaHandle}&quot;)
     public ResponseEntity&lt;Addresses&gt; getAddressesByAdaHandle(
             @PathVariable String adaHandle) {
-<span class="fc" id="L22">        return ResponseEntity.ok(adaHandleService.getAddressesByAdaHandle(adaHandle));</span>
+<span class="fc" id="L22">        Addresses addresses = adaHandleService.getAddressesByAdaHandle(adaHandle);</span>
+<span class="pc bpc" id="L23" title="1 of 2 branches missed.">        if (addresses == null) {</span>
+<span class="nc" id="L24">            return ResponseEntity.notFound().build();</span>
+        }
+<span class="fc" id="L26">        return ResponseEntity.ok(addresses);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>
