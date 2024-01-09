@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.3](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v0.1.2...v0.1.3) (2024-01-09)
+
+
+### Features
+
+* use composit key for ada handle history items ([1393041](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/1393041bf961a1dd122814fb49c66db73166572d))
+
+
+### Bug Fixes
+
+* detect cip68-222 token and decode the asset name from the unit field. Ignore cip68 100 token. Fixes [#43](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/43) ([9b6c482](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/9b6c482a3017cb6790ec9e3c4fbcd5b50efcfbcf))
+* fetch all exceptions in case of a decoding issue ([d876520](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/d8765205e06234821c904f90322dd5ed3e6f873b))
+* introduce a test order ([5ddaad9](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/5ddaad931470ab2e01c1131e9718b0ebbbe14ae6))
+
 ## [0.1.2](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v0.1.1...v0.1.2) (2023-12-04)
 
 
