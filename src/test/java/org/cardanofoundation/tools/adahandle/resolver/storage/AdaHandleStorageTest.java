@@ -2,7 +2,7 @@ package org.cardanofoundation.tools.adahandle.resolver.storage;
 
 import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
-import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.model.AddressUtxoEntity;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.model.AddressUtxoEntity;
 import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleHistoryRepository;
 import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleRepository;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
@@ -61,12 +61,10 @@ public class AdaHandleStorageTest {
                 .ownerAddr("addr1vk4ua2cf830jqwa3s59dgasertugnu3598pmlwdk3uvpr2mv2xc3x6h7p")
                 .ownerStakeAddr("stake1vk4ua2crberberbrtbdk3uvpr2mv2xc3x6h7p")
                 .amounts(null)
-                .spent(true)
                 .slot(1201L)
                 .build();
 
         assertThat(adaHandleStorage.includesAdaHandle(addressUtxoEntity), is(false));
-        addressUtxoEntity.setSpent(null);
         assertThat(adaHandleStorage.includesAdaHandle(addressUtxoEntity), is(false));
         addressUtxoEntity.setAmounts(amounts);
         assertThat(adaHandleStorage.includesAdaHandle(addressUtxoEntity), is(false));
@@ -94,7 +92,7 @@ public class AdaHandleStorageTest {
                 .slot(1200L)
                 .build());
 
-        adaHandleStorage.saveAll(addressUtxoList);
+        adaHandleStorage.saveUnspent(addressUtxoList);
         List<String> adaHandle = adaHandleService.getAdaHandlesByStakeAddress("stake1u87ua2crberberbrtbdk3uvpr2mv2xc3x6h7p");
         assertThat(adaHandle.size(), equalTo(0));
 
@@ -111,7 +109,7 @@ public class AdaHandleStorageTest {
                 .slot(1201L)
                 .build());
 
-        adaHandleStorage.saveAll(addressUtxoList);
+        adaHandleStorage.saveUnspent(addressUtxoList);
         adaHandle = adaHandleService.getAdaHandlesByStakeAddress("stake1vk4ua2crberberbrtbdk3uvpr2mv2xc3x6h7p");
         assertThat(adaHandle.size(), equalTo(1));
         assertThat(adaHandle, hasItems("Tom"));

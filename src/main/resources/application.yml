@@ -8,7 +8,7 @@ spring:
     banner-mode: off
   flyway:
     locations:
-      - classpath:db/migration/{vendor}
+      - classpath:db/store/{vendor}
       - classpath:db/migration/adahandle
     out-of-order: true
   datasource:
@@ -33,8 +33,8 @@ management:
 
 store:
   cardano:
-    host: ${REMOTE_NODE_URL:relays-new.cardano-mainnet.iohk.io}
-    port: ${REMOTE_NODE_PORT:3001}
+    host: ${REMOTE_NODE_URL:192.168.68.113}
+    port: ${REMOTE_NODE_PORT:30000}
     protocol-magic: 764824073
     # 47931310 is the slot number close to the first AdaHandle minting transaction
     # 89f93419845d5... is the hash that corresponds to the block with the above slot number
