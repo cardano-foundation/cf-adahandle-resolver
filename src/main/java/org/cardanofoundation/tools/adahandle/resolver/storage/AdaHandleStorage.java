@@ -2,7 +2,6 @@ package org.cardanofoundation.tools.adahandle.resolver.storage;
 
 import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
-import com.bloxbean.cardano.yaci.store.common.domain.TxInput;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.UtxoCache;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.UtxoStorageImpl;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.mapper.UtxoMapper;
@@ -66,10 +65,6 @@ public class AdaHandleStorage extends UtxoStorageImpl {
         utxoRepository.saveAll(new ArrayList<>());
     }
 
-    @Override
-    public void saveSpent(List<TxInput> txInputs) {
-        super.saveSpent(txInputs);
-    }
 
     @Override
     public int deleteUnspentBySlotGreaterThan(Long slot) {
