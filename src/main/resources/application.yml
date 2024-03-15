@@ -8,7 +8,7 @@ spring:
     banner-mode: off
   flyway:
     locations:
-      - classpath:db/migration/{vendor}
+      - classpath:db/store/{vendor}
       - classpath:db/migration/adahandle
     out-of-order: true
   datasource:
