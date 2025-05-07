@@ -33,7 +33,7 @@ docker run -p 9095:9095 cardanofoundation/adahandle-resolver:latest
 
 #### Prerequisites
 
-Java 17
+Java 21
 
 #### Build & Run
 

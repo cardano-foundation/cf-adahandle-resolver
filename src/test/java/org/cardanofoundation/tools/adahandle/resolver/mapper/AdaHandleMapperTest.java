@@ -1,9 +1,8 @@
 package org.cardanofoundation.tools.adahandle.resolver.mapper;
 
+import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
-import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.model.AddressUtxoEntity;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -18,9 +17,9 @@ public class AdaHandleMapperTest {
 
     @Test
     public void testToAdaHandles() {
-        ArrayList<AddressUtxoEntity> addressUtxoEntities = new ArrayList<>();
+        ArrayList<AddressUtxo> addressUtxoEntities = new ArrayList<>();
 
-        addressUtxoEntities.add(AddressUtxoEntity.builder()
+        addressUtxoEntities.add(AddressUtxo.builder()
                 .ownerAddr("addr1u87ua2cf830jqwa3s59ds35pe4jnhupmlwdk3uvpr2mv2xc3x6h7p")
                 .ownerStakeAddr("stake1u87ua2crberberbrtbdk3uvpr2mv2xc3x6h7p")
                 .amounts(null)
@@ -47,7 +46,7 @@ public class AdaHandleMapperTest {
                 .assetName("lovelace")
                 .build());
 
-        addressUtxoEntities.add(AddressUtxoEntity.builder()
+        addressUtxoEntities.add(AddressUtxo.builder()
                 .ownerAddr("addr1vk4ua2cf830jqwa3s59dgasertugnu3598pmlwdk3uvpr2mv2xc3x6h7p")
                 .ownerStakeAddr("stake1vk4ua2crberberbrtbdk3uvpr2mv2xc3x6h7p")
                 .amounts(amounts)

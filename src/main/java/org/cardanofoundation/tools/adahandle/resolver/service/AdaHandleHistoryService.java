@@ -1,6 +1,6 @@
 package org.cardanofoundation.tools.adahandle.resolver.service;
 
-import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.model.AddressUtxoEntity;
+import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
 import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleHistoryMapper;
 import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleHistoryRepository;
@@ -28,7 +28,7 @@ public class AdaHandleHistoryService {
         return  adaHandleHistoryRepository.getLatestHistoryItemByName();
     }
 
-    public void saveAdaHandleHistoryItems(List<AddressUtxoEntity> addressUtxoList) {
+    public void saveAdaHandleHistoryItems(List<AddressUtxo> addressUtxoList) {
         List<AdaHandleHistoryItem> adaHandleHistoryItems = addressUtxoList.stream()
                 .map(AdaHandleHistoryMapper::fromAddressUtxoEntities).flatMap(List::stream).toList();
         adaHandleHistoryRepository.saveAll(adaHandleHistoryItems);
