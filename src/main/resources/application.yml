@@ -15,6 +15,9 @@ spring:
     url: ${DB_URL:jdbc:h2:./data/db}
     username: ${DB_USERNAME:sa}
     password: ${DB_PASSWORD:password}
+  threads:
+    virtual:
+      enabled: true
 
 apiPrefix: /api/v1
 
