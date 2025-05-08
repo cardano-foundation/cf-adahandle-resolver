@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v0.1.3...v0.1.4) (2025-05-08)
+
+
+### Bug Fixes
+
+* Upgrade to Yaci Store 0.1.2, Spring Boot 3.3.11 ([#48](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/48)) ([ef8d828](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/ef8d828102889230481d81b7689898d4ad595ebf))
+
 ## [0.1.3](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v0.1.2...v0.1.3) (2024-01-09)
 
 
