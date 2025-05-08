@@ -8,13 +8,16 @@ spring:
     banner-mode: off
   flyway:
     locations:
-      - classpath:db/migration/{vendor}
+      - classpath:db/store/{vendor}
       - classpath:db/migration/adahandle
     out-of-order: true
   datasource:
     url: ${DB_URL:jdbc:h2:./data/db}
     username: ${DB_USERNAME:sa}
     password: ${DB_PASSWORD:password}
+  threads:
+    virtual:
+      enabled: true
 
 apiPrefix: /api/v1
 
@@ -33,7 +36,7 @@ management:
 
 store:
   cardano:
-    host: ${REMOTE_NODE_URL:relays-new.cardano-mainnet.iohk.io}
+    host: ${REMOTE_NODE_URL:backbone.cardano.iog.io}
     port: ${REMOTE_NODE_PORT:3001}
     protocol-magic: 764824073
     # 47931310 is the slot number close to the first AdaHandle minting transaction
@@ -42,6 +45,8 @@ store:
     sync-start-blockhash: ${YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH:89f93419845d5f6ce8040fd5eeedda93d764c8569f7c2cc6802a8429a0da877b}
   blocks:
     epoch-calculation-interval=14400:  # 14400 = 4 hours
+  utxo:
+    api-enabled: false
 ---
 spring:
   config:

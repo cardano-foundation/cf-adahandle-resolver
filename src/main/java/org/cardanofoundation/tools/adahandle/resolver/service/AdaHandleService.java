@@ -1,5 +1,5 @@
 package org.cardanofoundation.tools.adahandle.resolver.service;
-import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.model.AddressUtxoEntity;
+import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
 import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleHistoryMapper;
@@ -16,7 +16,7 @@ public class AdaHandleService {
     @Autowired
     private AdaHandleRepository adaHandleRepository;
 
-    public void saveAllAdaHandles(List<AddressUtxoEntity> addressUtxoList) {
+    public void saveAllAdaHandles(List<AddressUtxo> addressUtxoList) {
         List<AdaHandle> adaHandles = addressUtxoList.stream()
                 .map(AdaHandleMapper::toAdaHandles).flatMap(List::stream)
                 .toList();

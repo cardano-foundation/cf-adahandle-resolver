@@ -1,70 +1,47 @@
 package org.cardanofoundation.tools.adahandle.resolver.storage;
 
 import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
-import com.bloxbean.cardano.yaci.store.common.domain.Amt;
-import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.UtxoStorageImpl;
-import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.mapper.UtxoMapper;
-import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.model.AddressUtxoEntity;
-import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.repository.UtxoRepository;
-import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
-import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
+import com.bloxbean.cardano.yaci.store.common.domain.TxInput;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.UtxoCache;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.UtxoStorageImpl;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.repository.TxInputRepository;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.repository.UtxoRepository;
 import org.jooq.DSLContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
+/**
+ * Dummy storage impl to disable storing unspent and spent outputs as we don't need them
+ */
 @Component
 @Profile("!disable-indexer")
 public class AdaHandleStorage extends UtxoStorageImpl {
-    private final UtxoMapper mapper = UtxoMapper.INSTANCE;
-    private final UtxoRepository utxoRepository;
-    private final AdaHandleService adaHandleService;
-    private final AdaHandleHistoryService adaHandleHistoryService;
 
-    public AdaHandleStorage(UtxoRepository utxoRepository, DSLContext dsl, AdaHandleService adaHandleService, AdaHandleHistoryService adaHandleHistoryService) {
-        super(utxoRepository, dsl);
-        this.utxoRepository = utxoRepository;
-        this.adaHandleService = adaHandleService;
-        this.adaHandleHistoryService = adaHandleHistoryService;
-    }
-
-    public boolean includesAdaHandle(AddressUtxoEntity addressUtxoEntity) {
-        final String ADA_HANDLE_POLICY_ID = "f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a";
-        List<Amt> amounts = addressUtxoEntity.getAmounts();
-
-        if (addressUtxoEntity.getSpent() == null && amounts != null) {
-            for (final Amt amount : amounts) {
-                if (amount.getPolicyId() != null && amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    public AdaHandleStorage(UtxoRepository utxoRepository, TxInputRepository spentOutputRepository, DSLContext dsl, UtxoCache utxoCache, PlatformTransactionManager transactionManager) {
+        super(utxoRepository, spentOutputRepository, dsl, utxoCache, transactionManager);
     }
 
     @Override
-    public Optional<List<AddressUtxo>> saveAll(List<AddressUtxo> addressUtxoList) {
-        List<AddressUtxoEntity> addressUtxoEntities = addressUtxoList.stream()
-                .map(mapper::toAddressUtxoEntity)
-                .filter(this::includesAdaHandle).toList();
+    public void saveUnspent(List<AddressUtxo> addressUtxoList) {
+        //do nothing
+    }
 
-        if (!addressUtxoEntities.isEmpty()) {
-            adaHandleService.saveAllAdaHandles(addressUtxoEntities);
-            adaHandleHistoryService.saveAdaHandleHistoryItems(addressUtxoEntities);
-        }
 
-        addressUtxoEntities = utxoRepository.saveAll(new ArrayList<>());
-        return Optional.of(addressUtxoEntities.stream()
-                .map(mapper::toAddressUtxo)
-                .toList());
+    @Override
+    public void saveSpent(List<TxInput> txInputs) {
+        //do nothing
     }
 
     @Override
-    public int deleteBySlotGreaterThan(Long slot) {
-        adaHandleHistoryService.rollbackToSlot(slot);
-        return super.deleteBySlotGreaterThan(slot);
+    public int deleteUnspentBySlotGreaterThan(Long slot) {
+        return 0;
+    }
+
+    @Override
+    public int deleteSpentBySlotGreaterThan(Long slot) {
+        return 0;
     }
 }
