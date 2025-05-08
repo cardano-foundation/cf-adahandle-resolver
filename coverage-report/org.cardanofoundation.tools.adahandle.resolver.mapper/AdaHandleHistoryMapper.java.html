@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdaHandleHistoryMapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.mapper</a> &gt; <span class="el_source">AdaHandleHistoryMapper.java</span></div><h1>AdaHandleHistoryMapper.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.mapper;
 
+import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
-import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.model.AddressUtxoEntity;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
 
 import java.util.ArrayList;
 
 <span class="nc" id="L10">public class AdaHandleHistoryMapper {</span>
-    public static ArrayList&lt;AdaHandleHistoryItem&gt; fromAddressUtxoEntities(AddressUtxoEntity addressUtxoEntity) {
+    public static ArrayList&lt;AdaHandleHistoryItem&gt; fromAddressUtxoEntities(AddressUtxo addressUtxo) {
 <span class="fc" id="L12">        final ArrayList&lt;AdaHandleHistoryItem&gt; adaHandleHistoryItems = new ArrayList&lt;&gt;();</span>
 <span class="fc" id="L13">        final String ADA_HANDLE_POLICY_ID = &quot;f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a&quot;;</span>
-<span class="fc bfc" id="L14" title="All 2 branches covered.">        if (addressUtxoEntity.getAmounts() != null) {</span>
-<span class="fc bfc" id="L15" title="All 2 branches covered.">            for (final Amt amount : addressUtxoEntity.getAmounts()) {</span>
+<span class="fc bfc" id="L14" title="All 2 branches covered.">        if (addressUtxo.getAmounts() != null) {</span>
+<span class="fc bfc" id="L15" title="All 2 branches covered.">            for (final Amt amount : addressUtxo.getAmounts()) {</span>
 <span class="fc bfc" id="L16" title="All 2 branches covered.">                if (amount.getPolicyId() != null) {</span>
 <span class="fc bfc" id="L17" title="All 2 branches covered.">                    if (amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {</span>
 <span class="fc" id="L18">                        AdaHandleHistoryItem adaHandleHistoryItem = new AdaHandleHistoryItem();</span>
 <span class="fc" id="L19">                        adaHandleHistoryItem.setName(amount.getAssetName());</span>
-<span class="fc" id="L20">                        adaHandleHistoryItem.setStakeAddress(addressUtxoEntity.getOwnerStakeAddr());</span>
-<span class="fc" id="L21">                        adaHandleHistoryItem.setPaymentAddress(addressUtxoEntity.getOwnerAddr());</span>
-<span class="fc" id="L22">                        adaHandleHistoryItem.setSlot(addressUtxoEntity.getSlot());</span>
+<span class="fc" id="L20">                        adaHandleHistoryItem.setStakeAddress(addressUtxo.getOwnerStakeAddr());</span>
+<span class="fc" id="L21">                        adaHandleHistoryItem.setPaymentAddress(addressUtxo.getOwnerAddr());</span>
+<span class="fc" id="L22">                        adaHandleHistoryItem.setSlot(addressUtxo.getSlot());</span>
 <span class="fc" id="L23">                        adaHandleHistoryItems.add(adaHandleHistoryItem);</span>
                     }
                 }

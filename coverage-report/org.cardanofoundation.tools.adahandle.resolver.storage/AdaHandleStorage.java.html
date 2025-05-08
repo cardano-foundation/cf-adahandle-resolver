@@ -1,71 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdaHandleStorage.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.storage</a> &gt; <span class="el_source">AdaHandleStorage.java</span></div><h1>AdaHandleStorage.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.storage;
 
 import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
-import com.bloxbean.cardano.yaci.store.common.domain.Amt;
-import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.UtxoStorageImpl;
-import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.mapper.UtxoMapper;
-import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.model.AddressUtxoEntity;
-import com.bloxbean.cardano.yaci.store.utxo.storage.impl.jpa.repository.UtxoRepository;
-import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
-import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
+import com.bloxbean.cardano.yaci.store.common.domain.TxInput;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.UtxoCache;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.UtxoStorageImpl;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.repository.TxInputRepository;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.repository.UtxoRepository;
 import org.jooq.DSLContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
+/**
+ * Dummy storage impl to disable storing unspent and spent outputs as we don't need them
+ */
 @Component
 @Profile(&quot;!disable-indexer&quot;)
 public class AdaHandleStorage extends UtxoStorageImpl {
-<span class="fc" id="L22">    private final UtxoMapper mapper = UtxoMapper.INSTANCE;</span>
-    private final UtxoRepository utxoRepository;
-    private final AdaHandleService adaHandleService;
-    private final AdaHandleHistoryService adaHandleHistoryService;
 
-    public AdaHandleStorage(UtxoRepository utxoRepository, DSLContext dsl, AdaHandleService adaHandleService, AdaHandleHistoryService adaHandleHistoryService) {
-<span class="fc" id="L28">        super(utxoRepository, dsl);</span>
-<span class="fc" id="L29">        this.utxoRepository = utxoRepository;</span>
-<span class="fc" id="L30">        this.adaHandleService = adaHandleService;</span>
-<span class="fc" id="L31">        this.adaHandleHistoryService = adaHandleHistoryService;</span>
-<span class="fc" id="L32">    }</span>
+    public AdaHandleStorage(UtxoRepository utxoRepository, TxInputRepository spentOutputRepository, DSLContext dsl, UtxoCache utxoCache, PlatformTransactionManager transactionManager) {
+<span class="fc" id="L24">        super(utxoRepository, spentOutputRepository, dsl, utxoCache, transactionManager);</span>
+<span class="fc" id="L25">    }</span>
 
-    public boolean includesAdaHandle(AddressUtxoEntity addressUtxoEntity) {
-<span class="fc" id="L35">        final String ADA_HANDLE_POLICY_ID = &quot;f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a&quot;;</span>
-<span class="fc" id="L36">        List&lt;Amt&gt; amounts = addressUtxoEntity.getAmounts();</span>
+    @Override
+    public void saveUnspent(List&lt;AddressUtxo&gt; addressUtxoList) {
+        //do nothing
+<span class="fc" id="L30">    }</span>
 
-<span class="fc bfc" id="L38" title="All 4 branches covered.">        if (addressUtxoEntity.getSpent() == null &amp;&amp; amounts != null) {</span>
-<span class="fc bfc" id="L39" title="All 2 branches covered.">            for (final Amt amount : amounts) {</span>
-<span class="fc bfc" id="L40" title="All 4 branches covered.">                if (amount.getPolicyId() != null &amp;&amp; amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {</span>
-<span class="fc" id="L41">                    return true;</span>
-                }
-<span class="fc" id="L43">            }</span>
-        }
-<span class="fc" id="L45">        return false;</span>
+
+    @Override
+    public void saveSpent(List&lt;TxInput&gt; txInputs) {
+        //do nothing
+<span class="fc" id="L36">    }</span>
+
+    @Override
+    public int deleteUnspentBySlotGreaterThan(Long slot) {
+<span class="fc" id="L40">        return 0;</span>
     }
 
     @Override
-    public Optional&lt;List&lt;AddressUtxo&gt;&gt; saveAll(List&lt;AddressUtxo&gt; addressUtxoList) {
-<span class="fc" id="L50">        List&lt;AddressUtxoEntity&gt; addressUtxoEntities = addressUtxoList.stream()</span>
-<span class="fc" id="L51">                .map(mapper::toAddressUtxoEntity)</span>
-<span class="fc" id="L52">                .filter(this::includesAdaHandle).toList();</span>
-
-<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (!addressUtxoEntities.isEmpty()) {</span>
-<span class="fc" id="L55">            adaHandleService.saveAllAdaHandles(addressUtxoEntities);</span>
-<span class="fc" id="L56">            adaHandleHistoryService.saveAdaHandleHistoryItems(addressUtxoEntities);</span>
-        }
-
-<span class="fc" id="L59">        addressUtxoEntities = utxoRepository.saveAll(new ArrayList&lt;&gt;());</span>
-<span class="fc" id="L60">        return Optional.of(addressUtxoEntities.stream()</span>
-<span class="fc" id="L61">                .map(mapper::toAddressUtxo)</span>
-<span class="fc" id="L62">                .toList());</span>
-    }
-
-    @Override
-    public int deleteBySlotGreaterThan(Long slot) {
-<span class="fc" id="L67">        adaHandleHistoryService.rollbackToSlot(slot);</span>
-<span class="fc" id="L68">        return super.deleteBySlotGreaterThan(slot);</span>
+    public int deleteSpentBySlotGreaterThan(Long slot) {
+<span class="fc" id="L45">        return 0;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

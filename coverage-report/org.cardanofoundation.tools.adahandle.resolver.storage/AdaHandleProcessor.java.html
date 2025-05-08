@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdaHandleProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.storage</a> &gt; <span class="el_source">AdaHandleProcessor.java</span></div><h1>AdaHandleProcessor.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.storage;
+
+import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
+import com.bloxbean.cardano.yaci.store.common.domain.Amt;
+import com.bloxbean.cardano.yaci.store.events.RollbackEvent;
+import com.bloxbean.cardano.yaci.store.events.internal.CommitEvent;
+import com.bloxbean.cardano.yaci.store.utxo.domain.AddressUtxoEvent;
+import lombok.RequiredArgsConstructor;
+import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
+import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+@Component
+@RequiredArgsConstructor
+public class AdaHandleProcessor {
+    private final AdaHandleService adaHandleService;
+    private final AdaHandleHistoryService adaHandleHistoryService;
+
+    private List&lt;SlotAddressUtxo&gt; slotAddressUtxosCache = Collections.synchronizedList(new ArrayList&lt;&gt;());
+
+
+    @EventListener
+    public void processAdaHandle(AddressUtxoEvent addressUtxoEvent) {
+<span class="fc" id="L30">        var addressUtxoList = addressUtxoEvent.getTxInputOutputs()</span>
+<span class="fc" id="L31">                .stream().flatMap(txInputOutput -&gt; txInputOutput.getOutputs().stream())</span>
+<span class="fc" id="L32">                .filter(this::includesAdaHandle).toList();</span>
+
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        if (addressUtxoList.isEmpty()) {</span>
+<span class="fc" id="L35">            return;</span>
+        }
+
+<span class="fc" id="L38">        var slotAddressUtxo = new SlotAddressUtxo(addressUtxoEvent.getEventMetadata().getSlot(), addressUtxoList);</span>
+<span class="fc" id="L39">        slotAddressUtxosCache.add(slotAddressUtxo);</span>
+<span class="fc" id="L40">    }</span>
+
+    public boolean includesAdaHandle(AddressUtxo addressUtxo) {
+<span class="fc" id="L43">        final String ADA_HANDLE_POLICY_ID = &quot;f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a&quot;;</span>
+<span class="fc" id="L44">        List&lt;Amt&gt; amounts = addressUtxo.getAmounts();</span>
+
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if (amounts != null) {</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">            for (final Amt amount : amounts) {</span>
+<span class="fc bfc" id="L48" title="All 4 branches covered.">                if (amount.getPolicyId() != null &amp;&amp; amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {</span>
+<span class="fc" id="L49">                    return true;</span>
+                }
+<span class="fc" id="L51">            }</span>
+        }
+<span class="fc" id="L53">        return false;</span>
+    }
+
+    /**
+     * This is invoked once per block batch (100 blocks) at the end of the block processing during initial sync when
+     * parallel processing is enabled.
+     * &lt;p&gt;
+     * After the sync reaches tip, batch size is 1 and this method is invoked for each block.
+     */
+    @EventListener
+    @Transactional
+    public void handleCommitEvent(CommitEvent commitEvent) {
+
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        if (slotAddressUtxosCache.isEmpty()) {</span>
+<span class="fc" id="L67">            return;</span>
+        }
+
+        //Sort slotAddressdUtxosCache by slot in ascending order to process the utxos in the correct order
+<span class="pc" id="L71">        slotAddressUtxosCache.sort((o1, o2) -&gt; Long.compare(o1.slot(), o2.slot()));</span>
+
+        try {
+            // Process the cached slotAddressUtxos
+<span class="fc bfc" id="L75" title="All 2 branches covered.">            for (SlotAddressUtxo slotAddressUtxo : slotAddressUtxosCache) {</span>
+<span class="fc" id="L76">                adaHandleService.saveAllAdaHandles(slotAddressUtxo.addressUtxos());</span>
+<span class="fc" id="L77">                adaHandleHistoryService.saveAdaHandleHistoryItems(slotAddressUtxo.addressUtxos());</span>
+<span class="fc" id="L78">            }</span>
+
+        } finally {
+            // Clear the cache after processing
+<span class="fc" id="L82">            slotAddressUtxosCache.clear();</span>
+        }
+<span class="fc" id="L84">    }</span>
+
+    @EventListener
+    @Transactional
+    public void handleRollback(RollbackEvent rollbackEvent) {
+<span class="fc" id="L89">        adaHandleHistoryService.rollbackToSlot(rollbackEvent.getRollbackTo().getSlot());</span>
+<span class="fc" id="L90">    }</span>
+
+}
+
+<span class="fc" id="L94">record SlotAddressUtxo(long slot, List&lt;AddressUtxo&gt; addressUtxos) {</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>
