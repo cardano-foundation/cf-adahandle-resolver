@@ -6,17 +6,17 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {{ include "adahandle-resolver.postgres.zpg.secretName" $ }}
-  namespace: {{ $.Release.Namespace }}
 type: Opaque
 data:
   # POSGRES_HOST is based on cluster name (pgcluster) and namespace (zpg-system)
-  POSTGRES_HOST: "{{ include "adahandle-resolver.fullname" $ }}-pg.{{ $.Release.Namespace }}.svc.cluster.local"
+  POSTGRES_HOST: "{{ include "adahandle-resolver.fullname" $ }}.{{ .namespace }}.svc.cluster.local"
   POSTGRES_DB: {{ .dbName  }}
 ---
 kind: "postgresql"
 apiVersion: "acid.zalan.do/v1"
 metadata:
-  name: {{ include "adahandle-resolver.fullname" $ }}-pg
+  name: {{ include "adahandle-resolver.fullname" $ }}
+  namespace: {{ .namespace }}
   labels:
     team: acid
 spec:

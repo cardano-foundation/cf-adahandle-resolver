@@ -82,6 +82,7 @@ postgresql:
 # Provision a Postgres Cluster using Zalando postgres operator.
 zpgCluster:
   enabled: false
+  namespace: zpg-cluster
   dbName: adahandle-resolver
   instances: 1
   volumeSize: 5Gi 
