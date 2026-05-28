@@ -7,9 +7,10 @@ kind: Secret
 metadata:
   name: {{ include "adahandle-resolver.postgres.zpg.secretName" $ }}
 type: Opaque
-data:
+stringData:
   # POSGRES_HOST is based on cluster name (pgcluster) and namespace (zpg-system)
-  POSTGRES_HOST: {{ printf "%s.%s.svc.cluster.local" (include "adahandle-resolver.fullname" $) .namespace | b64enc | quote }}
+  POSTGRES_HOST: {{ printf "%s.%s.svc.cluster.local" (include "adahandle-resolver.fullname" $) .namespace }}
+  POSTGRES_PORT: "5432"
   POSTGRES_DB: {{ .dbName  }}
 ---
 kind: "postgresql"

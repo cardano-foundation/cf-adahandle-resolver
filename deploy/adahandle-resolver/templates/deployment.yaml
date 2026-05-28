@@ -61,12 +61,12 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "adahandle-resolver.postgres.secretName" . }}
-                  key: POSTGRES_USER
+                  key: {{ include "adahandle-resolver.postgres.secret.usernameKey" . }}
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "adahandle-resolver.postgres.secretName" . }}
-                  key: POSTGRES_PASSWORD
+                  key: {{ include "adahandle-resolver.postgres.secret.passwordKey" . }}
             {{- else if eq .Values.database.type "h2" }}
             - name: DB_URL
               value: {{ .Values.database.h2.url }}
