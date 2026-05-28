@@ -9,7 +9,7 @@ metadata:
 type: Opaque
 data:
   # POSGRES_HOST is based on cluster name (pgcluster) and namespace (zpg-system)
-  POSTGRES_HOST: "{{ include "adahandle-resolver.fullname" $ }}.{{ .namespace }}.svc.cluster.local"
+  POSTGRES_HOST: {{ printf "%s.%s.svc.cluster.local" (include "adahandle-resolver.fullname" $) .namespace | b64enc }}
   POSTGRES_DB: {{ .dbName  }}
 ---
 kind: "postgresql"
