@@ -60,3 +60,21 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Choose which secret name to choose
+*/}}
+{{- define "adahandle-resolver.postgres.secretName" -}}
+{{- if .Values.postgresql.enabled }}
+postgres-secret
+{{- else if .Values.zpgCluster.enabled }}
+{{- include "adahandle-resolver.postgres.zpg.secretName" . }}
+{{- end }}
+{{- end }}
+
+{{/*
+Choose which secret name to choose
+*/}}
+{{- define "adahandle-resolver.postgres.zpg.secretName" -}}
+{{ .Values.zpgCluster.dbName }}-owner-user.{{ .Release.Namespace }}.credentials.postgresql.acid.zalan.do
+{{- end }}

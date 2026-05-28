@@ -1,0 +1,58 @@
+{{- with .Values.zpgCluster }}
+{{- if .enabled }}
+---
+# patch the zpg created secret with host and db
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "adahandle-resolver.postgres.zpg.secretName" $ }}
+  namespace: {{ $.Release.Namespace }}
+type: Opaque
+data:
+  # POSGRES_HOST is based on cluster name (pgcluster) and namespace (zpg-system)
+  POSTGRES_HOST: "{{ include "adahandle-resolver.fullname" $ }}-pg.{{ $.Release.Namespace }}.svc.cluster.local"
+  POSTGRES_DB: {{ .dbName  }}
+---
+kind: "postgresql"
+apiVersion: "acid.zalan.do/v1"
+metadata:
+  name: {{ include "adahandle-resolver.fullname" $ }}-pg
+  labels:
+    team: acid
+spec:
+  teamId: "acid"
+  {{ with .tolerations -}}
+  tolerations:
+{{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{ with .nodeAffinity -}}
+  nodeAffinity:
+{{- toYaml . | nindent 4 }}
+  {{- end }}
+  postgresql:
+    version: "17"
+    {{- with .postgresParameters -}}
+    parameters:
+{{ toYaml . | indent 6 }}
+    {{- end }}
+  numberOfInstances: {{ .instances }}
+  maintenanceWindows: []
+  volume:
+    size: {{ .volumeSize }}
+  allowedSourceRanges:
+    # IP ranges to access your cluster go here
+  resources:
+    {{- toYaml .resources | nindent 4 }}
+  enableConnectionPooler: true
+  enableMasterLoadBalancer: false
+  enableReplicaLoadBalancer: false
+  enableReplicaConnectionPooler: false
+  enableMasterPoolerLoadBalancer: false
+  enableReplicaPoolerLoadBalancer: false
+  enableLogicalBackup: false
+  preparedDatabases:
+    {{ .dbName }}:
+      defaultUsers: true
+      secretNamespace: {{ $.Release.Namespace }}
+{{- end }}
+{{- end }}

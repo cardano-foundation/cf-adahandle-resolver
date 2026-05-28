@@ -66,6 +66,7 @@ database:
       passwordKey: POSTGRES_PASSWORD
 
 
+# Enable bitnami postgresql Helm chart
 postgresql:
   enabled: false
   auth:
@@ -77,3 +78,17 @@ postgresql:
       userPasswordKey: POSTGRES_PASSWORD
       adminPasswordKey: POSTGRES_ADMIN_PASSWORD
       replicationPasswordKey: POSTGRES_REPLICATION_PASSWORD
+
+# Provision a Postgres Cluster using Zalando postgres operator.
+zpgCluster:
+  enabled: false
+  dbName: adahandle-resolver
+  instances: 1
+  volumeSize: 5Gi 
+  resources:
+    requests:
+      cpu: 100m 
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1024Mi
