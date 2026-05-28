@@ -83,7 +83,7 @@ postgresql:
 zpgCluster:
   enabled: false
   namespace: zpg-system
-  dbName: adahandle-resolver
+  dbName: adahandle
   instances: 1
   volumeSize: 5Gi 
   resources:
