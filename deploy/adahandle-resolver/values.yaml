@@ -87,9 +87,9 @@ zpgCluster:
   instances: 1
   volumeSize: 5Gi 
   resources:
-    requests:
-      cpu: 100m 
-      memory: 512Mi
-    limits:
-      cpu: 500m
-      memory: 1024Mi
+    # requests:
+    #   cpu: 100m 
+    #   memory: 512Mi
+    # limits:
+    #   cpu: 500m
+    #   memory: 1024Mi

@@ -42,8 +42,10 @@ spec:
     size: {{ .volumeSize }}
   allowedSourceRanges:
     # IP ranges to access your cluster go here
+  {{- with .resources}}
   resources:
-    {{- toYaml .resources | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   enableConnectionPooler: true
   enableMasterLoadBalancer: false
   enableReplicaLoadBalancer: false

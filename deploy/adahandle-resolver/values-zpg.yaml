@@ -9,3 +9,6 @@ postgresql:
 
 zpgCluster:
   enabled: true
+  resources:
+    limits:
+      memory: "2Gi"
