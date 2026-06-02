@@ -19,15 +19,25 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/load-config.sh"
 
 echo "[spotcheck] sampling up to $SAMPLE_N handles from $DB_NAME.ada_handle on $REMOTE ..."
+# Emit a JSON array so handle names containing any UTF-8 (including spaces or the
+# pipe char — CIP-68 names are arbitrary) parse unambiguously. Skip empty names.
 samples=$(ssh -o BatchMode=yes "$REMOTE" \
-  "docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -tA -F '|' -c \"SELECT name, stake_address, payment_address FROM ada_handle WHERE stake_address IS NOT NULL AND payment_address IS NOT NULL ORDER BY name LIMIT $SAMPLE_N;\"" 2>/dev/null || true)
+  "docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -tA -c \"SELECT coalesce(json_agg(row_to_json(t)),'[]') FROM (SELECT name, stake_address AS stake, payment_address AS payment FROM ada_handle WHERE name <> '' AND stake_address IS NOT NULL AND payment_address IS NOT NULL ORDER BY name LIMIT $SAMPLE_N) t;\"" 2>/dev/null || true)
 
-if [[ -z "$samples" ]]; then
-  echo "ERROR: no handles found in ada_handle — is the sync populated yet?" >&2
+if [[ -z "$samples" || "$samples" == "[]" ]]; then
+  echo "ERROR: no usable handles found in ada_handle — is the sync populated yet?" >&2
   exit 1
 fi
 
-printf '%s\n' "$samples" | API="http://localhost:${LOCAL_API_PORT}" python3 - <<'PY'
+# Write the sampled rows to a temp file and pass its path as argv[1]. (Do NOT
+# pipe data to `python3 -`: the heredoc is consumed as the program from stdin,
+# so a piped stdin would be empty.)
+tmp="$(mktemp)"
+trap 'rm -f "$tmp"' EXIT
+printf '%s\n' "$samples" > "$tmp"
+
+set +e
+API="http://localhost:${LOCAL_API_PORT}" python3 - "$tmp" <<'PY'
 import sys, os, json, urllib.parse, urllib.request
 
 api = os.environ["API"]
@@ -40,16 +50,17 @@ def get(path):
     except urllib.error.HTTPError as e:
         return e.code, None
 
+with open(sys.argv[1]) as fh:
+    rows = json.load(fh)
+
 total = passed = 0
 fails = []
-for line in sys.stdin:
-    line = line.rstrip("\n")
-    if not line or "|" not in line:
+for row in rows:
+    name = row.get("name")
+    stake = row.get("stake")
+    payment = row.get("payment")
+    if not name:
         continue
-    parts = line.split("|")
-    if len(parts) < 3:
-        continue
-    name, stake, payment = parts[0], parts[1], parts[2]
     total += 1
     msgs = []
 
@@ -78,3 +89,6 @@ for n, m in fails[:10]:
 
 sys.exit(0 if (total > 0 and passed == total) else 1)
 PY
+rc=$?
+set -e
+exit $rc

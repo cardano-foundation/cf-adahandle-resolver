@@ -19,7 +19,9 @@ Unlike a fixture-based API test, the regression signal is the **full sync itself
 
 1. **Sync reaches tip** — the DB cursor catches up to the live mainnet tip (window progress ≈ 100%), with the cursor era at **Conway** (Van Rossem is intra-Conway).
 2. **Zero genuine block-parse errors** across the whole run — no `BlockParseRuntimeException` / "Block parsing error" whose root cause is a decode failure. (Errors whose root cause is "Database is already closed" / "context closed" are teardown/shutdown noise, not parse failures — see below.)
-3. **REST spot-checks pass** — for a sample of handles drawn from the synced DB, the API's forward lookup matches the stored row and the reverse lookup round-trips.
+3. **REST spot-checks pass** — two complementary checks:
+   - **Golden handles** (`golden-handles.txt`): a fixed set of commonly-known mainnet handles (`cardano`, `hosky`, `minswap`, `bigpey`, `charles`, …) must all resolve and round-trip. Deterministic and reviewable.
+   - **Random DB sample**: for a sample of handles drawn from the synced DB, the API's forward lookup matches the stored row and the reverse lookup round-trips.
 
 ## Critical rules
 
@@ -98,12 +100,17 @@ Once at tip, run `scripts/check-parse-errors.sh`. It scans the `api` container l
 
 ### Step 7 — REST spot-checks
 
-Run `scripts/run-rest-spotchecks.sh`. It samples `SAMPLE_N` handles from the synced `ada_handle` table on the remote DB, then for each, against the tunneled API:
+Two scripts, both against the tunneled API:
 
-- **Forward**: `GET /api/v1/addresses/by-ada-handle/{handle}` → asserts `stakeAddress`/`paymentAddress` equal the stored row.
-- **Reverse**: `GET /api/v1/ada-handles/by-stake-address/{stakeAddress}` → asserts the handle is in the returned list.
+**`scripts/run-golden-handles.sh`** — the deterministic golden check. Reads commonly-known mainnet handles from `golden-handles.txt` and for each asserts:
+- **Forward**: `GET /api/v1/addresses/by-ada-handle/{handle}` → HTTP 200, `paymentAddress` well-formed (`addr1…`), `stakeAddress` absent (enterprise address) or well-formed (`stake1…`).
+- **Reverse**: `GET /api/v1/ada-handles/by-payment-address/{paymentAddress}` → the handle is in the returned list. (Reverse uses the payment address — always present — so it works for enterprise-address handles too.)
 
-This is a DB-vs-API consistency + round-trip check, so it can't produce false failures from "handle doesn't exist" or on-chain drift. (For known-address assertions, set `EXPECTED_HANDLES` in `config.env` — optional.)
+Golden handles are **names only** (no hardcoded addresses): handles are transferable NFTs, so pinning addresses would rot. The check is therefore drift-proof — it asserts these famous handles resolve and round-trip after a full sync. Run at tip (a handle minted after a mid-sync cursor won't exist yet).
+
+**`scripts/run-rest-spotchecks.sh`** — randomized coverage. Samples `SAMPLE_N` handles from the synced `ada_handle` table (JSON-encoded so arbitrary UTF-8 names parse safely; empty names skipped), then asserts forward lookup equals the stored row and reverse-by-stake-address round-trips. A DB-vs-API consistency check, so no false failures from drift. (For known-address assertions, set `EXPECTED_HANDLES` in `config.env` — optional.)
+
+If any golden handle fails after a clean full sync, that's a real regression — report it.
 
 ### Step 8 — Report
 
@@ -132,6 +139,7 @@ Same root cause as filed upstream for yaci/yaci-store: the Cardano node hostname
 ├── SKILL.md                     # this file
 ├── config.env.example           # template, committed
 ├── config.env                   # actual config, gitignored
+├── golden-handles.txt           # commonly-known mainnet handles for the golden check
 ├── tunnels.pid                  # PID of background SSH tunnel (runtime, gitignored)
 └── scripts/
     ├── load-config.sh           # config loader (source first)
@@ -143,5 +151,6 @@ Same root cause as filed upstream for yaci/yaci-store: the Cardano node hostname
     ├── check-sync-progress.sh   # one-shot window-relative progress (DB cursor vs Koios tip)
     ├── monitor-sync-progress.sh # looped progress + ETA; --until-tip exits at ~100%
     ├── check-parse-errors.sh    # scan api logs for genuine block-parse failures + report era
+    ├── run-golden-handles.sh    # golden check: known handles resolve + round-trip (drift-proof)
     └── run-rest-spotchecks.sh   # DB-vs-API consistency + reverse round-trip on sampled handles
 ```

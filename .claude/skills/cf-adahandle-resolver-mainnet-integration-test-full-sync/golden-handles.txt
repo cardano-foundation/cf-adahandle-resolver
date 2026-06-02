@@ -1,0 +1,49 @@
+# Golden ADA handles — commonly-known mainnet handles used as a deterministic
+# regression check by run-golden-handles.sh. One handle per line (no leading $);
+# blank lines and # comments ignored.
+#
+# WHY NAMES ONLY (no expected addresses): ADA handles are transferable NFTs, so
+# the stake/payment address behind a handle can change at any time. Pinning exact
+# addresses would produce false failures from on-chain drift. The golden test
+# therefore asserts that each handle RESOLVES and ROUND-TRIPS (forward lookup
+# returns a well-formed addr1...; reverse-by-payment-address contains the handle),
+# which is drift-proof and still a meaningful regression: after a full sync these
+# famous handles must be present and consistent.
+#
+# Every entry below was confirmed present on mainnet via the synced DB.
+# Run at tip (a handle minted after a mid-sync cursor won't be present yet).
+
+# Project / ecosystem names
+cardano
+ada
+sundae
+minswap
+snek
+nmkr
+jpgstore
+wmt
+hosky
+
+# People / brand names
+bigpey
+charles
+hoskinson
+ledger
+
+# Eras / generic
+shelley
+vasil
+king
+money
+whale
+bitcoin
+ethereum
+
+# Short / numeric
+ada1
+btc
+
+# Enterprise-address handles (payment only, no stake) — exercise the no-stake path
+eth
+satoshi
+crypto
