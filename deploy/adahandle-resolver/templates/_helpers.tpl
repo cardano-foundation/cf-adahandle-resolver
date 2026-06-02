@@ -60,3 +60,43 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Choose which secret name to choose
+*/}}
+{{- define "adahandle-resolver.postgres.secretName" -}}
+{{- if .Values.postgresql.enabled }}
+{{- printf "postgres-secret" }}
+{{- else if .Values.zpgCluster.enabled }}
+{{- include "adahandle-resolver.postgres.zpg.secretName" . }}
+{{- end }}
+{{- end }}
+
+{{/*
+Choose which secret name to choose
+*/}}
+{{- define "adahandle-resolver.postgres.zpg.secretName" -}}
+{{ .Values.zpgCluster.dbName }}-owner-user.{{ include "adahandle-resolver.fullname" $ }}.credentials.postgresql.acid.zalan.do
+{{- end }}
+
+{{/*
+Postgres secret username key
+*/}}
+{{- define "adahandle-resolver.postgres.secret.usernameKey" -}}
+{{- if .Values.zpgCluster.enabled }}
+{{- printf "username" }}
+{{- else }}
+{{- .Values.database.postgres.secret.userKey }}
+{{- end }}
+{{- end }}
+
+{{/*
+Postgres secret password key
+*/}}
+{{- define "adahandle-resolver.postgres.secret.passwordKey" -}}
+{{- if .Values.zpgCluster.enabled }}
+{{- printf "password" }}
+{{- else }}
+{{- .Values.database.postgres.secret.passwordKey }}
+{{- end }}
+{{- end }}

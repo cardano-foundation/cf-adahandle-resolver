@@ -16,7 +16,7 @@ spec:
     - host: "adahandle-resolver.{{ .Values.domain }}"
       http:
         paths:
-          - path: /
+          - path: /api
             pathType: Prefix
             backend:
               service:
@@ -27,7 +27,7 @@ spec:
     - host: {{ $domain }}
       http:
         paths:
-          - path: /
+          - path: /api
             pathType: Prefix
             backend:
               service:

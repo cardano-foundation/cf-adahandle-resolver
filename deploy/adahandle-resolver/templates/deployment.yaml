@@ -41,17 +41,17 @@ spec:
             - name: POSTGRES_HOST
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secrets
+                  name: {{ include "adahandle-resolver.postgres.secretName" . }}
                   key: POSTGRES_HOST
             - name: POSTGRES_PORT
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secrets
+                  name: {{ include "adahandle-resolver.postgres.secretName" . }}
                   key: POSTGRES_PORT
             - name: POSTGRES_DB
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secrets
+                  name: {{ include "adahandle-resolver.postgres.secretName" . }}
                   key: POSTGRES_DB
             - name: DB_SCHEMA
               value: {{ .Values.dbSchema | default "public" }}
@@ -60,13 +60,13 @@ spec:
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secrets
-                  key: POSTGRES_USER
+                  name: {{ include "adahandle-resolver.postgres.secretName" . }}
+                  key: {{ include "adahandle-resolver.postgres.secret.usernameKey" . }}
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secrets
-                  key: POSTGRES_PASSWORD
+                  name: {{ include "adahandle-resolver.postgres.secretName" . }}
+                  key: {{ include "adahandle-resolver.postgres.secret.passwordKey" . }}
             {{- else if eq .Values.database.type "h2" }}
             - name: DB_URL
               value: {{ .Values.database.h2.url }}
