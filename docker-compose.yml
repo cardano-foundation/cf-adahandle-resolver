@@ -1,0 +1,60 @@
+# Local / QA mainnet stack for cf-adahandle-resolver.
+#
+# Postgres + the API built from THIS checkout's Dockerfile, syncing mainnet
+# from the first ADA Handle minting block (slot 47931310) all the way to tip.
+#
+# Primarily driven by the full-sync integration-test skill under
+# .claude/skills/cf-adahandle-resolver-mainnet-integration-test-full-sync/,
+# but also usable standalone:  docker compose --env-file .env up -d
+#
+# All knobs come from .env (mainnet defaults committed there).
+
+services:
+  db:
+    image: postgres:17
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: "${DB_USERNAME}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${DB_NAME}"
+    volumes:
+      - adahandle-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: on-failure
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cardanofoundation/adahandle-resolver:${API_IMAGE_TAG:-local}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${API_LOCAL_BIND_PORT:-9095}:${PORT:-9095}"
+    environment:
+      SPRING_ACTIVE_PROFILES: "${SPRING_ACTIVE_PROFILES:-mainnet,postgres}"
+      PORT: "${PORT:-9095}"
+      DB_URL: "${DB_URL}"
+      DB_USERNAME: "${DB_USERNAME}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      REMOTE_NODE_URL: "${REMOTE_NODE_URL}"
+      REMOTE_NODE_PORT: "${REMOTE_NODE_PORT}"
+      YACI_STORE_CARDANO_SYNC_START_SLOT: "${YACI_STORE_CARDANO_SYNC_START_SLOT}"
+      YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH: "${YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH}"
+      STORE_SYNCAUTOSTART: "${STORE_SYNCAUTOSTART:-true}"
+      # NOTE: the Dockerfile entrypoint is a fixed `java -jar ...`, so JAVA_OPTS
+      # would be ignored. JAVA_TOOL_OPTIONS is read automatically by the JVM at
+      # startup. ttl=0 disables JVM DNS caching so the resolver always re-picks a
+      # fresh IP from the relay's round-robin pool (mitigates the yaci dead-relay
+      # wedge described in the skill's "Known issue" section).
+      JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:--Xmx2g -Dnetworkaddress.cache.ttl=0 -Dnetworkaddress.cache.negative.ttl=0}"
+    restart: always
+
+volumes:
+  adahandle-db:
