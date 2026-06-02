@@ -32,9 +32,19 @@ genuine_count=$(printf '%s\n' "$genuine" | grep -cE "$SIG" || true)
 
 cursor_era=$(ssh_exec "docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -tA -c 'SELECT era FROM cursor_ ORDER BY update_datetime DESC LIMIT 1;'" 2>/dev/null || echo "?")
 
+# yaci-store stores the cursor era as a numeric ordinal:
+# 1=Byron 2=Shelley 3=Allegra 4=Mary 5=Alonzo 6=Babbage 7=Conway.
+# (Some builds may store the name instead, so accept both.)
+case "$cursor_era" in
+  7|Conway) era_name="Conway"; conway_reached=1 ;;
+  6|Babbage) era_name="Babbage"; conway_reached=0 ;;
+  5|Alonzo) era_name="Alonzo"; conway_reached=0 ;;
+  *) era_name="era=$cursor_era"; conway_reached=0 ;;
+esac
+
 echo "[parse-check] candidate parse-error lines:        $total"
 echo "[parse-check] genuine (excluding shutdown noise): $genuine_count"
-echo "[parse-check] cursor era at tip:                  $cursor_era"
+echo "[parse-check] cursor era at tip:                  $era_name ($cursor_era)"
 
 if [[ "$genuine_count" -gt 0 ]]; then
   echo
@@ -43,9 +53,9 @@ if [[ "$genuine_count" -gt 0 ]]; then
   exit 1
 fi
 
-if [[ "$cursor_era" != "Conway" ]]; then
+if [[ "$conway_reached" -ne 1 ]]; then
   echo
-  echo "[parse-check] NOTE: cursor era is '$cursor_era', not Conway — the sync has not yet crossed into the Conway/Van Rossem window. Keep syncing before declaring hard-fork readiness." >&2
+  echo "[parse-check] NOTE: cursor era is $era_name ($cursor_era), not yet Conway (7) — the sync has not crossed into the Conway/Van Rossem window. Keep syncing before declaring hard-fork readiness." >&2
 fi
 
 echo "[parse-check] OK — no genuine block-parse errors."
