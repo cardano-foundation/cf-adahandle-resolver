@@ -11,7 +11,7 @@
     <groupId>org.cardanofoundation.tools</groupId>
 
     <artifactId>cf-adahandle-resolver</artifactId>
-    <version>0.1.4</version>
+    <version>0.1.5</version>
   
     <name>ADA Handle Resolver</name>
     <description>A scoped indexer for retrieving ADA Handle information from the Cardano blockchain and exposing it via REST using yaci-store</description>
@@ -43,6 +43,9 @@
 
     <properties>
         <java.version>21</java.version>
+        <!-- Van Rossem (protocol v11) ready: latest stable release of the yaci-store 0.1.x line.
+             yaci-core is intentionally left to resolve transitively from the starter. -->
+        <yaci.store.version>0.1.7</yaci.store.version>
         <version.jacoco-maven-plugin>0.8.10</version.jacoco-maven-plugin>
     </properties>
 
@@ -64,14 +67,14 @@
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-spring-boot-starter</artifactId>
-            <version>0.1.2</version>
+            <version>${yaci.store.version}</version>
         </dependency>
 
         <!-- Yaci Store utxo spring boot starter -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-utxo-spring-boot-starter</artifactId>
-            <version>0.1.2</version>
+            <version>${yaci.store.version}</version>
         </dependency>
 
         <dependency>
