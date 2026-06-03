@@ -53,7 +53,7 @@ services:
       # startup. ttl=0 disables JVM DNS caching so the resolver always re-picks a
       # fresh IP from the relay's round-robin pool (mitigates the yaci dead-relay
       # wedge described in the skill's "Known issue" section).
-      JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:--Xmx2g -Dnetworkaddress.cache.ttl=0 -Dnetworkaddress.cache.negative.ttl=0}"
+      JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:--Xmx4g -Dnetworkaddress.cache.ttl=0 -Dnetworkaddress.cache.negative.ttl=0}"
     restart: always
 
 volumes:
