@@ -11,9 +11,12 @@ source "$(dirname "${BASH_SOURCE[0]}")/load-config.sh"
 
 ssh_exec() { ssh -o BatchMode=yes "$REMOTE" "$@"; }
 
-echo "[start] verifying $ENV_FILE present in $REMOTE_PROJECT_DIR ..."
-if ! ssh_exec "test -f $REMOTE_PROJECT_DIR/$ENV_FILE"; then
-  echo "ERROR: $REMOTE_PROJECT_DIR/$ENV_FILE missing on remote." >&2
+# .env is gitignored (only .env.example is committed), so a fresh checkout won't
+# have it — create it from the example. Edit the remote .env if you need non-default
+# values (e.g. a pinned relay IP) before this step.
+echo "[start] ensuring $ENV_FILE present in $REMOTE_PROJECT_DIR (copy from ${ENV_FILE}.example if missing)..."
+if ! ssh_exec "cd $REMOTE_PROJECT_DIR && { test -f $ENV_FILE || cp ${ENV_FILE}.example $ENV_FILE; } && test -f $ENV_FILE"; then
+  echo "ERROR: could not establish $ENV_FILE on remote (missing $ENV_FILE and ${ENV_FILE}.example?)." >&2
   exit 1
 fi
 

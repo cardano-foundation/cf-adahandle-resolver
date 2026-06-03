@@ -46,3 +46,6 @@ data/
 .claude/settings.local.json
 .claude/skills/*/config.env
 .claude/skills/*/tunnels.pid
+
+# Local docker-compose env — copy from .env.example (never commit real .env)
+.env
