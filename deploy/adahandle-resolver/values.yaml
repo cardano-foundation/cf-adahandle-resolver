@@ -86,6 +86,15 @@ zpgCluster:
   dbName: adahandle
   instances: 1
   volumeSize: 5Gi 
+  # Additional environment variables for the Zalando PostgreSQL pods
+  additionalEnv: []
+    # - name: EXAMPLE_VAR
+    #   value: "example-value"
+    # - name: EXAMPLE_SECRET
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: my-secret
+    #       key: my-key
   resources:
     # requests:
     #   cpu: 100m 
