@@ -107,12 +107,12 @@ spec:
             timeoutSeconds: 5
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- if .Values.database.h2.persistence.enabled }}
+          {{- if and .Values.database.h2.persistence.enabled (eq .Values.database.type "h2") }}
           volumeMounts:
             - name: data-volume
               mountPath: /data
           {{- end}}
-      {{- if .Values.database.h2.persistence.enabled }}
+      {{- if and .Values.database.h2.persistence.enabled (eq .Values.database.type "h2") }}
       volumes:
         - name: data-volume
           persistentVolumeClaim:

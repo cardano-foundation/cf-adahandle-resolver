@@ -40,6 +40,8 @@ startupProbe:
   periodSeconds: 20
   failureThreshold: 3
 
+dbSchema: public
+
 database:
   # Can be h2 or postgres
   type: h2

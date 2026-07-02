@@ -15,13 +15,13 @@ services:
     ports:
       - "${DB_PORT:-5432}:5432"
     environment:
-      POSTGRES_USER: "${DB_USERNAME}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
-      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: "${DB_USERNAME:-cardano}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-adahandle}"
+      POSTGRES_DB: "${DB_NAME:-adahandle}"
     volumes:
       - adahandle-db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-cardano} -d ${DB_NAME:-adahandle}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -40,13 +40,9 @@ services:
     environment:
       SPRING_ACTIVE_PROFILES: "${SPRING_ACTIVE_PROFILES:-mainnet,postgres}"
       PORT: "${PORT:-9095}"
-      DB_URL: "${DB_URL}"
-      DB_USERNAME: "${DB_USERNAME}"
-      DB_PASSWORD: "${DB_PASSWORD}"
-      REMOTE_NODE_URL: "${REMOTE_NODE_URL}"
-      REMOTE_NODE_PORT: "${REMOTE_NODE_PORT}"
-      YACI_STORE_CARDANO_SYNC_START_SLOT: "${YACI_STORE_CARDANO_SYNC_START_SLOT}"
-      YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH: "${YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH}"
+      DB_URL: "${DB_URL:-jdbc:postgresql://db:5432/adahandle}"
+      DB_USERNAME: "${DB_USERNAME:-cardano}"
+      DB_PASSWORD: "${DB_PASSWORD:-adahandle}"
       STORE_SYNCAUTOSTART: "${STORE_SYNCAUTOSTART:-true}"
       # NOTE: the Dockerfile entrypoint is a fixed `java -jar ...`, so JAVA_OPTS
       # would be ignored. JAVA_TOOL_OPTIONS is read automatically by the JVM at
