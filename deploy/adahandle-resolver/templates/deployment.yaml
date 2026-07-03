@@ -15,9 +15,12 @@ spec:
       labels:
         {{- include "adahandle-resolver.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: {{ include "adahandle-resolver.serviceAccountName" . }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}

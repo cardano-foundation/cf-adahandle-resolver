@@ -9,6 +9,16 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+# Service account to run the resolver pod under.
+#
+# The chart does NOT create a ServiceAccount resource — it only references an
+# already-existing one (created out-of-band, e.g. via your platform's IAM/IRSA
+# or a separate baseline chart). Leave `create: false` and set `name` to the SA
+# you want to use. With `name: ""` the pod falls back to the namespace's
+# `default` service account.
+serviceAccount:
+  name: ""
+
 service:
   type: ClusterIP
   port: 9095
