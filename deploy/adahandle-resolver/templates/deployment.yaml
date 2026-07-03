@@ -31,7 +31,13 @@ spec:
               value: {{ .Values.springProfiles }}
             - name: PORT
               value: {{ .Values.service.port | quote }}
-
+              # NOTE: the Dockerfile entrypoint is a fixed `java -jar ...`, so JAVA_OPTS
+              # would be ignored. JAVA_TOOL_OPTIONS is read automatically by the JVM at
+              # startup. ttl=0 disables JVM DNS caching so the resolver always re-picks a
+              # fresh IP from the relay's round-robin pool (mitigates the yaci dead-relay
+              # wedge described in the skill's "Known issue" section).
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Xmx4g -Dnetworkaddress.cache.ttl=0 -Dnetworkaddress.cache.negative.ttl=0"
             ## Postgres
             {{- if eq .Values.database.type "postgres" }}
             - name: DB_DRIVER
