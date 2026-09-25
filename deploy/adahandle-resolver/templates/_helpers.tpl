@@ -69,6 +69,8 @@ Choose which secret name to choose
 {{- printf "postgres-secret" }}
 {{- else if .Values.zpgCluster.enabled }}
 {{- include "adahandle-resolver.postgres.zpg.secretName" . }}
+{{- else }}
+{{- .Values.database.postgres.secret.name }}
 {{- end }}
 {{- end }}
 

@@ -45,4 +45,14 @@ public class AdaHandleService {
         List<AdaHandle> adaHandles = adaHandleHistoryItems.stream().map(AdaHandleHistoryMapper::toAdaHandle).toList();
         adaHandleRepository.saveAll(adaHandles);
     }
+
+    /** Upsert a single handle row (name is the @Id, so save() merges). */
+    public void upsert(AdaHandle adaHandle) {
+        adaHandleRepository.save(adaHandle);
+    }
+
+    /** Delete a single handle by its name (primary key). No-op if the row doesn't exist. */
+    public void deleteByName(String name) {
+        adaHandleRepository.deleteById(name);
+    }
 }

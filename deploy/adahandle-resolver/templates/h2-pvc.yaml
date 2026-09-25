@@ -1,3 +1,4 @@
+{{ if eq .Values.database.type "h2" }}
 {{ with .Values.database.h2.persistence }}
 {{ if .enabled }}
 ---
@@ -11,5 +12,6 @@ spec:
   resources:
     requests:
       storage: {{ .storage.size }}
+{{ end }}
 {{ end }}
 {{ end }}
