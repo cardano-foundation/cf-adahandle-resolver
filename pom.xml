@@ -44,8 +44,12 @@
     <properties>
         <java.version>21</java.version>
         <!-- Van Rossem (protocol v11) ready: latest stable release of the yaci-store 0.1.x line.
-             yaci-core is intentionally left to resolve transitively from the starter. -->
+             The 0.1.x line ends at 0.1.7; further fixes land in yaci-core's 0.3.x line. -->
         <yaci.store.version>0.1.7</yaci.store.version>
+        <!-- yaci-store 0.1.7 brings yaci 0.3.10 transitively; pinned up to 0.3.11, the last
+             0.3.x release (native-script parsing, datum/metadata recovery, exact datum and
+             redeemer bytes). -->
+        <yaci.version>0.3.11</yaci.version>
         <version.jacoco-maven-plugin>0.8.10</version.jacoco-maven-plugin>
     </properties>
 
@@ -68,6 +72,22 @@
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-spring-boot-starter</artifactId>
             <version>${yaci.store.version}</version>
+            <exclusions>
+                <!-- yaci-store 0.1.7 would bring these in at 0.3.10. All three are
+                     excluded by name and re-declared at ${yaci.version} below. -->
+                <exclusion>
+                    <groupId>com.bloxbean.cardano</groupId>
+                    <artifactId>yaci</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.bloxbean.cardano</groupId>
+                    <artifactId>yaci-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.bloxbean.cardano</groupId>
+                    <artifactId>yaci-helper</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Yaci Store utxo spring boot starter -->
@@ -75,6 +95,43 @@
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-utxo-spring-boot-starter</artifactId>
             <version>${yaci.store.version}</version>
+            <exclusions>
+                <!-- yaci-store 0.1.7 would bring these in at 0.3.10. All three are
+                     excluded by name and re-declared at ${yaci.version} below. -->
+                <exclusion>
+                    <groupId>com.bloxbean.cardano</groupId>
+                    <artifactId>yaci</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.bloxbean.cardano</groupId>
+                    <artifactId>yaci-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.bloxbean.cardano</groupId>
+                    <artifactId>yaci-helper</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- yaci, declared explicitly now that the transitive 0.3.10 copies are
+             excluded above. One artifact per exclusion, so nothing is dropped without
+             a visible replacement. -->
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci</artifactId>
+            <version>${yaci.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-core</artifactId>
+            <version>${yaci.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-helper</artifactId>
+            <version>${yaci.version}</version>
         </dependency>
 
         <dependency>
