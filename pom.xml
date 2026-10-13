@@ -46,9 +46,7 @@
         <!-- Van Rossem (protocol v11) ready: latest stable release of the yaci-store 0.1.x line.
              The 0.1.x line ends at 0.1.7; further fixes land in yaci-core's 0.3.x line. -->
         <yaci.store.version>0.1.7</yaci.store.version>
-        <!-- yaci-store 0.1.7 brings yaci 0.3.10 transitively; pinned up to 0.3.12. 0.3.12 fixes
-             mainnet block 14053493 being decoded with 0 of its 137 transactions
-             (see scripts/repair/README.md). -->
+        <!-- yaci-store 0.1.7 brings yaci 0.3.10 transitively; pinned up to 0.3.12. -->
         <yaci.version>0.3.12</yaci.version>
         <version.jacoco-maven-plugin>0.8.10</version.jacoco-maven-plugin>
     </properties>
