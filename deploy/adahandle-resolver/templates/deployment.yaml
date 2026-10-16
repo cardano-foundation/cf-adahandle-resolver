@@ -19,7 +19,11 @@ spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- range . }}
+        {{- if kindIs "map" . }}
+        - name: {{ .name }}
+        {{- else }}
         - name: {{ . }}
+        {{- end }}
         {{- end }}
       {{- end }}
       containers:
@@ -40,7 +44,7 @@ spec:
               # fresh IP from the relay's round-robin pool (mitigates the yaci dead-relay
               # wedge described in the skill's "Known issue" section).
             - name: JAVA_TOOL_OPTIONS
-              value: "-Xmx4g -Dnetworkaddress.cache.ttl=0 -Dnetworkaddress.cache.negative.ttl=0"
+              value: {{ .Values.javaToolOptions | quote }}
             ## Postgres
             {{- if eq .Values.database.type "postgres" }}
             - name: DB_DRIVER

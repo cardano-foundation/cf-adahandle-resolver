@@ -40,9 +40,15 @@ services:
     environment:
       SPRING_ACTIVE_PROFILES: "${SPRING_ACTIVE_PROFILES:-mainnet,postgres}"
       PORT: "${PORT:-9095}"
-      DB_URL: "${DB_URL:-jdbc:postgresql://db:5432/adahandle}"
+      DB_URL: "${DB_URL:-jdbc:postgresql://db:5432/${DB_NAME:-adahandle}}"
       DB_USERNAME: "${DB_USERNAME:-cardano}"
       DB_PASSWORD: "${DB_PASSWORD:-adahandle}"
+      # Defaults match application.yml's mainnet defaults, so an unset variable behaves
+      # as if it were not passed at all (an empty value would override the app default).
+      REMOTE_NODE_URL: "${REMOTE_NODE_URL:-backbone.cardano.iog.io}"
+      REMOTE_NODE_PORT: "${REMOTE_NODE_PORT:-3001}"
+      YACI_STORE_CARDANO_SYNC_START_SLOT: "${YACI_STORE_CARDANO_SYNC_START_SLOT:-47931310}"
+      YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH: "${YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH:-89f93419845d5f6ce8040fd5eeedda93d764c8569f7c2cc6802a8429a0da877b}"
       STORE_SYNCAUTOSTART: "${STORE_SYNCAUTOSTART:-true}"
       # NOTE: the Dockerfile entrypoint is a fixed `java -jar ...`, so JAVA_OPTS
       # would be ignored. JAVA_TOOL_OPTIONS is read automatically by the JVM at
