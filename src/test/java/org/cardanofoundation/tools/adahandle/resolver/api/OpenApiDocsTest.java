@@ -15,7 +15,7 @@ import static org.hamcrest.Matchers.startsWith;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ActiveProfiles("[disable-indexer, test]")
+@ActiveProfiles({"disable-indexer", "test"})
 public class OpenApiDocsTest {
 
     @LocalServerPort
