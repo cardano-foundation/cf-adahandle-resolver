@@ -21,7 +21,7 @@ import java.util.List;
 @ComponentScan
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ActiveProfiles("[disable-indexer, test]")
+@ActiveProfiles({"disable-indexer", "test"})
 public class AdaHandleApiTest {
 
     @Autowired
