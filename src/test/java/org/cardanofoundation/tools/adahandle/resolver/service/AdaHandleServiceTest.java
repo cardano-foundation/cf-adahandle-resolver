@@ -2,16 +2,24 @@ package org.cardanofoundation.tools.adahandle.resolver.service;
 
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
+import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleHistoryMapper;
 import org.cardanofoundation.tools.adahandle.resolver.projection.Addresses;
+import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,10 +29,12 @@ import java.util.List;
 @ActiveProfiles("[disable-indexer, test]")
 public class AdaHandleServiceTest {
 
-    @Autowired
+    @SpyBean
     private AdaHandleService adaHandleService;
     @Autowired
     private AdaHandleHistoryService adaHandleHistoryService;
+    @Autowired
+    private AdaHandleRepository adaHandleRepository;
 
     @BeforeEach
     public void setup() {
@@ -35,7 +45,8 @@ public class AdaHandleServiceTest {
         adaHandleHistoryItems.add(new AdaHandleHistoryItem("Otto", "stake1u87ua2crberberbrtbdk3uvpr2mv2xc3x6h7p","addr1u87ua2cf830jqwa3s59drvrt3gko5rvdrtf5pr2mv2xc3x6h7p", 1202L));
         adaHandleHistoryItems.add(new AdaHandleHistoryItem("Tom", "stake1q8skl6ew6gu3gglq68n6dfv0p4hltwe3sh0z","addr1q8skl6ew6ghxrr7g0l2w5wsd6hg70wlm7u3gglq68n6dfv0p4hltws7gdl77ayrt3ls", 1305L));
         adaHandleHistoryService.saveAll(adaHandleHistoryItems);
-        adaHandleService.recalculateAdaHandlesFromHistory(adaHandleHistoryItems);
+        adaHandleRepository.deleteAll();
+        adaHandleRepository.saveAll(adaHandleHistoryItems.stream().map(AdaHandleHistoryMapper::toAdaHandle).toList());
     }
 
     @Test
@@ -120,11 +131,12 @@ public class AdaHandleServiceTest {
         // A rollback to a slot with no history above it (here the current tip of the fixture,
         // slot 1305) is the no-op the node sends at the catch-up-to-tip transition. It must
         // not touch the handle table at all.
-        Addresses tomBefore = adaHandleService.getAddressesByAdaHandle("Tom");
+        clearInvocations(adaHandleService);
         adaHandleHistoryService.rollbackToSlot(1305L);
-        Addresses tomAfter = adaHandleService.getAddressesByAdaHandle("Tom");
-        assertThat(tomAfter.getStakeAddress(), equalTo(tomBefore.getStakeAddress()));
-        assertThat(tomAfter.getPaymentAddress(), equalTo(tomBefore.getPaymentAddress()));
+        verify(adaHandleService, never()).upsert(any());
+        verify(adaHandleService, never()).deleteByName(anyString());
+        Addresses tom = adaHandleService.getAddressesByAdaHandle("Tom");
+        assertThat(tom.getStakeAddress(), equalTo("stake1q8skl6ew6gu3gglq68n6dfv0p4hltwe3sh0z"));
     }
 
     @Test

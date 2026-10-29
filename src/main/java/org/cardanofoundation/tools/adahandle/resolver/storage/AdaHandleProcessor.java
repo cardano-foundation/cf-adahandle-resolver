@@ -90,7 +90,11 @@ public class AdaHandleProcessor {
     @Transactional
     public void handleRollback(RollbackEvent rollbackEvent) {
         log.info("Handle rollback");
-        adaHandleHistoryService.rollbackToSlot(rollbackEvent.getRollbackTo().getSlot());
+        long rollbackSlot = rollbackEvent.getRollbackTo().getSlot();
+        // UTxOs cached from rolled-back blocks have not been committed yet; drop them so the
+        // next CommitEvent does not write the abandoned fork's owners.
+        slotAddressUtxosCache.removeIf(slotAddressUtxo -> slotAddressUtxo.slot() > rollbackSlot);
+        adaHandleHistoryService.rollbackToSlot(rollbackSlot);
     }
 
 }
