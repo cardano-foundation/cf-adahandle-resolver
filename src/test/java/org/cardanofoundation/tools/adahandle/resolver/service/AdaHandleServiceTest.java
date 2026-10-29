@@ -26,7 +26,7 @@ import java.util.List;
 @DataJpaTest
 @ComponentScan
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@ActiveProfiles("[disable-indexer, test]")
+@ActiveProfiles({"disable-indexer", "test"})
 public class AdaHandleServiceTest {
 
     @SpyBean

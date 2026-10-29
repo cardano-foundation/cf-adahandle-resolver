@@ -38,7 +38,7 @@ public class AdaHandleProcessor {
             return;
         }
 
-        var slotAddressUtxo = new SlotAddressUtxo(addressUtxoEvent.getEventMetadata().getSlot(), addressUtxoList);
+        var slotAddressUtxo = new SlotAddressUtxo(addressUtxoEvent.getMetadata().getSlot(), addressUtxoList);
         slotAddressUtxosCache.add(slotAddressUtxo);
     }
 
