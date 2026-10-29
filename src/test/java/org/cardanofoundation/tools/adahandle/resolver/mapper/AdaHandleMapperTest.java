@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -62,4 +63,25 @@ public class AdaHandleMapperTest {
         assertThat(adaHandles, hasItem(hasProperty("name", is("Henry"))));
     }
 
+    @Test
+    public void testToAdaHandlesDecodesCip68UserTokenAndSkipsReferenceToken() {
+        String policyId = "f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a";
+        String hexName = HexFormat.of().formatHex("alice".getBytes());
+
+        AddressUtxo addressUtxo = AddressUtxo.builder()
+                .ownerAddr("addr1vk4ua2cf830jqwa3s59dgasertugnu3598pmlwdk3uvpr2mv2xc3x6h7p")
+                .ownerStakeAddr("stake1vk4ua2crberberbrtbdk3uvpr2mv2xc3x6h7p")
+                .amounts(List.of(
+                        // CIP-68 user token (label 222): yaci reports the asset name as a fingerprint
+                        Amt.builder().policyId(policyId).unit(policyId + "000de140" + hexName).assetName("asset1fingerprintuser").build(),
+                        // CIP-68 reference token (label 100): metadata only, not ownership
+                        Amt.builder().policyId(policyId).unit(policyId + "000643b0" + hexName).assetName("asset1fingerprintref").build()))
+                .slot(1300L)
+                .build();
+
+        List<AdaHandle> adaHandles = AdaHandleMapper.toAdaHandles(addressUtxo);
+
+        assertThat(adaHandles, hasSize(1));
+        assertThat(adaHandles.get(0).getName(), is("alice"));
+    }
 }
