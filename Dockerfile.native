@@ -1,0 +1,23 @@
+# GraalVM native image of the resolver. Built weekly by .github/workflows/native-image.yaml.
+#
+#   docker build -f Dockerfile.native -t adahandle-resolver:native .
+#
+# Oracle Linux 9 builder (glibc 2.34), so the binary also runs on newer glibc such as noble.
+FROM ghcr.io/graalvm/native-image-community:25i4-25.0.4.1.1-ol9 AS build
+
+WORKDIR /app
+COPY pom.xml /app/pom.xml
+COPY mvnw /app/mvnw
+COPY .mvn /app/.mvn
+
+RUN ./mvnw -B -Pnative verify clean --fail-never
+COPY . /app
+RUN ./mvnw -B -Pnative -DskipTests native:compile
+
+FROM ubuntu:noble AS runtime
+WORKDIR /app
+COPY --from=build /app/target/adahandle-resolver /app/adahandle-resolver
+ENTRYPOINT ["/app/adahandle-resolver"]
+# A native binary ignores JAVA_TOOL_OPTIONS; runtime flags go on the command line (e.g. add -Xmx to
+# cap the heap). networkaddress.cache.ttl=0 re-resolves the relay hostname on every reconnect.
+CMD ["-Dnetworkaddress.cache.ttl=0", "-Dnetworkaddress.cache.negative.ttl=0"]
