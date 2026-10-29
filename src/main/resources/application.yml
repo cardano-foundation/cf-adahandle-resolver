@@ -21,6 +21,16 @@ spring:
 
 apiPrefix: /api/v1
 
+app:
+  version: "@project.version@"
+
+springdoc:
+  api-docs:
+    path: /apidocs
+  swagger-ui:
+    path: /swagger-ui.html
+  paths-to-match: /api/**
+
 logging:
   file:
     name: ./logs/adahandle-resolver.log
