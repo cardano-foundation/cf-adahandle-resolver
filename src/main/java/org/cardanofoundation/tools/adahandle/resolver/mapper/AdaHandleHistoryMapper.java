@@ -10,18 +10,17 @@ import java.util.ArrayList;
 public class AdaHandleHistoryMapper {
     public static ArrayList<AdaHandleHistoryItem> fromAddressUtxoEntities(AddressUtxo addressUtxo) {
         final ArrayList<AdaHandleHistoryItem> adaHandleHistoryItems = new ArrayList<>();
-        final String ADA_HANDLE_POLICY_ID = "f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a";
         if (addressUtxo.getAmounts() != null) {
             for (final Amt amount : addressUtxo.getAmounts()) {
-                if (amount.getPolicyId() != null) {
-                    if (amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {
-                        AdaHandleHistoryItem adaHandleHistoryItem = new AdaHandleHistoryItem();
-                        adaHandleHistoryItem.setName(amount.getAssetName());
-                        adaHandleHistoryItem.setStakeAddress(addressUtxo.getOwnerStakeAddr());
-                        adaHandleHistoryItem.setPaymentAddress(addressUtxo.getOwnerAddr());
-                        adaHandleHistoryItem.setSlot(addressUtxo.getSlot());
-                        adaHandleHistoryItems.add(adaHandleHistoryItem);
-                    }
+                // Same name as ada_handle uses, so rollbacks can find the current row to repair.
+                String adaHandle = AdaHandleMapper.toHandleName(amount);
+                if (adaHandle != null) {
+                    AdaHandleHistoryItem adaHandleHistoryItem = new AdaHandleHistoryItem();
+                    adaHandleHistoryItem.setName(adaHandle);
+                    adaHandleHistoryItem.setStakeAddress(addressUtxo.getOwnerStakeAddr());
+                    adaHandleHistoryItem.setPaymentAddress(addressUtxo.getOwnerAddr());
+                    adaHandleHistoryItem.setSlot(addressUtxo.getSlot());
+                    adaHandleHistoryItems.add(adaHandleHistoryItem);
                 }
             }
         }

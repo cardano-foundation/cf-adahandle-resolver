@@ -6,6 +6,8 @@ import com.bloxbean.cardano.yaci.store.events.RollbackEvent;
 import com.bloxbean.cardano.yaci.store.events.internal.CommitEvent;
 import com.bloxbean.cardano.yaci.store.utxo.domain.AddressUtxoEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
 import org.springframework.context.event.EventListener;
@@ -18,6 +20,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class AdaHandleProcessor {
     private final AdaHandleService adaHandleService;
     private final AdaHandleHistoryService adaHandleHistoryService;
@@ -86,7 +89,12 @@ public class AdaHandleProcessor {
     @EventListener
     @Transactional
     public void handleRollback(RollbackEvent rollbackEvent) {
-        adaHandleHistoryService.rollbackToSlot(rollbackEvent.getRollbackTo().getSlot());
+        log.info("Handle rollback");
+        long rollbackSlot = rollbackEvent.getRollbackTo().getSlot();
+        // UTxOs cached from rolled-back blocks have not been committed yet; drop them so the
+        // next CommitEvent does not write the abandoned fork's owners.
+        slotAddressUtxosCache.removeIf(slotAddressUtxo -> slotAddressUtxo.slot() > rollbackSlot);
+        adaHandleHistoryService.rollbackToSlot(rollbackSlot);
     }
 
 }
