@@ -3,6 +3,7 @@ import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
+import org.cardanofoundation.tools.adahandle.resolver.util.Crc8;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -79,7 +80,7 @@ public class AdaHandleMapper {
 
     /**
      * Returns the CIP-67 label of an asset name, or null if it doesn't start with one. The 4-byte
-     * prefix is {@code 0000 | 16-bit label | CRC-8 of the label | 0000}. Legacy handle names are
+     * prefix is {@code 0000 | 16-bit label | CRC-8 of the label | 0000}, see {@link Crc8}. Legacy handle names are
      * printable ASCII, so they can't start with a valid label.
      */
     static Integer cip67Label(byte[] assetName) {
@@ -90,18 +91,6 @@ public class AdaHandleMapper {
                 | ((assetName[2] & 0xFF) << 8) | (assetName[3] & 0xFF);
         int label = (prefix >>> 12) & 0xFFFF;
         int checksum = (prefix >>> 4) & 0xFF;
-        return crc8(new byte[]{(byte) (label >>> 8), (byte) label}) == checksum ? label : null;
-    }
-
-    /** CRC-8 with polynomial 0x07, as used by CIP-67. */
-    private static int crc8(byte[] data) {
-        int crc = 0;
-        for (byte b : data) {
-            crc ^= b & 0xFF;
-            for (int i = 0; i < 8; i++) {
-                crc = (crc & 0x80) != 0 ? ((crc << 1) ^ 0x07) & 0xFF : (crc << 1) & 0xFF;
-            }
-        }
-        return crc;
+        return Crc8.crc8(new byte[]{(byte) (label >>> 8), (byte) label}) == checksum ? label : null;
     }
 }
