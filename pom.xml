@@ -53,6 +53,10 @@
         <lombok.version>1.18.48</lombok.version>
         <!-- 2.10.x is built against Spring Boot 3.5.16. -->
         <springdoc.version>2.10.0</springdoc.version>
+        <!-- Overrides the PostgreSQL driver managed by Spring Boot (3.5.16 manages 42.7.11, which has
+             CVE-2026-54291 and others). 42.7.14 is the first release without known high/medium CVEs.
+             Drop once Spring Boot manages 42.7.14 or later. -->
+        <postgresql.version>42.7.14</postgresql.version>
     </properties>
 
     <dependencies>
@@ -93,7 +97,6 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.6.0</version>
         </dependency>
 
         <dependency>
