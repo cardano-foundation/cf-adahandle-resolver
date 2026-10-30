@@ -33,8 +33,9 @@ import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.resolve;
 import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.submit;
 
 /**
- * Mints handles on the devnet, legacy (CIP-25: the asset name is the handle) and CIP-68 (a label 222 user token with a
- * label 100 reference token), transfers some, and checks what the resolver's API returns for them.
+ * Mints handles on the devnet, legacy (CIP-25: the asset name is the handle), CIP-68 (a label 222 user token with a
+ * label 100 reference token) and NFT sub-handles (CIP-68 handles named sub@root), transfers some, and checks what the
+ * resolver's API returns for them.
  */
 class AdaHandleIndexingIT {
 
@@ -43,6 +44,9 @@ class AdaHandleIndexingIT {
     static final String ENTERPRISE = "it" + RUN_ID + "-ent";
     static final String LEGACY_MOVED = "it" + RUN_ID + "-legacy-mv";
     static final String CIP68_MOVED = "it" + RUN_ID + "-cip68-mv";
+    /** NFT sub-handles of CIP68, held by someone other than the root's holder, like most are. */
+    static final String SUBHANDLE = "nft@" + CIP68;
+    static final String SUBHANDLE_MOVED = "mv@" + CIP68;
 
     /** Who holds each handle once every test of this class ran (checked again after a restart, see AdaHandleRestartIT). */
     static final Map<String, Owner> FINAL_OWNERS = Map.of(
@@ -50,7 +54,9 @@ class AdaHandleIndexingIT {
             CIP68, Owner.baseAddressOf(HOLDER),
             ENTERPRISE, new Owner(HOLDER.enterpriseAddress(), null),
             LEGACY_MOVED, Owner.baseAddressOf(RECEIVER),
-            CIP68_MOVED, Owner.baseAddressOf(RECEIVER));
+            CIP68_MOVED, Owner.baseAddressOf(RECEIVER),
+            SUBHANDLE, Owner.baseAddressOf(RECEIVER),
+            SUBHANDLE_MOVED, Owner.baseAddressOf(HOLDER));
 
     private static final String LABEL_100 = "000643b0";
     private static final String LABEL_222 = "000de140";
@@ -67,7 +73,13 @@ class AdaHandleIndexingIT {
                 .mintAsset(POLICY, List.of(cip68(LABEL_100, CIP68)), PlutusData.unit(), POLICY_ADDRESS, referenceDatum(CIP68))
                 .mintAsset(POLICY, List.of(cip68(LABEL_100, CIP68_MOVED)), PlutusData.unit(), POLICY_ADDRESS,
                         referenceDatum(CIP68_MOVED))
-                .mintAsset(POLICY, List.of(legacy(ENTERPRISE)), PlutusData.unit(), HOLDER.enterpriseAddress());
+                .mintAsset(POLICY, List.of(legacy(ENTERPRISE)), PlutusData.unit(), HOLDER.enterpriseAddress())
+                .mintAsset(POLICY, List.of(cip68(LABEL_222, SUBHANDLE), cip68(LABEL_222, SUBHANDLE_MOVED)),
+                        PlutusData.unit(), RECEIVER.baseAddress())
+                .mintAsset(POLICY, List.of(cip68(LABEL_100, SUBHANDLE)), PlutusData.unit(), POLICY_ADDRESS,
+                        referenceDatum(SUBHANDLE))
+                .mintAsset(POLICY, List.of(cip68(LABEL_100, SUBHANDLE_MOVED)), PlutusData.unit(), POLICY_ADDRESS,
+                        referenceDatum(SUBHANDLE_MOVED));
         submit(mint, HOLDER);
     }
 
@@ -81,6 +93,30 @@ class AdaHandleIndexingIT {
         awaitOwner(CIP68, Owner.baseAddressOf(HOLDER));
 
         assertThat(handlesByPaymentAddress(POLICY_ADDRESS)).isEmpty();
+    }
+
+    @Test
+    void nftSubHandleResolvesToItsHolderNotToTheRootsHolder() {
+        awaitOwner(SUBHANDLE, Owner.baseAddressOf(RECEIVER));
+
+        assertThat(resolve(CIP68)).contains(Owner.baseAddressOf(HOLDER));
+        assertThat(resolve("$" + SUBHANDLE)).contains(Owner.baseAddressOf(RECEIVER));
+        assertThat(handlesByStakeAddress(RECEIVER.stakeAddress())).contains(SUBHANDLE);
+        assertThat(handlesByStakeAddress(HOLDER.stakeAddress())).doesNotContain(SUBHANDLE);
+    }
+
+    @Test
+    void transferredNftSubHandleResolvesToItsNewHolder() {
+        awaitOwner(SUBHANDLE_MOVED, Owner.baseAddressOf(RECEIVER));
+        Devnet.fund(RECEIVER);
+
+        Tx transfer = new Tx()
+                .payToAddress(HOLDER.baseAddress(), Amount.asset(POLICY_ID + LABEL_222 + hex(SUBHANDLE_MOVED), 1))
+                .from(RECEIVER.baseAddress());
+        submit(transfer, RECEIVER);
+
+        awaitOwner(SUBHANDLE_MOVED, Owner.baseAddressOf(HOLDER));
+        assertThat(handlesByPaymentAddress(RECEIVER.baseAddress())).doesNotContain(SUBHANDLE_MOVED);
     }
 
     @Test
