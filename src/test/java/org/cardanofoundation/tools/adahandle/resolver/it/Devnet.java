@@ -119,7 +119,10 @@ final class Devnet {
      * request whose transaction never shows up, so it is asked again a few times.
      */
     static void fund(Account account) {
-        String address = account.baseAddress();
+        fund(account.baseAddress());
+    }
+
+    static void fund(String address) {
         for (int attempt = 1; attempt <= 3; attempt++) {
             try {
                 HTTP.post().uri(DEVKIT_ADMIN_URL + "/local-cluster/api/addresses/topup")

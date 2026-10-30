@@ -1,7 +1,9 @@
 package org.cardanofoundation.tools.adahandle.resolver.it;
 
+import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.api.model.Amount;
+import com.bloxbean.cardano.client.common.model.Networks;
 import com.bloxbean.cardano.client.plutus.spec.BigIntPlutusData;
 import com.bloxbean.cardano.client.plutus.spec.BytesPlutusData;
 import com.bloxbean.cardano.client.plutus.spec.ConstrPlutusData;
@@ -42,7 +44,7 @@ class VirtualSubHandleIT {
     static final String ROOT = "it" + RUN_ID + "-vroot";
     static final String VIRTUAL = "v@" + ROOT;
     static final String VIRTUAL_ENTERPRISE = "ve@" + ROOT;
-    /** Held by a wallet rather than a script, which re-sends it with a new datum. */
+    /** Held by a wallet (MINTER's enterprise address) rather than a script; re-sent to the script with a new datum. */
     static final String VIRTUAL_UPDATED = "vu@" + ROOT;
 
     /** Who each handle resolves to once every test of this class ran (checked again after a restart). */
@@ -51,6 +53,13 @@ class VirtualSubHandleIT {
             VIRTUAL, Owner.baseAddressOf(RECEIVER),
             VIRTUAL_ENTERPRISE, new Owner(RECEIVER.enterpriseAddress(), null),
             VIRTUAL_UPDATED, Owner.baseAddressOf(HOLDER));
+
+    /**
+     * Mints and updates the virtual sub-handles. A fresh wallet: HOLDER's UTxOs are full of the other tests' tokens.
+     * Each virtual sub-handle is minted in a transaction of its own, so it gets a UTxO (and a datum) of its own, as on
+     * mainnet: outputs to the same address within one transaction are merged into one.
+     */
+    private static final Account MINTER = new Account(Networks.testnet());
 
     private static final String LABEL_0 = "00000000";
     private static final String LABEL_1 = "00001070";
@@ -61,19 +70,22 @@ class VirtualSubHandleIT {
     static void mintVirtualSubHandles() {
         Devnet.waitForYaciStore();
         Devnet.waitForResolver();
-        Devnet.fund(HOLDER);
+        Devnet.fund(MINTER);
+        // The enterprise address holding VIRTUAL_UPDATED also pays for re-sending it.
+        Devnet.fund(MINTER.enterpriseAddress());
 
-        ScriptTx mint = new ScriptTx()
+        submit(new ScriptTx()
                 .mintAsset(POLICY, List.of(cip68(LABEL_222, ROOT)), PlutusData.unit(), HOLDER.baseAddress())
-                .mintAsset(POLICY, List.of(cip68(LABEL_100, ROOT)), PlutusData.unit(), POLICY_ADDRESS, referenceDatum(ROOT))
-                .mintAsset(POLICY, List.of(cip68(LABEL_1, ROOT)), PlutusData.unit(), POLICY_ADDRESS, referenceDatum(ROOT))
-                .mintAsset(POLICY, List.of(cip68(LABEL_0, VIRTUAL)), PlutusData.unit(), POLICY_ADDRESS,
-                        virtualDatum(VIRTUAL, RECEIVER.baseAddress()))
-                .mintAsset(POLICY, List.of(cip68(LABEL_0, VIRTUAL_ENTERPRISE)), PlutusData.unit(), POLICY_ADDRESS,
-                        virtualDatum(VIRTUAL_ENTERPRISE, RECEIVER.enterpriseAddress()))
-                .mintAsset(POLICY, List.of(cip68(LABEL_0, VIRTUAL_UPDATED)), PlutusData.unit(), HOLDER.baseAddress(),
-                        virtualDatum(VIRTUAL_UPDATED, RECEIVER.baseAddress()));
-        submit(mint, HOLDER);
+                .mintAsset(POLICY, List.of(cip68(LABEL_100, ROOT), cip68(LABEL_1, ROOT)), PlutusData.unit(),
+                        POLICY_ADDRESS, referenceDatum(ROOT)), MINTER);
+        mintVirtual(VIRTUAL, POLICY_ADDRESS, RECEIVER.baseAddress());
+        mintVirtual(VIRTUAL_ENTERPRISE, POLICY_ADDRESS, RECEIVER.enterpriseAddress());
+        mintVirtual(VIRTUAL_UPDATED, MINTER.enterpriseAddress(), RECEIVER.baseAddress());
+    }
+
+    private static void mintVirtual(String handle, String holder, String resolvedAddress) {
+        submit(new ScriptTx().mintAsset(POLICY, List.of(cip68(LABEL_0, handle)), PlutusData.unit(), holder,
+                virtualDatum(handle, resolvedAddress)), MINTER);
     }
 
     @Test
@@ -103,10 +115,10 @@ class VirtualSubHandleIT {
         awaitOwner(VIRTUAL_UPDATED, Owner.baseAddressOf(RECEIVER));
 
         Tx update = new Tx()
-                .payToContract(HOLDER.baseAddress(), Amount.asset(POLICY_ID + LABEL_0 + hex(VIRTUAL_UPDATED), 1),
+                .payToContract(POLICY_ADDRESS, Amount.asset(POLICY_ID + LABEL_0 + hex(VIRTUAL_UPDATED), 1),
                         virtualDatum(VIRTUAL_UPDATED, HOLDER.baseAddress()))
-                .from(HOLDER.baseAddress());
-        submit(update, HOLDER);
+                .from(MINTER.enterpriseAddress());
+        submit(update, MINTER);
 
         awaitOwner(VIRTUAL_UPDATED, Owner.baseAddressOf(HOLDER));
         assertThat(handlesByStakeAddress(RECEIVER.stakeAddress())).doesNotContain(VIRTUAL_UPDATED);
