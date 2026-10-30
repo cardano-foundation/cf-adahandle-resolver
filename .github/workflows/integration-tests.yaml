@@ -13,7 +13,8 @@ env:
   # The always-true PlutusV2 policy the tests mint handles with (Devnet.POLICY_ID).
   ADAHANDLE_POLICY_ID: 3a888d65f16790950a72daee1f63aa05add6d268434107cfa5b67712
   API_BASE_URL: http://localhost:9095
-  YACI_STORE_URL: http://localhost:8080/api/v1/
+  # Not YACI_STORE_URL: yaci-cli (Spring Boot) would read that as its yaci.store.url download URL.
+  DEVNET_STORE_URL: http://localhost:8080/api/v1/
   IT_RUN_ID: ${{ github.run_id }}${{ github.run_attempt }}
 
 jobs:
@@ -61,7 +62,7 @@ jobs:
           npm install --ignore-scripts -g "@bloxbean/yaci-devkit@${YACI_DEVKIT_VERSION}"
           nohup yaci-devkit up --enable-yaci-store > "$RUNNER_TEMP/devkit.log" 2>&1 &
           for i in $(seq 1 150); do
-            if curl -sf "${YACI_STORE_URL}epochs/latest/parameters" > /dev/null; then
+            if curl -sf "${DEVNET_STORE_URL}epochs/latest/parameters" > /dev/null; then
               echo "Yaci Store serves protocol parameters"
               exit 0
             fi

@@ -36,7 +36,8 @@ import static org.awaitility.Awaitility.await;
 final class Devnet {
 
     static final String API_BASE_URL = env("API_BASE_URL", "http://localhost:9095");
-    static final String YACI_STORE_URL = env("YACI_STORE_URL", "http://localhost:8080/api/v1/");
+    // Not YACI_STORE_URL: yaci-cli (Spring Boot) would read that as its yaci.store.url download URL.
+    static final String YACI_STORE_URL = env("DEVNET_STORE_URL", "http://localhost:8080/api/v1/");
     static final String DEVKIT_ADMIN_URL = env("DEVKIT_ADMIN_URL", "http://localhost:10000");
     /** Part of every handle name, so that runs against the same devnet don't collide. */
     static final String RUN_ID = env("IT_RUN_ID", Long.toString(System.currentTimeMillis(), 36));
