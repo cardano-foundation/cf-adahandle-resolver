@@ -2,6 +2,8 @@ package org.cardanofoundation.tools.adahandle.resolver.api;
 
 import io.restassured.RestAssured;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
+import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleHistoryMapper;
+import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleRepository;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
 import org.junit.jupiter.api.*;
@@ -21,11 +23,13 @@ import java.util.List;
 @ComponentScan
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ActiveProfiles("[disable-indexer, test]")
+@ActiveProfiles({"disable-indexer", "test"})
 public class AdaHandleApiTest {
 
     @Autowired
     AdaHandleService adaHandleService;
+    @Autowired
+    AdaHandleRepository adaHandleRepository;
 
     @LocalServerPort
     private int serverPort;
@@ -40,7 +44,8 @@ public class AdaHandleApiTest {
         adaHandleHistoryItems.add(new AdaHandleHistoryItem("Tom", "stake1u87ua2crberberbrtbdk3uvpr2mv2xc3x6h7p","addr1u87ua2cf830jqwa3s59ds35pe4jnhupmlwdk3uvpr2mv2xc3x6h7p", 1200L));
         adaHandleHistoryItems.add(new AdaHandleHistoryItem("Otto", "stake1u87ua2crberberbrtbdk3uvpr2mv2xc3x6h7p","addr1u87ua2cf830jqwa3s59drvrt3gko5rvdrtf5pr2mv2xc3x6h7p", 1202L));
         adaHandleHistoryItems.add(new AdaHandleHistoryItem("Tom", "stake1q8skl6ew6gu3gglq68n6dfv0p4hltwe3sh0z","addr1q8skl6ew6ghxrr7g0l2w5wsd6hg70wlm7u3gglq68n6dfv0p4hltws7gdl77ayrt3ls", 1305L));
-        adaHandleService.recalculateAdaHandlesFromHistory(adaHandleHistoryItems);
+        adaHandleRepository.deleteAll();
+        adaHandleRepository.saveAll(adaHandleHistoryItems.stream().map(AdaHandleHistoryMapper::toAdaHandle).toList());
 
         RestAssured.port = serverPort;
         RestAssured.baseURI = "http://localhost";

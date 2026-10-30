@@ -21,6 +21,22 @@ spring:
 
 apiPrefix: /api/v1
 
+app:
+  version: "@project.version@"
+
+adahandle:
+  # Tokens of these minting policies are indexed as handles: the ADA Handle policy and the DeMi
+  # (decentralized minting) policy, the same on mainnet, preprod and preview. Keep them; the
+  # integration tests set others to index handles they mint on a local devnet.
+  policy-ids: ${ADAHANDLE_POLICY_IDS:f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a,6c32db33a422e0bc2cb535bb850b5a6e9a9572222056d6ddc9cbc26e}
+
+springdoc:
+  api-docs:
+    path: /apidocs
+  swagger-ui:
+    path: /swagger-ui.html
+  paths-to-match: /api/**
+
 logging:
   file:
     name: ./logs/adahandle-resolver.log
@@ -111,6 +127,23 @@ store:
     protocol-magic: ${PROTOCOL_MAGIC:2}
     sync-start-slot: ${YACI_STORE_CARDANO_SYNC_START_SLOT:1468836}
     sync-start-blockhash: ${YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH:706e7ba53bd141f48c3de44517b67fd8758f46215694891ed486f8d91fb1a51e}
+---
+# A local Yaci DevKit devnet (the integration tests): synced from its genesis, with its genesis files.
+spring:
+  config:
+    activate:
+      on-profile: devnet
+store:
+  cardano:
+    host: ${REMOTE_NODE_URL:localhost}
+    port: ${REMOTE_NODE_PORT:3001}
+    protocol-magic: ${PROTOCOL_MAGIC:42}
+    sync-start-slot: 0
+    sync-start-blockhash:
+    byron-genesis-file: ${DEVNET_GENESIS_DIR:${user.home}/.yaci-cli/local-clusters/default/node/genesis}/byron-genesis.json
+    shelley-genesis-file: ${DEVNET_GENESIS_DIR:${user.home}/.yaci-cli/local-clusters/default/node/genesis}/shelley-genesis.json
+    alonzo-genesis-file: ${DEVNET_GENESIS_DIR:${user.home}/.yaci-cli/local-clusters/default/node/genesis}/alonzo-genesis.json
+    conway-genesis-file: ${DEVNET_GENESIS_DIR:${user.home}/.yaci-cli/local-clusters/default/node/genesis}/conway-genesis.json
 ---
 spring:
   config:

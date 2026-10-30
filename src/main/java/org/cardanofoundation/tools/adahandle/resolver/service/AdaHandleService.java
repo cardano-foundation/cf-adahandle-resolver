@@ -1,8 +1,6 @@
 package org.cardanofoundation.tools.adahandle.resolver.service;
 import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
-import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
-import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleHistoryMapper;
 import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleMapper;
 import org.cardanofoundation.tools.adahandle.resolver.projection.Addresses;
 import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleRepository;
@@ -40,9 +38,13 @@ public class AdaHandleService {
         return adaHandleRepository.findAdaHandlesByPaymentAddress(paymentAddress);
     }
 
-    public void recalculateAdaHandlesFromHistory(List<AdaHandleHistoryItem> adaHandleHistoryItems) {
-        adaHandleRepository.deleteAll();
-        List<AdaHandle> adaHandles = adaHandleHistoryItems.stream().map(AdaHandleHistoryMapper::toAdaHandle).toList();
-        adaHandleRepository.saveAll(adaHandles);
+    /** Upsert a single handle row (name is the @Id, so save() merges). */
+    public void upsert(AdaHandle adaHandle) {
+        adaHandleRepository.save(adaHandle);
+    }
+
+    /** Delete a single handle by its name (primary key). No-op if the row doesn't exist. */
+    public void deleteByName(String name) {
+        adaHandleRepository.deleteById(name);
     }
 }

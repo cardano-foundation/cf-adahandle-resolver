@@ -1,0 +1,104 @@
+name: Integration Tests
+
+# Mints handles on a local Yaci DevKit devnet and checks that the resolver, synced from the devnet's
+# genesis into PostgreSQL, indexes them: legacy and CIP-68 handles, transfers, and a restart.
+on:
+  push:
+  pull_request:
+    types: [ opened, synchronize ]
+  workflow_dispatch:
+
+env:
+  YACI_DEVKIT_VERSION: 0.12.0
+  # The two policies the tests mint handles with (Devnet.POLICY_ID, Devnet.SECOND_POLICY_ID).
+  ADAHANDLE_POLICY_IDS: 3a888d65f16790950a72daee1f63aa05add6d268434107cfa5b67712,db63f51afa43f19d42687acb2671c1bdfe04ab8dceb9526e8ceb6935
+  API_BASE_URL: http://localhost:9095
+  # Not YACI_STORE_URL: yaci-cli (Spring Boot) would read that as its yaci.store.url download URL.
+  DEVNET_STORE_URL: http://localhost:8080/api/v1/
+  IT_RUN_ID: ${{ github.run_id }}${{ github.run_attempt }}
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: adahandle
+          POSTGRES_USER: adahandle
+          POSTGRES_PASSWORD: adahandle
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U adahandle -d adahandle"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup JDK 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build
+        run: |
+          mvn --batch-mode clean package -DskipTests
+          # The running resolver uses a copy: the test runs below rebuild target/.
+          cp "$(ls target/*.jar | grep -v -- '-plain\|\.original$' | head -1)" "$RUNNER_TEMP/resolver.jar"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Start Yaci DevKit ${{ env.YACI_DEVKIT_VERSION }}
+        run: |
+          npm install --ignore-scripts -g "@bloxbean/yaci-devkit@${YACI_DEVKIT_VERSION}"
+          nohup yaci-devkit up --enable-yaci-store > "$RUNNER_TEMP/devkit.log" 2>&1 &
+          for i in $(seq 1 150); do
+            if curl -sf "${DEVNET_STORE_URL}epochs/latest/parameters" > /dev/null; then
+              echo "Yaci Store serves protocol parameters"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Yaci DevKit did not start within 5 minutes"
+          exit 1
+
+      - name: Start the resolver
+        run: .github/scripts/start-resolver.sh
+
+      - name: Integration tests
+        run: mvn --batch-mode verify -DskipUTs=true -DskipITs=false
+
+      - name: Restart the resolver
+        run: |
+          kill "$(cat "$RUNNER_TEMP/resolver.pid")"
+          tail --pid="$(cat "$RUNNER_TEMP/resolver.pid")" -f /dev/null
+          .github/scripts/start-resolver.sh
+
+      - name: Integration tests after the restart
+        run: mvn --batch-mode verify -DskipUTs=true -DskipITs=false -Dit.test=AdaHandleRestartIT
+        env:
+          IT_AFTER_RESTART: 'true'
+
+      - name: Logs
+        if: always()
+        run: |
+          echo "::group::resolver"; cat "$RUNNER_TEMP"/resolver*.log || true; echo "::endgroup::"
+          echo "::group::devkit"; cat "$RUNNER_TEMP/devkit.log" || true; echo "::endgroup::"
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: integration-test-logs
+          path: |
+            ${{ runner.temp }}/*.log
+            target/failsafe-reports/

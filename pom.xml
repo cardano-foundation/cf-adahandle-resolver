@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.11</version>
+        <version>3.5.16</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -42,16 +42,64 @@
     </organization>
 
     <properties>
-        <java.version>21</java.version>
-        <!-- Van Rossem (protocol v11) ready: latest stable release of the yaci-store 0.1.x line.
-             The 0.1.x line ends at 0.1.7; further fixes land in yaci-core's 0.3.x line. -->
-        <yaci.store.version>0.1.7</yaci.store.version>
-        <!-- yaci-store 0.1.7 brings yaci 0.3.10 transitively; pinned up to 0.3.11, the last
-             0.3.x release (native-script parsing, datum/metadata recovery, exact datum and
-             redeemer bytes). -->
-        <yaci.version>0.3.11</yaci.version>
-        <version.jacoco-maven-plugin>0.8.10</version.jacoco-maven-plugin>
+        <java.version>25</java.version>
+        <!-- yaci (yaci-core, yaci-helper) resolves transitively from the yaci-store starters. -->
+        <yaci.store.version>2.0.7</yaci.store.version>
+        <!-- 0.8.14+ instruments JDK 25 class files. 0.8.16 is the current release. -->
+        <version.jacoco-maven-plugin>0.8.16</version.jacoco-maven-plugin>
+        <!-- Parent 3.5.16 manages Mockito 5.17.0, which predates JDK 25 support (5.18.0). -->
+        <mockito.version>5.24.0</mockito.version>
+        <!-- 1.18.40 added JDK 25. 1.18.48 is current and includes the JDK 25 javac fixes. -->
+        <lombok.version>1.18.48</lombok.version>
+        <!-- 2.10.x is built against Spring Boot 3.5.16. -->
+        <springdoc.version>2.10.0</springdoc.version>
+        <!-- Spring Boot's managed version of the org.postgresql:postgresql dependency below: the parent
+             POM declares it as <version>${postgresql.version}</version>, so setting the property here
+             overrides it. Boot 3.5.16 (the last 3.5.x) manages 42.7.11, which has CVE-2026-54291 and
+             others; 42.7.14 has no known high/medium CVEs. Remove once Boot manages 42.7.14 or later. -->
+        <postgresql.version>42.7.14</postgresql.version>
+        <!-- Parent 3.5.16 pins native build tools 0.10.6, whose reachability metadata predates
+             GraalVM for JDK 25 (which fails hard on missing registrations). -->
+        <native-build-tools-plugin.version>1.1.18</native-build-tools-plugin.version>
+        <!-- Native image GC: G1 on Linux (see the native-linux profile); G1 is Linux-only. -->
+        <native.gc>serial</native.gc>
+        <!-- Integration tests (*IT, failsafe) need a Yaci DevKit devnet and are skipped unless
+             -DskipITs=false; -DskipUTs=true skips the unit tests (surefire).
+             See .github/workflows/integration-tests.yaml. -->
+        <skipITs>true</skipITs>
+        <skipUTs>false</skipUTs>
+        <!-- Same as yaci-store 2.0.7's; the integration tests mint and send tokens with it. -->
+        <cardano-client-lib.version>0.7.2</cardano-client-lib.version>
+
+        <!-- Security patch releases on the same lines Spring Boot 3.5.16 (the last 3.5.x) manages, for
+             known CVEs in the managed versions (OSV). Spring Boot stays on 3.5: yaci-store 2.x supports
+             Spring Boot 3.x only. Remove each override once Spring Boot manages that version or later.
+             Not overridden: Spring Framework 6.2.19 is the newest 6.2.x; its two open CVEs (SSE
+             rendering, XsltView) concern features this service doesn't use. -->
+        <tomcat.version>10.1.61</tomcat.version>
+        <jackson-bom.version>2.21.8</jackson-bom.version>
+        <netty.version>4.1.139.Final</netty.version>
+        <commons-lang3.version>3.21.0</commons-lang3.version>
+        <log4j2.version>2.26.1</log4j2.version>
+        <!-- Not managed by Spring Boot; transitive via yaci-store / cardano-client-lib. -->
+        <bouncycastle.version>1.86</bouncycastle.version>
+        <guava.version>33.7.2-jre</guava.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -72,22 +120,6 @@
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-spring-boot-starter</artifactId>
             <version>${yaci.store.version}</version>
-            <exclusions>
-                <!-- yaci-store 0.1.7 would bring these in at 0.3.10. All three are
-                     excluded by name and re-declared at ${yaci.version} below. -->
-                <exclusion>
-                    <groupId>com.bloxbean.cardano</groupId>
-                    <artifactId>yaci</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.bloxbean.cardano</groupId>
-                    <artifactId>yaci-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.bloxbean.cardano</groupId>
-                    <artifactId>yaci-helper</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- Yaci Store utxo spring boot starter -->
@@ -95,49 +127,24 @@
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-utxo-spring-boot-starter</artifactId>
             <version>${yaci.store.version}</version>
-            <exclusions>
-                <!-- yaci-store 0.1.7 would bring these in at 0.3.10. All three are
-                     excluded by name and re-declared at ${yaci.version} below. -->
-                <exclusion>
-                    <groupId>com.bloxbean.cardano</groupId>
-                    <artifactId>yaci</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.bloxbean.cardano</groupId>
-                    <artifactId>yaci-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.bloxbean.cardano</groupId>
-                    <artifactId>yaci-helper</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
-        <!-- yaci, declared explicitly now that the transitive 0.3.10 copies are
-             excluded above. One artifact per exclusion, so nothing is dropped without
-             a visible replacement. -->
+        <!-- OpenAPI spec at /apidocs and Swagger UI at /swagger-ui.html -->
         <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>yaci</artifactId>
-            <version>${yaci.version}</version>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
         </dependency>
 
+        <!-- Already on the runtime classpath via yaci-store; compile scope for NativeImageConfig. -->
         <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>yaci-core</artifactId>
-            <version>${yaci.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>yaci-helper</artifactId>
-            <version>${yaci.version}</version>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.6.0</version>
         </dependency>
 
         <dependency>
@@ -145,18 +152,27 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>cardano-client-backend-blockfrost</artifactId>
+            <version>${cardano-client-lib.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>5.3.1</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>5.3.1</version>
             <scope>test</scope>
         </dependency>
 
@@ -179,11 +195,6 @@
             <artifactId>lombok</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-        </dependency>
-
     </dependencies>
 
     <build>
@@ -191,6 +202,42 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <!-- JDK 23+ does not run annotation processors found only on the classpath. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skip>${skipUTs}</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <skipITs>${skipITs}</skipITs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -213,5 +260,76 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- GraalVM native image: ./mvnw -Pnative -DskipTests native:compile
+             Extends the "native" profile from spring-boot-starter-parent (AOT processing and
+             native-maven-plugin with the reachability metadata repository). -->
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>process-aot</id>
+                                <configuration>
+                                    <!-- AOT fixes @Profile/@Conditional bean decisions at build time and
+                                         re-activates the build-time profiles at runtime. "aot" has no
+                                         config of its own, so database (h2/postgres) and network profiles
+                                         are still chosen at runtime via SPRING_ACTIVE_PROFILES. -->
+                                    <profiles>
+                                        <profile>aot</profile>
+                                    </profiles>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <configuration>
+                            <imageName>adahandle-resolver</imageName>
+                            <!-- Oracle GraalVM options, as in cf-token-metadata-registry (ADR-003). -->
+                            <buildArgs>
+                                <!-- Default is x86-64-v3 on amd64; keep the binary runnable on
+                                     older CPUs and generic VM CPU models. -->
+                                <buildArg>-march=compatibility</buildArg>
+                                <buildArg>-O3</buildArg>
+                                <buildArg>--gc=${native.gc}</buildArg>
+                                <!-- Read DNS settings at runtime, not from the build machine. -->
+                                <buildArg>--initialize-at-run-time=sun.net.dns.ResolverConfigurationImpl</buildArg>
+                                <buildArg>-H:+ReportExceptionStackTraces</buildArg>
+                            </buildArgs>
+                        </configuration>
+                        <executions>
+                            <!-- ./mvnw -Pnative package builds the native executable. -->
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>native-linux</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>Linux</name>
+                </os>
+            </activation>
+            <properties>
+                <native.gc>G1</native.gc>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>

@@ -54,11 +54,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create the name of the service account to use
 */}}
 {{- define "adahandle-resolver.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "adahandle-resolver.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
 {{- default "default" .Values.serviceAccount.name }}
-{{- end }}
 {{- end }}
 
 {{/*
@@ -69,6 +65,8 @@ Choose which secret name to choose
 {{- printf "postgres-secret" }}
 {{- else if .Values.zpgCluster.enabled }}
 {{- include "adahandle-resolver.postgres.zpg.secretName" . }}
+{{- else }}
+{{- .Values.database.postgres.secret.name }}
 {{- end }}
 {{- end }}
 

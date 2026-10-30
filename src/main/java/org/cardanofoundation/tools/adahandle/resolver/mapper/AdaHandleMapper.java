@@ -2,46 +2,95 @@ package org.cardanofoundation.tools.adahandle.resolver.mapper;
 import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Hex;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
+import org.cardanofoundation.tools.adahandle.resolver.util.Crc8;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HexFormat;
 
 @Slf4j
 public class AdaHandleMapper {
+    // CIP-67 labels of tokens that carry a handle's ownership (same as api.handle.me). Every other
+    // label is skipped, e.g. 100 (CIP-68 reference token) and 1 (sub-handle settings token).
+    private static final int LABEL_HANDLE = 222;
+    private static final int LABEL_VIRTUAL_SUBHANDLE = 0;
+
     public static ArrayList<AdaHandle> toAdaHandles(AddressUtxo addressUtxo) {
         final ArrayList<AdaHandle> adaHandles = new ArrayList<>();
-        final String ADA_HANDLE_POLICY_ID = "f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a";
-        final byte[] CIP68_100_PREFIX = {0, 6, 67, -80};
-        final byte[] CIP68_222_PREFIX = {0, 13, -31, 64};
 
         if (addressUtxo.getAmounts() != null) {
             for (final Amt amount : addressUtxo.getAmounts()) {
-                if (amount.getPolicyId() != null) {
-                    if (amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {
-                        String adaHandle = amount.getAssetName();
-
-                        try {
-                            String assetNameFromUnit = amount.getUnit().replaceFirst("^" + amount.getPolicyId(), "");
-                            byte[] decodedAssetName = Hex.decodeHex(assetNameFromUnit);
-
-                            if(Arrays.equals(Arrays.copyOf(decodedAssetName, 4), CIP68_100_PREFIX)) {
-                                continue;
-                            }
-
-                            if(Arrays.equals(Arrays.copyOf(decodedAssetName, 4), CIP68_222_PREFIX)) {
-                                adaHandle = new String(Arrays.copyOfRange(decodedAssetName, 4, decodedAssetName.length));
-                            }
-                        } catch (Exception e) {
-                            log.warn("Error decoding asset name: {}", e.getMessage());
-                        }
-
-                        adaHandles.add(new AdaHandle(adaHandle, addressUtxo.getOwnerStakeAddr(), addressUtxo.getOwnerAddr()));
-                    }
+                AdaHandle adaHandle = toAdaHandle(addressUtxo, amount);
+                if (adaHandle != null) {
+                    adaHandles.add(adaHandle);
                 }
             }
         }
         return adaHandles;
+    }
+
+    /**
+     * Returns the handle carried by an amount of this output, with the address it resolves to, or
+     * null if the amount isn't a handle ownership token.
+     * <p>
+     * Names: CIP-68 asset names start with a non-UTF-8 label, so yaci reports them as an asset
+     * fingerprint; the name is decoded from the unit instead. Owner: the output's address, except for
+     * virtual sub-handles, whose token is held by a Handle script and whose address is in its datum.
+     * <p>
+     * ada_handle and the history table both use this, so a rollback restores exactly what was stored.
+     */
+    public static AdaHandle toAdaHandle(AddressUtxo addressUtxo, Amt amount) {
+        if (!AdaHandlePolicies.contains(amount.getPolicyId())) {
+            return null;
+        }
+
+        byte[] assetName;
+        try {
+            assetName = HexFormat.of().parseHex(amount.getUnit().replaceFirst("^" + amount.getPolicyId(), ""));
+        } catch (Exception e) {
+            log.warn("Error decoding asset name: {}", e.getMessage());
+            return new AdaHandle(amount.getAssetName(), addressUtxo.getOwnerStakeAddr(), addressUtxo.getOwnerAddr());
+        }
+
+        Integer label = cip67Label(assetName);
+        if (label == null) {
+            // Legacy (CIP-25) handle: the asset name is the handle.
+            return new AdaHandle(amount.getAssetName(), addressUtxo.getOwnerStakeAddr(), addressUtxo.getOwnerAddr());
+        }
+
+        String name = new String(Arrays.copyOfRange(assetName, 4, assetName.length), StandardCharsets.UTF_8);
+        if (label == LABEL_HANDLE) {
+            return new AdaHandle(name, addressUtxo.getOwnerStakeAddr(), addressUtxo.getOwnerAddr());
+        }
+        if (label == LABEL_VIRTUAL_SUBHANDLE) {
+            // The network being indexed is the network of the Handle script holding the token.
+            boolean mainnet = addressUtxo.getOwnerAddr() == null || !addressUtxo.getOwnerAddr().startsWith("addr_test");
+            return VirtualSubHandleDatum.owner(addressUtxo.getInlineDatum(), mainnet)
+                    .map(owner -> new AdaHandle(name, owner.stakeAddress(), owner.paymentAddress()))
+                    .orElseGet(() -> {
+                        log.warn("Skipping virtual sub-handle {} without a readable datum in {}#{}",
+                                name, addressUtxo.getTxHash(), addressUtxo.getOutputIndex());
+                        return null;
+                    });
+        }
+        return null;
+    }
+
+    /**
+     * Returns the CIP-67 label of an asset name, or null if it doesn't start with one. The 4-byte
+     * prefix is {@code 0000 | 16-bit label | CRC-8 of the label | 0000}, see {@link Crc8}. Legacy handle names are
+     * printable ASCII, so they can't start with a valid label.
+     */
+    static Integer cip67Label(byte[] assetName) {
+        if (assetName.length < 4 || (assetName[0] & 0xF0) != 0 || (assetName[3] & 0x0F) != 0) {
+            return null;
+        }
+        int prefix = ((assetName[0] & 0xFF) << 24) | ((assetName[1] & 0xFF) << 16)
+                | ((assetName[2] & 0xFF) << 8) | (assetName[3] & 0xFF);
+        int label = (prefix >>> 12) & 0xFFFF;
+        int checksum = (prefix >>> 4) & 0xFF;
+        return Crc8.crc8(new byte[]{(byte) (label >>> 8), (byte) label}) == checksum ? label : null;
     }
 }
