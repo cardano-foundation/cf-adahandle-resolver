@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Open background SSH tunnels:
 #   localhost:$LOCAL_API_PORT -> remote:9095  (API)
-#   localhost:$LOCAL_DB_PORT  -> remote:5432  (Postgres)
+#   localhost:$LOCAL_DB_PORT  -> remote:$REMOTE_DB_PORT (Postgres; default 5432)
 # Stores the PID in $SKILL_DIR/tunnels.pid so close-tunnels.sh can stop it.
 
 set -euo pipefail
@@ -17,7 +17,7 @@ if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
 fi
 rm -f "$PID_FILE"
 
-echo "[tunnels] opening: $LOCAL_API_PORT -> 9095 (api), $LOCAL_DB_PORT -> 5432 (db)"
+echo "[tunnels] opening: $LOCAL_API_PORT -> 9095 (api), $LOCAL_DB_PORT -> ${REMOTE_DB_PORT:-5432} (db)"
 
 # -N: no remote command, -T: no PTY, -f: background.
 # ServerAliveInterval keeps it alive across NAT timeouts during long syncs.
@@ -26,7 +26,7 @@ ssh -o BatchMode=yes \
     -o ExitOnForwardFailure=yes \
     -NTf \
     -L "${LOCAL_API_PORT}:localhost:9095" \
-    -L "${LOCAL_DB_PORT}:localhost:5432" \
+    -L "${LOCAL_DB_PORT}:localhost:${REMOTE_DB_PORT:-5432}" \
     "$REMOTE"
 
 pid=$(pgrep -af "ssh.*-L ${LOCAL_API_PORT}:localhost:9095.*${REMOTE}" | awk '{print $1}' | head -1)
