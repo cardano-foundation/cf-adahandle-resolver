@@ -11,7 +11,6 @@ import java.util.Arrays;
 
 @Slf4j
 public class AdaHandleMapper {
-    private static final String ADA_HANDLE_POLICY_ID = "f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a";
     // CIP-67 labels of tokens that carry a handle's ownership (same as api.handle.me). Every other
     // label is skipped, e.g. 100 (CIP-68 reference token) and 1 (sub-handle settings token).
     private static final int LABEL_HANDLE = 222;
@@ -42,7 +41,7 @@ public class AdaHandleMapper {
      * ada_handle and the history table both use this, so a rollback restores exactly what was stored.
      */
     public static AdaHandle toAdaHandle(AddressUtxo addressUtxo, Amt amount) {
-        if (amount.getPolicyId() == null || !amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {
+        if (amount.getPolicyId() == null || !amount.getPolicyId().equals(AdaHandlePolicy.id())) {
             return null;
         }
 
