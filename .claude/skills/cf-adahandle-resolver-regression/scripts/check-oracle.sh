@@ -11,15 +11,19 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 ORACLE_SAMPLE_N="${ORACLE_SAMPLE_N:-200}"
+# NFT sub-handles (sub@root, CIP-68) are ~1% of handles, so sample them separately too.
+ORACLE_SUBHANDLE_N="${ORACLE_SUBHANDLE_N:-50}"
 RECHECK_SEC="${RECHECK_SEC:-60}"
 export RECHECK_SEC
 
-echo "[oracle] $ORACLE_SAMPLE_N random handles vs $ORACLE_API"
+echo "[oracle] $ORACLE_SAMPLE_N random handles + $ORACLE_SUBHANDLE_N NFT sub-handles vs $ORACLE_API"
 # Virtual sub-handles (label-0 prefix, reported by check-data-integrity) are left out.
 sample=$(mktemp)
 trap 'rm -f "$sample"' EXIT
-sql "SELECT coalesce(json_agg(name), '[]') FROM (SELECT name FROM ada_handle
-       WHERE name <> '' AND name NOT LIKE '    %' ORDER BY random() LIMIT $ORACLE_SAMPLE_N) t;" > "$sample"
+sql "SELECT coalesce(json_agg(DISTINCT name), '[]') FROM (
+       (SELECT name FROM ada_handle WHERE name <> '' AND name NOT LIKE '    %' ORDER BY random() LIMIT $ORACLE_SAMPLE_N)
+       UNION ALL
+       (SELECT name FROM ada_handle WHERE name LIKE '%@%' AND name NOT LIKE '    %' ORDER BY random() LIMIT $ORACLE_SUBHANDLE_N)) t;" > "$sample"
 
 python3 -I - "$sample" <<'PY' || FAILED=1
 import json, os, sys, time, urllib.error, urllib.parse, urllib.request
@@ -47,7 +51,7 @@ def theirs(name):
     return (body.get("resolved_addresses") or {}).get("ada"), body.get("hex", "")
 
 names = json.load(open(sys.argv[1]))
-matched, mismatched, not_in_oracle, unavailable, cip68 = 0, [], [], 0, 0
+matched, mismatched, not_in_oracle, unavailable, cip68, subhandles = 0, [], [], 0, 0, 0
 for name in names:
     expected, hexname = theirs(name)
     if expected == "HTTP 404":
@@ -58,6 +62,8 @@ for name in names:
         continue
     if hexname and hexname.startswith("000de140"):
         cip68 += 1
+    if "@" in name:
+        subhandles += 1
     if ours(name) == expected:
         matched += 1
     else:
@@ -82,7 +88,7 @@ if unavailable:
 if checked < len(names) // 2:
     print(f"  FAIL   only {checked}/{len(names)} handles could be compared; Kora unavailable?")
     sys.exit(1)
-print(f"  INFO   sample: {len(names)} handles, {cip68} of them CIP-68")
+print(f"  INFO   sample: {len(names)} handles, {cip68} of them CIP-68, {subhandles} NFT sub-handles")
 if not mismatched:
     print(f"  PASS   {matched}/{checked} handles resolve to the same address as Kora")
 else:

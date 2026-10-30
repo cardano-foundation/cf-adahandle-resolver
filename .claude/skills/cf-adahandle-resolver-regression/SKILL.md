@@ -42,7 +42,7 @@ instance under test (the indexer resumes from its cursor; the API is down for ~1
 | `check-sync-health` | At the tip (Koios), cursor advancing, era (default Conway = 7), zero block-parse errors; summarises ERROR lines and rollback activity | lag > `MAX_LAG_SLOTS` (600), cursor older than `MAX_CURSOR_AGE_SEC` (600), wrong era, any parse error |
 | `check-data-integrity` | No asset fingerprints as names (CIP-68 decoding); every handle has history and vice versa; **every handle's current owner equals its latest history entry** (guards the rollback repair) | any invariant broken |
 | `golden` | The famous handles in the full-sync skill's `golden-handles.txt` resolve and round-trip | any golden handle fails |
-| `check-oracle` | `ORACLE_SAMPLE_N` (200) truly random handles resolve to the same address as Kora's API; mismatches are re-checked after `RECHECK_SEC` (60 s) on both sides | any persistent mismatch, or under half the sample comparable |
+| `check-oracle` | `ORACLE_SAMPLE_N` (200) truly random handles plus `ORACLE_SUBHANDLE_N` (50) NFT sub-handles (`sub@root`) resolve to the same address as Kora's API; mismatches are re-checked after `RECHECK_SEC` (60 s) on both sides | any persistent mismatch, or under half the sample comparable |
 | `check-restart-rollback` | `CIP68_N` (20) real CIP-68 handles still resolve to Kora's address after an API restart; handle count doesn't drop | any handle changes or the count drops |
 
 ### Why an oracle
@@ -64,6 +64,10 @@ restart before #54. Kora Labs' Handles API is independent, so `check-oracle` and
   - **Virtual sub-handles (CIP-67 label 0)**: stored with their 4-byte label prefix (shown as four
     leading spaces) and the script address that holds the token, so they don't resolve by name. Their
     address lives in the token's datum, which the resolver doesn't read.
+  - **CIP-67 label-1 companion tokens**: stored as junk rows named `"  \x10p<handle>"` at the Handle
+    script addresses. The real handle is a separate label-222 token and resolves correctly. Inflates
+    the row count (these junk rows explain the gap to Kora's total) and the reverse lookup of those
+    script addresses.
   - **`Error stopping blockRangeSync`** (yaci-helper 0.4.7): an NPE in `BlockRangeSync.stop()` during the
     catch-up after a restart; harmless.
 
