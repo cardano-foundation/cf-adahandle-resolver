@@ -61,9 +61,7 @@ Create the name of the service account to use
 Choose which secret name to choose
 */}}
 {{- define "adahandle-resolver.postgres.secretName" -}}
-{{- if .Values.postgresql.enabled }}
-{{- printf "postgres-secret" }}
-{{- else if .Values.zpgCluster.enabled }}
+{{- if .Values.zpgCluster.enabled }}
 {{- include "adahandle-resolver.postgres.zpg.secretName" . }}
 {{- else }}
 {{- .Values.database.postgres.secret.name }}
