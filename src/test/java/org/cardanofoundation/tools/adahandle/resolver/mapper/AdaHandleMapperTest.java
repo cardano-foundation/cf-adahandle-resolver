@@ -84,4 +84,67 @@ public class AdaHandleMapperTest {
         assertThat(adaHandles, hasSize(1));
         assertThat(adaHandles.get(0).getName(), is("alice"));
     }
+
+    private static final String POLICY_ID = "f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a";
+    // Handle script holding virtual sub-handle tokens on mainnet.
+    private static final String HANDLE_SCRIPT = "addr1wxktka03n943759y4pcexpmftdhzsrrv8kcd2qs8cwgtdhgg6j4ux";
+
+    private static Amt token(String labelPrefix, String name) {
+        return Amt.builder().policyId(POLICY_ID)
+                .unit(POLICY_ID + labelPrefix + HexFormat.of().formatHex(name.getBytes()))
+                .assetName("asset1fingerprint" + name).build();
+    }
+
+    @Test
+    public void testVirtualSubHandleResolvesToTheAddressInItsDatum() throws Exception {
+        AddressUtxo addressUtxo = AddressUtxo.builder()
+                .ownerAddr(HANDLE_SCRIPT)
+                .amounts(List.of(token("00000000", "331@hal")))
+                .inlineDatum(VirtualSubHandleDatumTest.readDatum(VirtualSubHandleDatumTest.DATUM_331_HAL))
+                .slot(1400L)
+                .build();
+
+        List<AdaHandle> adaHandles = AdaHandleMapper.toAdaHandles(addressUtxo);
+
+        assertThat(adaHandles, hasSize(1));
+        assertThat(adaHandles.get(0).getName(), is("331@hal"));
+        assertThat(adaHandles.get(0).getPaymentAddress(), is(VirtualSubHandleDatumTest.RESOLVED_331_HAL));
+        assertThat(adaHandles.get(0).getStakeAddress(), is(VirtualSubHandleDatumTest.STAKE_331_HAL));
+    }
+
+    @Test
+    public void testVirtualSubHandleWithoutDatumIsSkipped() {
+        AddressUtxo addressUtxo = AddressUtxo.builder()
+                .ownerAddr(HANDLE_SCRIPT)
+                .amounts(List.of(token("00000000", "331@hal")))
+                .slot(1400L)
+                .build();
+
+        // Never store the script holding the token as the owner.
+        assertThat(AdaHandleMapper.toAdaHandles(addressUtxo), empty());
+    }
+
+    @Test
+    public void testSubHandleSettingsTokenIsSkipped() {
+        AddressUtxo addressUtxo = AddressUtxo.builder()
+                .ownerAddr("addr1wypqchfrcwqg0tsqdcqeym962llsqg3g070xltlt3ydh0gq6h8gg4")
+                .amounts(List.of(token("00001070", "komplett")))
+                .slot(1400L)
+                .build();
+
+        // CIP-67 label 1: a root handle's sub-handle settings, held by a Handle script; not a handle.
+        assertThat(AdaHandleMapper.toAdaHandles(addressUtxo), empty());
+    }
+
+    @Test
+    public void testCip67Label() {
+        assertThat(AdaHandleMapper.cip67Label(HexFormat.of().parseHex("000de14061")), is(222));
+        assertThat(AdaHandleMapper.cip67Label(HexFormat.of().parseHex("000643b061")), is(100));
+        assertThat(AdaHandleMapper.cip67Label(HexFormat.of().parseHex("0000107061")), is(1));
+        assertThat(AdaHandleMapper.cip67Label(HexFormat.of().parseHex("0000000061")), is(0));
+        // Legacy handle names and prefixes with a wrong checksum aren't labels
+        assertThat(AdaHandleMapper.cip67Label("cardano".getBytes()), nullValue());
+        assertThat(AdaHandleMapper.cip67Label(HexFormat.of().parseHex("000de15061")), nullValue());
+        assertThat(AdaHandleMapper.cip67Label(new byte[]{0, 0}), nullValue());
+    }
 }

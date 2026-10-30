@@ -8,6 +8,7 @@ import com.bloxbean.cardano.yaci.store.events.RollbackEvent;
 import com.bloxbean.cardano.yaci.store.events.internal.CommitEvent;
 import com.bloxbean.cardano.yaci.store.utxo.domain.AddressUtxoEvent;
 import com.bloxbean.cardano.yaci.store.utxo.domain.TxInputOutput;
+import org.cardanofoundation.tools.adahandle.resolver.mapper.VirtualSubHandleDatumTest;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,7 @@ public class AdaHandleRollbackTest {
     private static final String ADA_HANDLE_POLICY_ID = "f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a";
     private static final String CIP68_USER_LABEL = "000de140";
     private static final String CIP68_REFERENCE_LABEL = "000643b0";
+    private static final String CIP68_VIRTUAL_LABEL = "00000000";
 
     @Autowired
     private AdaHandleProcessor adaHandleProcessor;
@@ -90,6 +92,24 @@ public class AdaHandleRollbackTest {
         assertThat(adaHandleService.getAdaHandlesByPaymentAddress("addr_cip68_reference_script_b"), empty());
     }
 
+    @Test
+    public void testRollbackRestoresPreviousAddressOfVirtualSubHandle() {
+        // The token stays at the Handle script; the root's owner re-points the sub-handle by datum.
+        String script = "addr1wxktka03n943759y4pcexpmftdhzsrrv8kcd2qs8cwgtdhgg6j4ux";
+        String addressA = "addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgse35a3x";
+        String addressB = "addr1vx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzers66hrl8";
+        commitBlock(50_001_000L, script, cip68(CIP68_VIRTUAL_LABEL, "dave@rollback"), VirtualSubHandleDatumTest.cip68Datum(addressA));
+        commitBlock(50_002_000L, script, cip68(CIP68_VIRTUAL_LABEL, "dave@rollback"), VirtualSubHandleDatumTest.cip68Datum(addressB));
+        assertThat(adaHandleService.getAddressesByAdaHandle("dave@rollback").getPaymentAddress(), is(addressB));
+
+        rollbackTo(50_001_500L);
+
+        assertThat(adaHandleService.getAddressesByAdaHandle("dave@rollback").getPaymentAddress(), is(addressA));
+        assertThat(adaHandleService.getAdaHandlesByPaymentAddress(addressB), empty());
+        // The script holding the token is never reported as the owner.
+        assertThat(adaHandleService.getAdaHandlesByPaymentAddress(script), empty());
+    }
+
     private static Amt cip25(String handle) {
         return Amt.builder()
                 .policyId(ADA_HANDLE_POLICY_ID)
@@ -108,7 +128,12 @@ public class AdaHandleRollbackTest {
     }
 
     private void commitBlock(long slot, String ownerAddr, Amt amount) {
+        commitBlock(slot, ownerAddr, amount, null);
+    }
+
+    private void commitBlock(long slot, String ownerAddr, Amt amount, String inlineDatum) {
         AddressUtxo addressUtxo = new AddressUtxo();
+        addressUtxo.setInlineDatum(inlineDatum);
         addressUtxo.setOwnerAddr(ownerAddr);
         addressUtxo.setOwnerStakeAddr("stake_" + ownerAddr);
         addressUtxo.setSlot(slot);
