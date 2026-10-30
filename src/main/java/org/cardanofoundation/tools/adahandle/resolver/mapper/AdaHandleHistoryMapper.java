@@ -12,13 +12,13 @@ public class AdaHandleHistoryMapper {
         final ArrayList<AdaHandleHistoryItem> adaHandleHistoryItems = new ArrayList<>();
         if (addressUtxo.getAmounts() != null) {
             for (final Amt amount : addressUtxo.getAmounts()) {
-                // Same name as ada_handle uses, so rollbacks can find the current row to repair.
-                String adaHandle = AdaHandleMapper.toHandleName(amount);
+                // Same name and owner as ada_handle stores, so a rollback restores exactly that row.
+                AdaHandle adaHandle = AdaHandleMapper.toAdaHandle(addressUtxo, amount);
                 if (adaHandle != null) {
                     AdaHandleHistoryItem adaHandleHistoryItem = new AdaHandleHistoryItem();
-                    adaHandleHistoryItem.setName(adaHandle);
-                    adaHandleHistoryItem.setStakeAddress(addressUtxo.getOwnerStakeAddr());
-                    adaHandleHistoryItem.setPaymentAddress(addressUtxo.getOwnerAddr());
+                    adaHandleHistoryItem.setName(adaHandle.getName());
+                    adaHandleHistoryItem.setStakeAddress(adaHandle.getStakeAddress());
+                    adaHandleHistoryItem.setPaymentAddress(adaHandle.getPaymentAddress());
                     adaHandleHistoryItem.setSlot(addressUtxo.getSlot());
                     adaHandleHistoryItems.add(adaHandleHistoryItem);
                 }

@@ -2,6 +2,7 @@ package org.cardanofoundation.tools.adahandle.resolver.mapper;
 
 import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
+import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
@@ -110,5 +111,28 @@ public class AdaHandleHistoryMapperTest {
 
         assertThat(historyNames, contains("alice", "legacy"));
         assertThat(historyNames, is(adaHandleNames));
+    }
+
+    @Test
+    public void testVirtualSubHandleHistoryMatchesAdaHandle() throws Exception {
+        String policyId = "f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a";
+        AddressUtxo addressUtxo = AddressUtxo.builder()
+                .ownerAddr("addr1wxktka03n943759y4pcexpmftdhzsrrv8kcd2qs8cwgtdhgg6j4ux")
+                .amounts(List.of(Amt.builder().policyId(policyId)
+                        .unit(policyId + "00000000" + HexFormat.of().formatHex("331@hal".getBytes()))
+                        .assetName("asset1fingerprint").build()))
+                .inlineDatum(VirtualSubHandleDatumTest.readDatum(VirtualSubHandleDatumTest.DATUM_331_HAL))
+                .slot(1500L)
+                .build();
+
+        List<AdaHandleHistoryItem> history = AdaHandleHistoryMapper.fromAddressUtxoEntities(addressUtxo);
+        List<AdaHandle> adaHandles = AdaHandleMapper.toAdaHandles(addressUtxo);
+
+        // A rollback restores the history entry, so it must hold the same name and owner.
+        assertThat(history, hasSize(1));
+        assertThat(history.get(0).getName(), is(adaHandles.get(0).getName()));
+        assertThat(history.get(0).getPaymentAddress(), is(VirtualSubHandleDatumTest.RESOLVED_331_HAL));
+        assertThat(history.get(0).getStakeAddress(), is(VirtualSubHandleDatumTest.STAKE_331_HAL));
+        assertThat(history.get(0).getSlot(), is(1500L));
     }
 }
