@@ -25,9 +25,10 @@ app:
   version: "@project.version@"
 
 adahandle:
-  # Tokens of this minting policy are indexed as handles. Keep the ADA Handle policy; the integration
-  # tests set another one to index handles they mint on a local devnet.
-  policy-id: ${ADAHANDLE_POLICY_ID:f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a}
+  # Tokens of these minting policies are indexed as handles: the ADA Handle policy and the DeMi
+  # (decentralized minting) policy, the same on mainnet, preprod and preview. Keep them; the
+  # integration tests set others to index handles they mint on a local devnet.
+  policy-ids: ${ADAHANDLE_POLICY_IDS:f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a,6c32db33a422e0bc2cb535bb850b5a6e9a9572222056d6ddc9cbc26e}
 
 springdoc:
   api-docs:

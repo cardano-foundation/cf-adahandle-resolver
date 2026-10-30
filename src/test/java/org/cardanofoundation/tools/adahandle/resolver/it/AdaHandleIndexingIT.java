@@ -26,6 +26,7 @@ import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.POLICY_AD
 import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.POLICY_ID;
 import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.RECEIVER;
 import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.RUN_ID;
+import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.SECOND_POLICY;
 import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.awaitOwner;
 import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.handlesByPaymentAddress;
 import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.handlesByStakeAddress;
@@ -35,7 +36,8 @@ import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.submit;
 /**
  * Mints handles on the devnet, legacy (CIP-25: the asset name is the handle), CIP-68 (a label 222 user token with a
  * label 100 reference token) and NFT sub-handles (CIP-68 handles named sub@root), transfers some, and checks what the
- * resolver's API returns for them.
+ * resolver's API returns for them. One handle is minted under a second policy, as ADA Handle mints under two (the
+ * original policy and DeMi's).
  */
 class AdaHandleIndexingIT {
 
@@ -47,6 +49,7 @@ class AdaHandleIndexingIT {
     /** NFT sub-handles of CIP68, held by someone other than the root's holder, like most are. */
     static final String SUBHANDLE = "nft@" + CIP68;
     static final String SUBHANDLE_MOVED = "mv@" + CIP68;
+    static final String SECOND_POLICY_HANDLE = "it" + RUN_ID + "-p2";
 
     /** Who holds each handle once every test of this class ran (checked again after a restart, see AdaHandleRestartIT). */
     static final Map<String, Owner> FINAL_OWNERS = Map.of(
@@ -56,7 +59,8 @@ class AdaHandleIndexingIT {
             LEGACY_MOVED, Owner.baseAddressOf(RECEIVER),
             CIP68_MOVED, Owner.baseAddressOf(RECEIVER),
             SUBHANDLE, Owner.baseAddressOf(RECEIVER),
-            SUBHANDLE_MOVED, Owner.baseAddressOf(HOLDER));
+            SUBHANDLE_MOVED, Owner.baseAddressOf(HOLDER),
+            SECOND_POLICY_HANDLE, Owner.baseAddressOf(HOLDER));
 
     private static final String LABEL_100 = "000643b0";
     private static final String LABEL_222 = "000de140";
@@ -81,6 +85,9 @@ class AdaHandleIndexingIT {
                 .mintAsset(POLICY, List.of(cip68(LABEL_100, SUBHANDLE_MOVED)), PlutusData.unit(), POLICY_ADDRESS,
                         referenceDatum(SUBHANDLE_MOVED));
         submit(mint, HOLDER);
+
+        submit(new Tx().mintAssets(SECOND_POLICY, cip68(LABEL_222, SECOND_POLICY_HANDLE), HOLDER.baseAddress())
+                .from(HOLDER.baseAddress()), HOLDER);
     }
 
     @Test
@@ -117,6 +124,11 @@ class AdaHandleIndexingIT {
 
         awaitOwner(SUBHANDLE_MOVED, Owner.baseAddressOf(HOLDER));
         assertThat(handlesByPaymentAddress(RECEIVER.baseAddress())).doesNotContain(SUBHANDLE_MOVED);
+    }
+
+    @Test
+    void handleOfTheSecondPolicyResolvesToItsHolder() {
+        awaitOwner(SECOND_POLICY_HANDLE, Owner.baseAddressOf(HOLDER));
     }
 
     @Test

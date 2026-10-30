@@ -8,7 +8,7 @@ import com.bloxbean.cardano.yaci.store.utxo.domain.AddressUtxoEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandlePolicy;
+import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandlePolicies;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
 import org.springframework.context.event.EventListener;
@@ -48,7 +48,7 @@ public class AdaHandleProcessor {
 
         if (amounts != null) {
             for (final Amt amount : amounts) {
-                if (amount.getPolicyId() != null && amount.getPolicyId().equals(AdaHandlePolicy.id())) {
+                if (AdaHandlePolicies.contains(amount.getPolicyId())) {
                     return true;
                 }
             }
