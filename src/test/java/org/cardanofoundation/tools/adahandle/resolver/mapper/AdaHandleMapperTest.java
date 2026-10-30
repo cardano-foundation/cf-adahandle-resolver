@@ -147,4 +147,25 @@ public class AdaHandleMapperTest {
         assertThat(AdaHandleMapper.cip67Label(HexFormat.of().parseHex("000de15061")), nullValue());
         assertThat(AdaHandleMapper.cip67Label(new byte[]{0, 0}), nullValue());
     }
+
+    @Test
+    public void testToAdaHandlesIndexesDeMiHandles() {
+        // demiking on mainnet, minted through Kora Labs' decentralized minting (DeMi) policy
+        String policyId = "6c32db33a422e0bc2cb535bb850b5a6e9a9572222056d6ddc9cbc26e";
+        String hexName = HexFormat.of().formatHex("demiking".getBytes());
+
+        AddressUtxo addressUtxo = AddressUtxo.builder()
+                .ownerAddr("addr1vk4ua2cf830jqwa3s59dgasertugnu3598pmlwdk3uvpr2mv2xc3x6h7p")
+                .ownerStakeAddr("stake1vk4ua2crberberbrtbdk3uvpr2mv2xc3x6h7p")
+                .amounts(List.of(
+                        Amt.builder().policyId(policyId).unit(policyId + "000de140" + hexName).assetName("asset1fingerprintuser").build(),
+                        Amt.builder().policyId(policyId).unit(policyId + "000643b0" + hexName).assetName("asset1fingerprintref").build()))
+                .slot(154639737L)
+                .build();
+
+        List<AdaHandle> adaHandles = AdaHandleMapper.toAdaHandles(addressUtxo);
+
+        assertThat(adaHandles, hasSize(1));
+        assertThat(adaHandles.get(0).getName(), is("demiking"));
+    }
 }

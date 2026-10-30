@@ -42,7 +42,7 @@ public class AdaHandleMapper {
      * ada_handle and the history table both use this, so a rollback restores exactly what was stored.
      */
     public static AdaHandle toAdaHandle(AddressUtxo addressUtxo, Amt amount) {
-        if (amount.getPolicyId() == null || !amount.getPolicyId().equals(AdaHandlePolicy.id())) {
+        if (!AdaHandlePolicies.contains(amount.getPolicyId())) {
             return null;
         }
 

@@ -7,10 +7,13 @@ import com.bloxbean.cardano.client.api.model.Utxo;
 import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.blockfrost.service.BFBackendService;
 import com.bloxbean.cardano.client.common.model.Networks;
+import com.bloxbean.cardano.client.crypto.VerificationKey;
+import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.function.helper.SignerProviders;
 import com.bloxbean.cardano.client.plutus.spec.PlutusV2Script;
 import com.bloxbean.cardano.client.quicktx.AbstractTx;
 import com.bloxbean.cardano.client.quicktx.QuickTxBuilder;
+import com.bloxbean.cardano.client.transaction.spec.script.ScriptPubkey;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.core.ConditionTimeoutException;
 import org.springframework.core.ParameterizedTypeReference;
@@ -29,8 +32,9 @@ import static org.awaitility.Awaitility.await;
 /**
  * A Yaci DevKit devnet and the resolver indexing it, for the integration tests.
  * <p>
- * Handles are minted under an always-true PlutusV2 policy, {@link #POLICY_ID}: the resolver under test runs with
- * {@code ADAHANDLE_POLICY_ID} set to it (see .github/workflows/integration-tests.yaml).
+ * Handles are minted under two policies, like ADA Handle's own two: an always-true PlutusV2 policy, {@link #POLICY_ID},
+ * and a native script policy signed by HOLDER, {@link #SECOND_POLICY_ID}. The resolver under test runs with
+ * {@code ADAHANDLE_POLICY_IDS} set to both (see .github/workflows/integration-tests.yaml).
  */
 @Slf4j
 final class Devnet {
@@ -53,6 +57,8 @@ final class Devnet {
             .cborHex("49480100002221200101")
             .build();
     static final String POLICY_ID = "3a888d65f16790950a72daee1f63aa05add6d268434107cfa5b67712";
+    static final ScriptPubkey SECOND_POLICY = signedBy(HOLDER);
+    static final String SECOND_POLICY_ID = "db63f51afa43f19d42687acb2671c1bdfe04ab8dceb9526e8ceb6935";
     /** The policy's script address, which holds the CIP-68 reference tokens. */
     static final String POLICY_ADDRESS = AddressProvider.getEntAddress(POLICY, Networks.testnet()).toBech32();
 
@@ -166,6 +172,14 @@ final class Devnet {
                 .completeAndWait(log::info);
         assertThat(result.isSuccessful()).as("transaction: %s", result.getResponse()).isTrue();
         return result.getValue();
+    }
+
+    private static ScriptPubkey signedBy(Account account) {
+        try {
+            return ScriptPubkey.create(VerificationKey.create(account.publicKeyBytes()));
+        } catch (CborSerializationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private static String env(String name, String defaultValue) {

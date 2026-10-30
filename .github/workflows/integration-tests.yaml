@@ -10,8 +10,8 @@ on:
 
 env:
   YACI_DEVKIT_VERSION: 0.12.0
-  # The always-true PlutusV2 policy the tests mint handles with (Devnet.POLICY_ID).
-  ADAHANDLE_POLICY_ID: 3a888d65f16790950a72daee1f63aa05add6d268434107cfa5b67712
+  # The two policies the tests mint handles with (Devnet.POLICY_ID, Devnet.SECOND_POLICY_ID).
+  ADAHANDLE_POLICY_IDS: 3a888d65f16790950a72daee1f63aa05add6d268434107cfa5b67712,db63f51afa43f19d42687acb2671c1bdfe04ab8dceb9526e8ceb6935
   API_BASE_URL: http://localhost:9095
   # Not YACI_STORE_URL: yaci-cli (Spring Boot) would read that as its yaci.store.url download URL.
   DEVNET_STORE_URL: http://localhost:8080/api/v1/
