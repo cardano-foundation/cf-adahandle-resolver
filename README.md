@@ -47,7 +47,7 @@ java -jar target/cf-adahandle-resolver-0.0.1-SNAPSHOT.jar
 ### ⚡ Native image (weekly, experimental)
 
 A GraalVM native image starts in about a second and needs far less memory than the JVM image. It is
-built weekly from `develop` and published as `cardanofoundation/adahandle-resolver:native-weekly`:
+built weekly from `main` (the released code) and published as `cardanofoundation/adahandle-resolver:native-weekly`:
 
 ```zsh
 docker run -p 9095:9095 cardanofoundation/adahandle-resolver:native-weekly

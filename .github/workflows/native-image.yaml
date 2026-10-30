@@ -2,7 +2,7 @@ name: Weekly Native Image
 
 # GraalVM native image of the resolver (Oracle GraalVM, see Dockerfile.native for licensing): lower
 # memory and faster startup than the JVM image.
-# Built weekly from develop so native-image breakages surface early; a failed scheduled run
+# Built weekly from main (the released code) so native-image breakages surface early; a failed scheduled run
 # opens (or updates) an issue labelled "native-image".
 #
 # Note: GitHub runs scheduled workflows from the default branch, so the schedule takes effect
@@ -46,11 +46,10 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 10
 
     steps:
+      # Scheduled runs build main (GitHub runs schedules on the default branch); manual runs and
+      # PRs build their own ref.
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          # Scheduled runs build develop; manual runs and PRs build their own ref.
-          ref: ${{ github.event_name == 'schedule' && 'develop' || '' }}
 
       - name: Build native image
         run: docker build -f Dockerfile.native -t adahandle-resolver:native .
@@ -98,7 +97,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          body="The weekly native image build of develop ($(git rev-parse --short HEAD)) failed: $run_url"
+          body="The weekly native image build of main ($(git rev-parse --short HEAD)) failed: $run_url"
           gh label create native-image --color 5319e7 --description "GraalVM native image build" 2>/dev/null || true
           issue=$(gh issue list --label native-image --state open --json number --jq '.[0].number')
           if [[ -n "$issue" ]]; then
