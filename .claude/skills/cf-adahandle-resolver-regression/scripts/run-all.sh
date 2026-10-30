@@ -11,7 +11,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "$DIR/lib.sh"
 
-checks=(check-deployment check-api check-sync-health check-data-integrity golden check-oracle)
+checks=(check-deployment check-api check-sync-health check-data-integrity golden check-oracle check-coverage)
 [[ "${1:-}" == "--with-restart" ]] && checks+=(check-restart-rollback)
 
 mkdir -p "$REG_DIR/reports"
