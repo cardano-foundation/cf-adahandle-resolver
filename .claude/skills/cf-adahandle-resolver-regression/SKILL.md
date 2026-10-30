@@ -43,6 +43,7 @@ instance under test (the indexer resumes from its cursor; the API is down for ~1
 | `check-data-integrity` | No asset fingerprints as names (CIP-68 decoding); every handle has history and vice versa; **every handle's current owner equals its latest history entry** (guards the rollback repair) | any invariant broken |
 | `golden` | The famous handles in the full-sync skill's `golden-handles.txt` resolve and round-trip | any golden handle fails |
 | `check-oracle` | `ORACLE_SAMPLE_N` (200) truly random handles plus `ORACLE_SUBHANDLE_N` (50) NFT sub-handles (`sub@root`) resolve to the same address as Kora's API; mismatches are re-checked after `RECHECK_SEC` (60 s) on both sides | any persistent mismatch, or under half the sample comparable |
+| `check-coverage` | Starts from the chain instead of the resolver's DB: lists the handle tokens (legacy, label 222, label 0) of every ADA Handle policy from Koios (`HANDLE_POLICIES`: the original one and DeMi's) and checks the resolver knows each. All of a policy's handles up to `COVERAGE_FULL_MAX` (2000) assets, else `COVERAGE_SAMPLE_N` (200) from random pages. The other checks sample the resolver's own handles, so they can't see handles it never indexed | a handle Kora resolves is unknown to the resolver after `RECHECK_SEC` |
 | `check-restart-rollback` | `CIP68_N` (20) real CIP-68 handles still resolve to Kora's address after an API restart; handle count doesn't drop | any handle changes or the count drops |
 
 ### Why an oracle
