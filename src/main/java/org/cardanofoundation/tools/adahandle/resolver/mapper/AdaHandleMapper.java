@@ -10,7 +10,6 @@ import java.util.Arrays;
 
 @Slf4j
 public class AdaHandleMapper {
-    private static final String ADA_HANDLE_POLICY_ID = "f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a";
     private static final byte[] CIP68_100_PREFIX = {0, 6, 67, -80};
     private static final byte[] CIP68_222_PREFIX = {0, 13, -31, 64};
 
@@ -37,7 +36,7 @@ public class AdaHandleMapper {
      * rollbacks can't match history rows to current owners.
      */
     public static String toHandleName(Amt amount) {
-        if (amount.getPolicyId() == null || !amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {
+        if (amount.getPolicyId() == null || !amount.getPolicyId().equals(AdaHandlePolicy.id())) {
             return null;
         }
 
