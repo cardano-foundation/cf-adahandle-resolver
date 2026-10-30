@@ -8,10 +8,10 @@ import com.bloxbean.cardano.client.plutus.spec.ConstrPlutusData;
 import com.bloxbean.cardano.client.plutus.spec.MapPlutusData;
 import com.bloxbean.cardano.client.plutus.spec.PlutusData;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Hex;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,7 +45,7 @@ public class VirtualSubHandleDatum {
             return Optional.empty();
         }
         try {
-            if (!(PlutusData.deserialize(Hex.decodeHex(inlineDatumHex)) instanceof ConstrPlutusData constr)
+            if (!(PlutusData.deserialize(HexFormat.of().parseHex(inlineDatumHex)) instanceof ConstrPlutusData constr)
                     || constr.getAlternative() != 0) {
                 return Optional.empty();
             }

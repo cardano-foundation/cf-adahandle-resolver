@@ -2,12 +2,12 @@ package org.cardanofoundation.tools.adahandle.resolver.mapper;
 import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Hex;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HexFormat;
 
 @Slf4j
 public class AdaHandleMapper {
@@ -47,7 +47,7 @@ public class AdaHandleMapper {
 
         byte[] assetName;
         try {
-            assetName = Hex.decodeHex(amount.getUnit().replaceFirst("^" + amount.getPolicyId(), ""));
+            assetName = HexFormat.of().parseHex(amount.getUnit().replaceFirst("^" + amount.getPolicyId(), ""));
         } catch (Exception e) {
             log.warn("Error decoding asset name: {}", e.getMessage());
             return new AdaHandle(amount.getAssetName(), addressUtxo.getOwnerStakeAddr(), addressUtxo.getOwnerAddr());
