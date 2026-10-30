@@ -141,16 +141,16 @@ final class Devnet {
     }
 
     /**
-     * Waits until the devkit's Yaci Store, which transactions are built from, has a token at an address. The resolver
-     * can index a block before it does.
+     * Returns the UTxO holding a token at an address, once the devkit's Yaci Store, which transactions are built from,
+     * has it. The resolver can index a block before it does.
      */
-    static void awaitUtxoWith(String address, String unit) {
-        await("Yaci Store to index " + unit + " at " + address).atMost(Duration.ofMinutes(1))
+    static Utxo awaitUtxoWith(String address, String unit) {
+        return await("Yaci Store to index " + unit + " at " + address).atMost(Duration.ofMinutes(1))
                 .pollInterval(Duration.ofSeconds(2)).ignoreExceptions()
                 .until(() -> {
                     Result<List<Utxo>> utxos = BACKEND.getUtxoService().getUtxos(address, unit, 1, 1);
-                    return utxos.isSuccessful() && !utxos.getValue().isEmpty();
-                });
+                    return utxos.isSuccessful() && !utxos.getValue().isEmpty() ? utxos.getValue().getFirst() : null;
+                }, utxo -> utxo != null);
     }
 
     private static boolean isFunded(String address) throws Exception {

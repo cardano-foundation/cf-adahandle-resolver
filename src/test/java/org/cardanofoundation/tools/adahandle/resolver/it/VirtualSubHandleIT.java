@@ -3,6 +3,7 @@ package org.cardanofoundation.tools.adahandle.resolver.it;
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.api.model.Amount;
+import com.bloxbean.cardano.client.api.model.Utxo;
 import com.bloxbean.cardano.client.common.model.Networks;
 import com.bloxbean.cardano.client.plutus.spec.BigIntPlutusData;
 import com.bloxbean.cardano.client.plutus.spec.BytesPlutusData;
@@ -113,10 +114,13 @@ class VirtualSubHandleIT {
     @Test
     void virtualSubHandleFollowsANewDatum() {
         awaitOwner(VIRTUAL_UPDATED, Owner.baseAddressOf(RECEIVER));
-        Devnet.awaitUtxoWith(MINTER.enterpriseAddress(), POLICY_ID + LABEL_0 + hex(VIRTUAL_UPDATED));
+        String unit = POLICY_ID + LABEL_0 + hex(VIRTUAL_UPDATED);
+        // Collected explicitly: cardano-client-lib's UTxO selection skips UTxOs with a datum.
+        Utxo virtualSubHandle = Devnet.awaitUtxoWith(MINTER.enterpriseAddress(), unit);
 
         Tx update = new Tx()
-                .payToContract(POLICY_ADDRESS, Amount.asset(POLICY_ID + LABEL_0 + hex(VIRTUAL_UPDATED), 1),
+                .collectFrom(List.of(virtualSubHandle))
+                .payToContract(POLICY_ADDRESS, Amount.asset(unit, 1),
                         virtualDatum(VIRTUAL_UPDATED, HOLDER.baseAddress()))
                 .from(MINTER.enterpriseAddress());
         submit(update, MINTER);
