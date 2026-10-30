@@ -53,6 +53,16 @@
         <lombok.version>1.18.48</lombok.version>
         <!-- 2.10.x is built against Spring Boot 3.5.16. -->
         <springdoc.version>2.10.0</springdoc.version>
+        <!-- Spring Boot's managed version of the org.postgresql:postgresql dependency below: the parent
+             POM declares it as <version>${postgresql.version}</version>, so setting the property here
+             overrides it. Boot 3.5.16 (the last 3.5.x) manages 42.7.11, which has CVE-2026-54291 and
+             others; 42.7.14 has no known high/medium CVEs. Remove once Boot manages 42.7.14 or later. -->
+        <postgresql.version>42.7.14</postgresql.version>
+        <!-- Parent 3.5.16 pins native build tools 0.10.6, whose reachability metadata predates
+             GraalVM for JDK 25 (which fails hard on missing registrations). -->
+        <native-build-tools-plugin.version>1.1.18</native-build-tools-plugin.version>
+        <!-- Native image GC: G1 on Linux (see the native-linux profile); G1 is Linux-only. -->
+        <native.gc>serial</native.gc>
     </properties>
 
     <dependencies>
@@ -90,10 +100,15 @@
             <version>${springdoc.version}</version>
         </dependency>
 
+        <!-- Already on the runtime classpath via yaci-store; compile scope for NativeImageConfig. -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.6.0</version>
         </dependency>
 
         <dependency>
@@ -181,5 +196,76 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- GraalVM native image: ./mvnw -Pnative -DskipTests native:compile
+             Extends the "native" profile from spring-boot-starter-parent (AOT processing and
+             native-maven-plugin with the reachability metadata repository). -->
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>process-aot</id>
+                                <configuration>
+                                    <!-- AOT fixes @Profile/@Conditional bean decisions at build time and
+                                         re-activates the build-time profiles at runtime. "aot" has no
+                                         config of its own, so database (h2/postgres) and network profiles
+                                         are still chosen at runtime via SPRING_ACTIVE_PROFILES. -->
+                                    <profiles>
+                                        <profile>aot</profile>
+                                    </profiles>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <configuration>
+                            <imageName>adahandle-resolver</imageName>
+                            <!-- Oracle GraalVM options, as in cf-token-metadata-registry (ADR-003). -->
+                            <buildArgs>
+                                <!-- Default is x86-64-v3 on amd64; keep the binary runnable on
+                                     older CPUs and generic VM CPU models. -->
+                                <buildArg>-march=compatibility</buildArg>
+                                <buildArg>-O3</buildArg>
+                                <buildArg>--gc=${native.gc}</buildArg>
+                                <!-- Read DNS settings at runtime, not from the build machine. -->
+                                <buildArg>--initialize-at-run-time=sun.net.dns.ResolverConfigurationImpl</buildArg>
+                                <buildArg>-H:+ReportExceptionStackTraces</buildArg>
+                            </buildArgs>
+                        </configuration>
+                        <executions>
+                            <!-- ./mvnw -Pnative package builds the native executable. -->
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>native-linux</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>Linux</name>
+                </os>
+            </activation>
+            <properties>
+                <native.gc>G1</native.gc>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>
