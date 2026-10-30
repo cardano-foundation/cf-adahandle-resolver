@@ -53,6 +53,11 @@
         <lombok.version>1.18.48</lombok.version>
         <!-- 2.10.x is built against Spring Boot 3.5.16. -->
         <springdoc.version>2.10.0</springdoc.version>
+        <!-- Spring Boot's managed version of the org.postgresql:postgresql dependency below: the parent
+             POM declares it as <version>${postgresql.version}</version>, so setting the property here
+             overrides it. Boot 3.5.16 (the last 3.5.x) manages 42.7.11, which has CVE-2026-54291 and
+             others; 42.7.14 has no known high/medium CVEs. Remove once Boot manages 42.7.14 or later. -->
+        <postgresql.version>42.7.14</postgresql.version>
         <!-- Parent 3.5.16 pins native build tools 0.10.6, whose reachability metadata predates
              GraalVM for JDK 25 (which fails hard on missing registrations). -->
         <native-build-tools-plugin.version>1.1.18</native-build-tools-plugin.version>
@@ -104,7 +109,6 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.6.0</version>
         </dependency>
 
         <dependency>

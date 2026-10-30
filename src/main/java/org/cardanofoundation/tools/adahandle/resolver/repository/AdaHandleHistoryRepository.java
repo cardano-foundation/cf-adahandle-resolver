@@ -1,6 +1,7 @@
 package org.cardanofoundation.tools.adahandle.resolver.repository;
 
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
+import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItemKey;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface AdaHandleHistoryRepository extends JpaRepository<AdaHandleHistoryItem, String> {
+public interface AdaHandleHistoryRepository extends JpaRepository<AdaHandleHistoryItem, AdaHandleHistoryItemKey> {
 
     // flushAutomatically + clearAutomatically so a subsequent find* in the same tx reads
     // the post-delete state from the DB and isn't served a stale persistence-context entity.
