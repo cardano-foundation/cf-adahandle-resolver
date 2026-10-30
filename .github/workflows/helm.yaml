@@ -1,0 +1,28 @@
+name: Helm Chart
+
+on:
+  pull_request:
+    paths:
+      - 'deploy/**'
+      - '.github/workflows/helm.yaml'
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint and render every deployment mode
+        working-directory: deploy/adahandle-resolver
+        run: |
+          for values in values.yaml values-zpg.yaml values-external-postgres.yaml; do
+            echo "::group::$values"
+            helm lint . -f "$values"
+            helm template ci . -f "$values" > /dev/null
+            echo "::endgroup::"
+          done

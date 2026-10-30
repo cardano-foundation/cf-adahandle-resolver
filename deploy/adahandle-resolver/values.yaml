@@ -2,7 +2,8 @@ replicaCount: 1
 
 image:
   repository: cardanofoundation/adahandle-resolver
-  tag: "0.1.4"
+  # Empty: the chart's appVersion, i.e. the resolver release this chart belongs to.
+  tag: ""
   pullPolicy: IfNotPresent
 
 # Accepts plain names (["regcred"]) or the Kubernetes form ([{name: regcred}]).
@@ -70,8 +71,11 @@ database:
     persistence:
       enabled: true
       storage:
-        size: 5Gi
-  # postgres configuration
+        # A synced mainnet database is ~5 GB (PostgreSQL: 4.6 GB) and grows with the chain.
+        size: 20Gi
+  # postgres configuration: either zpgCluster.enabled (Zalando operator, see values-zpg.yaml) or an
+  # existing database whose connection details are in the secret below (see
+  # values-external-postgres.yaml).
   postgres:
     username: "adahandle"
     secret:
@@ -83,26 +87,14 @@ database:
       passwordKey: POSTGRES_PASSWORD
 
 
-# Enable bitnami postgresql Helm chart
-postgresql:
-  enabled: false
-  auth:
-    autoGenerateSecret: false
-    username: "adahandle"
-    database: "adahandle"
-    existingSecret: "postgres-secrets"
-    secretKeys:
-      userPasswordKey: POSTGRES_PASSWORD
-      adminPasswordKey: POSTGRES_ADMIN_PASSWORD
-      replicationPasswordKey: POSTGRES_REPLICATION_PASSWORD
-
 # Provision a Postgres Cluster using Zalando postgres operator.
 zpgCluster:
   enabled: false
   namespace: zpg-system
   dbName: adahandle
   instances: 1
-  volumeSize: 5Gi 
+  # A synced mainnet database is ~5 GB and grows with the chain.
+  volumeSize: 20Gi
   # Additional environment variables for the Zalando PostgreSQL pods
   additionalEnv: []
     # - name: EXAMPLE_VAR
