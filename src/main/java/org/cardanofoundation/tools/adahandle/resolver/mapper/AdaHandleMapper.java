@@ -65,7 +65,9 @@ public class AdaHandleMapper {
             return new AdaHandle(name, addressUtxo.getOwnerStakeAddr(), addressUtxo.getOwnerAddr());
         }
         if (label == LABEL_VIRTUAL_SUBHANDLE) {
-            return VirtualSubHandleDatum.owner(addressUtxo.getInlineDatum())
+            // The network being indexed is the network of the Handle script holding the token.
+            boolean mainnet = addressUtxo.getOwnerAddr() == null || !addressUtxo.getOwnerAddr().startsWith("addr_test");
+            return VirtualSubHandleDatum.owner(addressUtxo.getInlineDatum(), mainnet)
                     .map(owner -> new AdaHandle(name, owner.stakeAddress(), owner.paymentAddress()))
                     .orElseGet(() -> {
                         log.warn("Skipping virtual sub-handle {} without a readable datum in {}#{}",

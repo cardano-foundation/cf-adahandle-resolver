@@ -49,7 +49,7 @@ public class VirtualSubHandleDatumTest {
 
     @Test
     public void testOwnerFromMainnetDatum() throws IOException {
-        var owner = VirtualSubHandleDatum.owner(readDatum(DATUM_331_HAL));
+        var owner = VirtualSubHandleDatum.owner(readDatum(DATUM_331_HAL), true);
 
         assertThat(owner.isPresent(), is(true));
         assertThat(owner.get().paymentAddress(), is(RESOLVED_331_HAL));
@@ -60,7 +60,7 @@ public class VirtualSubHandleDatumTest {
     public void testOwnerOfEnterpriseAddressHasNoStakeAddress() {
         String enterprise = "addr1vx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzers66hrl8";
 
-        var owner = VirtualSubHandleDatum.owner(cip68Datum(enterprise));
+        var owner = VirtualSubHandleDatum.owner(cip68Datum(enterprise), true);
 
         assertThat(owner.get().paymentAddress(), is(enterprise));
         assertThat(owner.get().stakeAddress(), nullValue());
@@ -68,13 +68,28 @@ public class VirtualSubHandleDatumTest {
 
     @Test
     public void testMissingOrUnexpectedDatumHasNoOwner() {
-        assertThat(VirtualSubHandleDatum.owner(null).isPresent(), is(false));
-        assertThat(VirtualSubHandleDatum.owner("").isPresent(), is(false));
-        assertThat(VirtualSubHandleDatum.owner("zz-not-hex").isPresent(), is(false));
+        assertThat(VirtualSubHandleDatum.owner(null, true).isPresent(), is(false));
+        assertThat(VirtualSubHandleDatum.owner("", true).isPresent(), is(false));
+        assertThat(VirtualSubHandleDatum.owner("zz-not-hex", true).isPresent(), is(false));
         // Valid CIP-68 shape without resolved_addresses
         assertThat(VirtualSubHandleDatum.owner(
-                constr0(new MapPlutusData(), BigIntPlutusData.of(1), new MapPlutusData()).serializeToHex()).isPresent(), is(false));
+                constr0(new MapPlutusData(), BigIntPlutusData.of(1), new MapPlutusData()).serializeToHex(), true).isPresent(), is(false));
         // Not a constructor
-        assertThat(VirtualSubHandleDatum.owner(BigIntPlutusData.of(42).serializeToHex()).isPresent(), is(false));
+        assertThat(VirtualSubHandleDatum.owner(BigIntPlutusData.of(42).serializeToHex(), true).isPresent(), is(false));
+    }
+
+    @Test
+    public void testAddressIsEncodedForTheIndexedNetwork() {
+        // Mainnet datum (1@bootyplug) whose address header says testnet: api.handle.me encodes it as
+        // addr1...; same here. No stake address is derived from a wrong-network address.
+        String testnetAddress = "addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgs68faae";
+        byte[] bytes = new Address(testnetAddress).getBytes();
+
+        var owner = VirtualSubHandleDatum.owner(cip68Datum(testnetAddress), true);
+
+        assertThat(owner.get().paymentAddress(), is(new Address("addr", bytes).toBech32()));
+        assertThat(owner.get().paymentAddress(), startsWith("addr1"));
+        assertThat(owner.get().stakeAddress(), nullValue());
+        assertThat(VirtualSubHandleDatum.owner(cip68Datum(testnetAddress), false).get().paymentAddress(), is(testnetAddress));
     }
 }

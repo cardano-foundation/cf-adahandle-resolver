@@ -22,6 +22,9 @@ import java.util.Optional;
  * A virtual sub-handle (CIP-67 label 0) is a token held by a Handle script; whoever holds it is not
  * the owner. Its datum follows CIP-68, {@code Constr 0 [metadata, version, extra]}, and the address
  * is {@code extra.resolved_addresses.ada} as raw address bytes (the same field api.handle.me uses).
+ * <p>
+ * Like api.handle.me, the address is encoded for the network being indexed, whatever network the
+ * datum's address header claims; a stake address is only derived when the two agree.
  */
 @Slf4j
 public class VirtualSubHandleDatum {
@@ -32,8 +35,12 @@ public class VirtualSubHandleDatum {
     public record Owner(String paymentAddress, String stakeAddress) {
     }
 
-    /** Returns the owner from the datum, or empty if the datum is missing or not in this format. */
-    public static Optional<Owner> owner(String inlineDatumHex) {
+    /**
+     * Returns the owner from the datum, or empty if the datum is missing or not in this format.
+     *
+     * @param mainnet whether the indexed chain is mainnet (addresses encoded as addr1/stake1)
+     */
+    public static Optional<Owner> owner(String inlineDatumHex, boolean mainnet) {
         if (inlineDatumHex == null || inlineDatumHex.isEmpty()) {
             return Optional.empty();
         }
@@ -49,18 +56,20 @@ public class VirtualSubHandleDatum {
             return field(fields.get(2), RESOLVED_ADDRESSES)
                     .flatMap(resolvedAddresses -> field(resolvedAddresses, ADA))
                     .filter(BytesPlutusData.class::isInstance)
-                    .map(ada -> toOwner(new Address(((BytesPlutusData) ada).getValue())));
+                    .map(ada -> toOwner(((BytesPlutusData) ada).getValue(), mainnet));
         } catch (Exception e) {
             log.warn("Unreadable virtual sub-handle datum: {}", e.getMessage());
             return Optional.empty();
         }
     }
 
-    private static Owner toOwner(Address address) {
-        String stakeAddress = address.getAddressType() == AddressType.Base
+    private static Owner toOwner(byte[] addressBytes, boolean mainnet) {
+        Address address = new Address(addressBytes);
+        boolean sameNetwork = (addressBytes[0] & 0x0F) == (mainnet ? 1 : 0);
+        String stakeAddress = sameNetwork && address.getAddressType() == AddressType.Base
                 ? AddressProvider.getStakeAddress(address).toBech32()
                 : null;
-        return new Owner(address.toBech32(), stakeAddress);
+        return new Owner(new Address(mainnet ? "addr" : "addr_test", addressBytes).toBech32(), stakeAddress);
     }
 
     /** Looks up a bytes key in a Plutus map (datum map keys are UTF-8 bytes). */
