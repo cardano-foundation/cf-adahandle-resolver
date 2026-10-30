@@ -2,8 +2,17 @@
 #
 #   docker build -f Dockerfile.native -t adahandle-resolver:native .
 #
-# Oracle Linux 9 builder (glibc 2.34), so the binary also runs on newer glibc such as noble.
-FROM ghcr.io/graalvm/native-image-community:25i4-25.0.4.1.1-ol9 AS build
+# Built with Oracle GraalVM, like cf-token-metadata-registry (ADR-003) and yaci-store's native
+# releases. Oracle GraalVM is licensed under the GraalVM Free Terms and Conditions (GFTC): free use,
+# including production and hosted/paid services, and free redistribution. The GraalVM parts compiled
+# into the binary count as the GraalVM program, so the image ships Oracle's license and notices in
+# /licenses/graalvm (the GFTC requires keeping them). The resolver itself is MIT (/licenses/LICENSE).
+#
+# The version is pinned so a GraalVM update (or a change of its license terms) is a reviewed change.
+FROM container-registry.oracle.com/graalvm/native-image:25i4-25.0.4.1.1-ol9 AS build
+
+# The Maven wrapper downloads Maven with curl and unpacks it with tar.
+RUN microdnf install -y findutils curl tar gzip && microdnf clean all
 
 WORKDIR /app
 COPY pom.xml /app/pom.xml
@@ -12,10 +21,25 @@ COPY .mvn /app/.mvn
 
 RUN ./mvnw -B -Pnative verify clean --fail-never
 COPY . /app
-RUN ./mvnw -B -Pnative -DskipTests native:compile
+RUN ./mvnw -B -Pnative -DskipTests package
 
-FROM ubuntu:noble AS runtime
+RUN mkdir -p /licenses/graalvm \
+    && cp "$JAVA_HOME/LICENSE.txt" /licenses/graalvm/LICENSE.txt \
+    && cp "$JAVA_HOME/NOTICE.txt" /licenses/graalvm/NOTICE.txt
+
+# Debian's amd64 baseline is x86-64 (v1), so with -march=compatibility the image also runs on
+# older CPUs and generic VM CPU models.
+FROM debian:trixie-slim AS runtime
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends zlib1g curl \
+    && rm -rf /var/lib/apt/lists/*
+
+LABEL org.opencontainers.image.licenses="MIT AND LicenseRef-GraalVM-Free-Terms-and-Conditions"
+
 WORKDIR /app
+COPY --from=build /licenses /licenses
+COPY LICENSE /licenses/LICENSE
 COPY --from=build /app/target/adahandle-resolver /app/adahandle-resolver
 ENTRYPOINT ["/app/adahandle-resolver"]
 # A native binary ignores JAVA_TOOL_OPTIONS; runtime flags go on the command line (e.g. add -Xmx to

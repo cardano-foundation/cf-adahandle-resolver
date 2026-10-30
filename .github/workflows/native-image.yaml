@@ -1,6 +1,7 @@
 name: Weekly Native Image
 
-# GraalVM native image of the resolver: lower memory and faster startup than the JVM image.
+# GraalVM native image of the resolver (Oracle GraalVM, see Dockerfile.native for licensing): lower
+# memory and faster startup than the JVM image.
 # Built weekly from develop so native-image breakages surface early; a failed scheduled run
 # opens (or updates) an issue labelled "native-image".
 #
@@ -56,6 +57,14 @@ jobs:
 
       - name: Image size
         run: docker image ls adahandle-resolver:native
+
+      # Oracle GraalVM (GFTC): the image must carry Oracle's license and notices.
+      - name: Check licenses in the image
+        run: |
+          for f in /licenses/LICENSE /licenses/graalvm/LICENSE.txt /licenses/graalvm/NOTICE.txt; do
+            docker run --rm --entrypoint test adahandle-resolver:native -s "$f" || { echo "missing $f"; exit 1; }
+          done
+          docker run --rm --entrypoint head adahandle-resolver:native -n 2 /licenses/graalvm/LICENSE.txt
 
       - name: Smoke test (API, H2)
         run: .github/scripts/native-smoke-test.sh adahandle-resolver:native api
