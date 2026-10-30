@@ -63,6 +63,9 @@ final class Devnet {
     static final String POLICY_ADDRESS = AddressProvider.getEntAddress(POLICY, Networks.testnet()).toBech32();
 
     static final Duration INDEXING_TIMEOUT = Duration.ofMinutes(3);
+    // The faucet sometimes accepts a top-up whose funds never show up (1 CI run in ~15): ask again.
+    private static final int FAUCET_ATTEMPTS = 5;
+    private static final Duration FAUCET_WAIT = Duration.ofSeconds(60);
 
     private static final RestClient API = RestClient.create(API_BASE_URL);
     private static final RestClient HTTP = RestClient.create();
@@ -129,21 +132,32 @@ final class Devnet {
     }
 
     static void fund(String address) {
-        for (int attempt = 1; attempt <= 3; attempt++) {
+        for (int attempt = 1; attempt <= FAUCET_ATTEMPTS; attempt++) {
             try {
-                HTTP.post().uri(DEVKIT_ADMIN_URL + "/local-cluster/api/addresses/topup")
+                String answer = HTTP.post().uri(DEVKIT_ADMIN_URL + "/local-cluster/api/addresses/topup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(Map.of("address", address, "adaAmount", 10_000))
-                        .retrieve().toBodilessEntity();
-                await().atMost(Duration.ofSeconds(40)).pollInterval(Duration.ofSeconds(2)).ignoreExceptions()
+                        .retrieve().body(String.class);
+                log.info("Faucet answered for {}: {}", address, answer);
+                await().atMost(FAUCET_WAIT).pollInterval(Duration.ofSeconds(2)).ignoreExceptions()
                         .until(() -> isFunded(address));
                 log.info("Funded {} (attempt {})", address, attempt);
                 return;
             } catch (ConditionTimeoutException e) {
-                log.warn("Funds of {} not available after 40 s (attempt {} of 3)", address, attempt);
+                // Tells a faucet transaction that never landed from a Yaci Store that stopped indexing.
+                log.warn("Funds of {} not available after {} s (attempt {} of {}); Yaci Store's latest block: {}",
+                        address, FAUCET_WAIT.toSeconds(), attempt, FAUCET_ATTEMPTS, latestBlock());
             }
         }
         throw new IllegalStateException("the DevKit faucet did not fund " + address);
+    }
+
+    private static String latestBlock() {
+        try {
+            return HTTP.get().uri(YACI_STORE_URL + "blocks/latest").retrieve().body(String.class);
+        } catch (Exception e) {
+            return "unavailable (" + e.getMessage() + ")";
+        }
     }
 
     /**
