@@ -140,6 +140,19 @@ final class Devnet {
         throw new IllegalStateException("the DevKit faucet did not fund " + address);
     }
 
+    /**
+     * Waits until the devkit's Yaci Store, which transactions are built from, has a token at an address. The resolver
+     * can index a block before it does.
+     */
+    static void awaitUtxoWith(String address, String unit) {
+        await("Yaci Store to index " + unit + " at " + address).atMost(Duration.ofMinutes(1))
+                .pollInterval(Duration.ofSeconds(2)).ignoreExceptions()
+                .until(() -> {
+                    Result<List<Utxo>> utxos = BACKEND.getUtxoService().getUtxos(address, unit, 1, 1);
+                    return utxos.isSuccessful() && !utxos.getValue().isEmpty();
+                });
+    }
+
     private static boolean isFunded(String address) throws Exception {
         Result<List<Utxo>> utxos = BACKEND.getUtxoService().getUtxos(address, 1, 1);
         return utxos.isSuccessful() && !utxos.getValue().isEmpty();

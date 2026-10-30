@@ -113,6 +113,7 @@ class VirtualSubHandleIT {
     @Test
     void virtualSubHandleFollowsANewDatum() {
         awaitOwner(VIRTUAL_UPDATED, Owner.baseAddressOf(RECEIVER));
+        Devnet.awaitUtxoWith(MINTER.enterpriseAddress(), POLICY_ID + LABEL_0 + hex(VIRTUAL_UPDATED));
 
         Tx update = new Tx()
                 .payToContract(POLICY_ADDRESS, Amount.asset(POLICY_ID + LABEL_0 + hex(VIRTUAL_UPDATED), 1),
