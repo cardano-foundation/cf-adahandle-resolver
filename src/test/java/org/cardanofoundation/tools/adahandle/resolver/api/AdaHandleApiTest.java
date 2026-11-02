@@ -8,7 +8,7 @@ import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistorySe
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;

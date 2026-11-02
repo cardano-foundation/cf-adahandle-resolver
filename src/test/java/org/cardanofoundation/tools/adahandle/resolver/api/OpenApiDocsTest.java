@@ -2,7 +2,7 @@ package org.cardanofoundation.tools.adahandle.resolver.api;
 
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.*;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
