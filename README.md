@@ -12,22 +12,59 @@
 This project aims to provide a scoped indexer for retrieving ADA Handle information from the Cardano blockchain and exposing it via REST using [Yaci Store](https://github.com/bloxbean/yaci-store).
 
 ## Why ADA Handle resolver?
-One may ask why Ada Handle resolve if there is already: https://github.com/koralabs/handles-public-api
+One may ask why an ADA Handle resolver if there is already Kora Labs' [Handles API](https://github.com/koralabs/api.handle.me).
 
-Ada Handler resolver by CF differentiates itself with a number of following traits:
-- it demostrates usage of Yaci-Store modular indexer
-- is written in Java, thus easier extendable and to easier to reason about by Java Developers
-- doesn't have any dependencies to other components, e.g. Ogmios, blockfrost, etc
-- handles db has very small on disk footprint
-- supports embedded DBs such as H2 for easier deployment
- 
+The ADA Handle resolver by the Cardano Foundation differentiates itself with the following traits:
+- it demonstrates the use of the Yaci Store modular indexer
+- it is written in Java, so it is easy to extend and to reason about for Java developers
+- it doesn't depend on other components, e.g. Ogmios, Blockfrost, etc.
+- its database has a very small on-disk footprint
+- it supports embedded databases such as H2 for easier deployment
+
+## 🔎 What is indexed
+
+Handles are the tokens of ADA Handle's minting policies, the same on mainnet, preprod and preview: the
+original policy `f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a` and the DeMi (decentralized
+minting) policy `6c32db33a422e0bc2cb535bb850b5a6e9a9572222056d6ddc9cbc26e`. A handle resolves to:
+
+| Handle | Token | Resolves to |
+|---|---|---|
+| Legacy handle (`$alice`) | asset name = handle name | the address holding the token |
+| CIP-68 handle | label 222 user token (`000de140` + name) | the address holding the token |
+| NFT sub-handle (`$sub@alice`) | label 222, name `sub@root` | the address holding the token |
+| Virtual sub-handle (`$sub@alice`) | label 0 (`00000000` + name), held by a Handle script | the address in its datum (`extra.resolved_addresses.ada`) |
+
+CIP-68 reference tokens (label 100) and sub-handle settings tokens (label 1) are not handles. Labels follow
+[CIP-67](https://cips.cardano.org/cip/CIP-0067); the rules match Kora Labs' Handles API, which the
+regression suite compares against.
+
+Chain rollbacks are handled: every ownership change is kept in a history table, and a rollback restores
+the affected handles to their owner before the abandoned blocks. A burned handle keeps resolving to its
+last holder.
+
 ## 🚀 Getting Started
 
 ### 🐳 Docker
 
 ```zsh
-docker run -p 9095:9095 cardanofoundation/adahandle-resolver:latest
+docker run -p 9095:9095 -e JAVA_TOOL_OPTIONS=-Xmx4g cardanofoundation/adahandle-resolver:latest
 ```
+
+This syncs mainnet into an embedded H2 database. A mainnet sync needs about 4 GB of heap; pass JVM flags
+in `JAVA_TOOL_OPTIONS` (`JAVA_OPTS` is ignored by the image).
+
+### 🐘 Docker Compose with PostgreSQL
+
+```zsh
+cp .env.example .env   # mainnet, PostgreSQL, -Xmx4g; change DB_PASSWORD
+docker compose up -d
+```
+
+The first sync starts at the first ADA Handle mint (slot 47,931,310) and takes several hours on mainnet.
+
+> **Upgrading to 1.0.0 requires a full resync** from an empty database (Yaci Store 2.x changed its
+> schema, and 1.0.0 indexes handles it didn't before). Stop the resolver, drop the database
+> (`docker compose down -v`, or delete `./data/db*` for H2), then start 1.0.0.
 
 ### 🪶 Maven 
 
@@ -41,7 +78,7 @@ Java 25
 git clone https://github.com/cardano-foundation/cf-adahandle-resolver.git
 cd cf-adahandle-resolver
 ./mvnw clean package
-java -jar target/cf-adahandle-resolver-0.0.1-SNAPSHOT.jar
+java -Xmx4g -jar target/cf-adahandle-resolver-*-SNAPSHOT.jar
 ```
 
 ### ⚡ Native image (weekly, experimental)
@@ -64,22 +101,33 @@ the executable are covered by the GFTC, which allows free use, including product
 and free redistribution, but not redistribution for a fee. The image includes Oracle's license and notices
 in `/licenses/graalvm`. The resolver's own code is MIT licensed, and the JVM image doesn't contain GraalVM.
 
-## 🧪 Test Reports
+## 🧪 Tests
 
-To ensure the stability and reliability of this project, unit tests have been implemented. By clicking on the link below, you can access the detailed test report.
-
-📊 [Coverage Report](https://cardano-foundation.github.io/cf-adahandle-resolver/coverage-report/)
+- **Unit tests** (`./mvnw test`): handle decoding, rollbacks, the API. 📊 [Coverage Report](https://cardano-foundation.github.io/cf-adahandle-resolver/coverage-report/)
+- **Integration tests** (`.github/workflows/integration-tests.yaml`, on every push and pull request): the
+  resolver syncs a local [Yaci DevKit](https://github.com/bloxbean/yaci-devkit) devnet into PostgreSQL; the
+  tests mint legacy, CIP-68, NFT and virtual sub-handles under two policies, transfer them, restart the
+  resolver and check the API. To run them locally (Linux x64, or macOS with Rosetta):
+  ```zsh
+  yaci-devkit up --enable-yaci-store          # npm install -g @bloxbean/yaci-devkit
+  ADAHANDLE_POLICY_IDS=3a888d65f16790950a72daee1f63aa05add6d268434107cfa5b67712,db63f51afa43f19d42687acb2671c1bdfe04ab8dceb9526e8ceb6935 \
+    SPRING_ACTIVE_PROFILES=devnet,postgres DB_URL=jdbc:postgresql://localhost:5432/adahandle \
+    DB_USERNAME=adahandle DB_PASSWORD=adahandle java -jar target/cf-adahandle-resolver-*-SNAPSHOT.jar &
+  ./mvnw verify -DskipUTs=true -DskipITs=false
+  ```
+- **Mainnet regression** (Claude Code skills in `.claude/skills`): a full mainnet sync on a remote host,
+  then checks against Kora Labs' Handles API and the chain.
 
 
 ## 🤖 API Endpoints
 
-| Endpoint                                                         | Description                                             |
-|------------------------------------------------------------------|---------------------------------------------------------|
-| http://localhost:9095/swagger-ui.html                            | **Swagger UI** for the API endpoints                    |
-| http://localhost:9095/api/v1/ada-handles/by-stake-address        | [GET]s the ADA Handle held by a given stake address     |
-| http://localhost:9095/api/v1/ada-handles/by-payment-address      | [GET]s the ADA Handle held by a given payment address   |
-| http://localhost:9095/api/v1/addresses/by-ada-handle/{adaHandle} | [GET]s the stake and payment addresses behind a provided ADA Handle   |
-| http://localhost:9095/api/v1/ada-handles/by-payment-address      | [GET]s the payment address behind a provided ADA Handle |
+| Endpoint                                                                    | Description                                                                                  |
+|-----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| http://localhost:9095/swagger-ui.html                                       | **Swagger UI** for the API endpoints                                                         |
+| http://localhost:9095/apidocs                                               | OpenAPI specification                                                                        |
+| http://localhost:9095/api/v1/addresses/by-ada-handle/{adaHandle}            | [GET]s the payment and stake address a handle resolves to (with or without the leading `$`) |
+| http://localhost:9095/api/v1/ada-handles/by-stake-address/{stakeAddress}     | [GET]s the handles held by a stake address                                                   |
+| http://localhost:9095/api/v1/ada-handles/by-payment-address/{paymentAddress} | [GET]s the handles held by a payment address                                                 |
 
 ## 👻 Disable Indexer
 
@@ -88,22 +136,26 @@ However, you may not want a crawl job on every instance. To disable the indexer 
 utilize the `disable-indexer` profile as an environment variable.
 
 ```zsh
-SPRING_ACTIVE_PROFILES=disable-indexer java -jar target/cf-adahandle-resolver-0.0.1-SNAPSHOT.jar
+SPRING_ACTIVE_PROFILES=mainnet,postgres,disable-indexer java -jar target/cf-adahandle-resolver-*-SNAPSHOT.jar
 ```
 
 ## 🌱 Environment Variables
 
-Possible profiles: `mainnet`, `preprod`, `preview`, `local-node`, `h2`, `disable-indexer`
+Possible profiles: `mainnet`, `preprod`, `preview`, `devnet` (a local Yaci DevKit), `local-node`, `h2`, `postgres`, `disable-indexer`
 
 | Name                   | Description                                                    | Default Value                      |
 |------------------------|----------------------------------------------------------------|------------------------------------|
 | SPRING_ACTIVE_PROFILES | The active profile of the application                          | mainnet,h2                         |
 | PORT                   | The port on which the server will listen for incoming requests | 9095                               |
-| DB_URL                 | The URL of the database                                        | jdbc:h2:mem:mydb                   |
+| DB_URL                 | The URL of the database                                        | jdbc:h2:./data/db                  |
 | DB_USERNAME            | The username of the database user                              | sa                                 |
 | DB_PASSWORD            | The password of the database user                              | password                           |
-| REMOTE_NODE_URL        | The URL of the remote node                                     | relays-new.cardano-mainnet.iohk.io |
+| REMOTE_NODE_URL        | The URL of the remote node                                     | backbone.cardano.iog.io            |
 | REMOTE_NODE_PORT       | The port of the remote node                                    | 3001                               |
 | LOCAL_NODE_SOCKET_PATH | The path of the local node socket                              | `<No default value>`               |
 | LOCAL_NODE_HOST        | The host of the local node                                     | `<No default value>`               |
 | LOCAL_NODE_PORT        | The port of the local node                                     | `<No default value>`               |
+| YACI_STORE_CARDANO_SYNC_START_SLOT       | Slot to start syncing from (mainnet: the first ADA Handle mint) | 47931310                 |
+| YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH | Hash of the block at that slot                                  | `89f934…a877b`           |
+| ADAHANDLE_POLICY_IDS   | Comma-separated minting policies indexed as handles; only change it for tests | both ADA Handle policies |
+| JAVA_TOOL_OPTIONS      | JVM options, e.g. the heap (`-Xmx4g` for a mainnet sync)       | `<No default value>`               |
