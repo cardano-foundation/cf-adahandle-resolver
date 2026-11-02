@@ -60,16 +60,20 @@ jobs:
       - name: Start Yaci DevKit ${{ env.YACI_DEVKIT_VERSION }}
         run: |
           npm install --ignore-scripts -g "@bloxbean/yaci-devkit@${YACI_DEVKIT_VERSION}"
+          # A plain Haskell devnet. 0.12's default (companion) bootstraps the chain with Yano and then
+          # restarts the Haskell node as block producer; the devkit's Yaci Store sometimes stopped
+          # following the chain right after that (stuck at block ~10 while blocks kept coming).
+          mkdir -p ~/.yaci-cli && echo "nodeMode=HASKELL_ONLY" >> ~/.yaci-cli/devkit.properties
           nohup yaci-devkit up --enable-yaci-store > "$RUNNER_TEMP/devkit.log" 2>&1 &
           for i in $(seq 1 150); do
             if curl -sf "${DEVNET_STORE_URL}epochs/latest/parameters" > /dev/null; then
               echo "Yaci Store serves protocol parameters"
-              exit 0
+              break
             fi
+            if [ "$i" = 150 ]; then echo "Yaci DevKit did not start within 5 minutes"; exit 1; fi
             sleep 2
           done
-          echo "Yaci DevKit did not start within 5 minutes"
-          exit 1
+          .github/scripts/await-devkit-store.sh
 
       - name: Start the resolver
         run: .github/scripts/start-resolver.sh
@@ -93,6 +97,7 @@ jobs:
         run: |
           echo "::group::resolver"; cat "$RUNNER_TEMP"/resolver*.log || true; echo "::endgroup::"
           echo "::group::devkit"; cat "$RUNNER_TEMP/devkit.log" || true; echo "::endgroup::"
+          echo "::group::devkit Yaci Store"; tail -n 300 ~/.yaci-cli/components/store/logs/*.log 2>/dev/null || true; echo "::endgroup::"
 
       - name: Upload logs
         if: failure()
@@ -101,4 +106,6 @@ jobs:
           name: integration-test-logs
           path: |
             ${{ runner.temp }}/*.log
+            ~/.yaci-cli/components/store/logs/
+            ~/.yaci-cli/components/yano/*.log*
             target/failsafe-reports/
