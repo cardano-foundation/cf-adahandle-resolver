@@ -154,6 +154,13 @@
         </dependency>
 
         <!-- OpenAPI spec at /apidocs and Swagger UI at /swagger-ui.html -->
+        <!-- @Nullable on methods and fields that can be null (JSpecify, as Spring Framework 7 uses).
+             Also comes with Guava; declared because the code uses it directly. -->
+        <dependency>
+            <groupId>org.jspecify</groupId>
+            <artifactId>jspecify</artifactId>
+            <version>1.0.1</version>
+        </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>

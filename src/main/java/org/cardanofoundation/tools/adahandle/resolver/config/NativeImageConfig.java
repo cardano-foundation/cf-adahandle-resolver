@@ -9,6 +9,7 @@ import org.flywaydb.core.api.ResourceProvider;
 import org.flywaydb.core.api.resource.LoadableResource;
 import org.flywaydb.core.internal.resource.classpath.ClassPathResource;
 import org.jooq.DSLContext;
+import org.jspecify.annotations.Nullable;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
@@ -84,7 +85,7 @@ public class NativeImageConfig {
         }
 
         @Override
-        public LoadableResource getResource(String name) {
+        public @Nullable LoadableResource getResource(String name) {
             if (classLoader.getResource(name) == null) {
                 return null;
             }

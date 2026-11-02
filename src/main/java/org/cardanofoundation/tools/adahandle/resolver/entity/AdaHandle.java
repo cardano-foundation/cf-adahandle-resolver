@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Getter
@@ -20,7 +21,7 @@ public class AdaHandle {
     @Column(unique = true)
     private String name;
     @Column(name = "stake_address")
-    private String stakeAddress;
+    private @Nullable String stakeAddress;
     @Column(name = "payment_address")
     private String paymentAddress;
 }

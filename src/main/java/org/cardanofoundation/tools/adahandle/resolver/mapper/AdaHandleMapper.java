@@ -5,6 +5,7 @@ import com.bloxbean.cardano.yaci.store.common.domain.Amt;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
 import org.cardanofoundation.tools.adahandle.resolver.util.Crc8;
+import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class AdaHandleMapper {
      * <p>
      * ada_handle and the history table both use this, so a rollback restores exactly what was stored.
      */
-    public static AdaHandle toAdaHandle(AddressUtxo addressUtxo, Amt amount) {
+    public static @Nullable AdaHandle toAdaHandle(AddressUtxo addressUtxo, Amt amount) {
         if (!AdaHandlePolicies.contains(amount.getPolicyId())) {
             return null;
         }
@@ -85,7 +86,7 @@ public class AdaHandleMapper {
      * sub-handle (label 222) or a virtual sub-handle (label 0) removes the handle; burning a
      * reference (100) or sub-handle settings (1) token removes nothing.
      */
-    public static String burnedHandleName(Amount amount) {
+    public static @Nullable String burnedHandleName(Amount amount) {
         if (amount.getQuantity() == null || amount.getQuantity().signum() >= 0
                 || !AdaHandlePolicies.contains(amount.getPolicyId())) {
             return null;
@@ -109,7 +110,7 @@ public class AdaHandleMapper {
      * prefix is {@code 0000 | 16-bit label | CRC-8 of the label | 0000}, see {@link Crc8}. Legacy handle names are
      * printable ASCII, so they can't start with a valid label.
      */
-    static Integer cip67Label(byte[] assetName) {
+    static @Nullable Integer cip67Label(byte[] assetName) {
         if (assetName.length < 4 || (assetName[0] & 0xF0) != 0 || (assetName[3] & 0x0F) != 0) {
             return null;
         }
