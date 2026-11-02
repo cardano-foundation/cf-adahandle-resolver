@@ -111,6 +111,11 @@ final class Devnet {
                 .untilAsserted(() -> assertThat(resolve(handle)).contains(owner));
     }
 
+    static void awaitGone(String handle) {
+        await("resolver to remove " + handle).atMost(INDEXING_TIMEOUT).pollInterval(Duration.ofSeconds(2))
+                .untilAsserted(() -> assertThat(resolve(handle)).isEmpty());
+    }
+
     static List<String> handlesByPaymentAddress(String paymentAddress) {
         return API.get().uri("/api/v1/ada-handles/by-payment-address/{address}", paymentAddress)
                 .retrieve().body(new ParameterizedTypeReference<>() {

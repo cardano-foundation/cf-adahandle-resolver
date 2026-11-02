@@ -43,6 +43,11 @@ public class AdaHandleService {
         adaHandleRepository.save(adaHandle);
     }
 
+    /** Delete handles by name (primary key), e.g. burned ones. Names without a row are skipped. */
+    public void deleteAllByName(List<String> names) {
+        adaHandleRepository.deleteAllById(names);
+    }
+
     /** Delete a single handle by its name (primary key). No-op if the row doesn't exist. */
     public void deleteByName(String name) {
         adaHandleRepository.deleteById(name);

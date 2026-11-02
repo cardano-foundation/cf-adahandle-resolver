@@ -38,9 +38,13 @@ CIP-68 reference tokens (label 100) and sub-handle settings tokens (label 1) are
 [CIP-67](https://cips.cardano.org/cip/CIP-0067); the rules match Kora Labs' Handles API, which the
 regression suite compares against.
 
-Chain rollbacks are handled: every ownership change is kept in a history table, and a rollback restores
-the affected handles to their owner before the abandoned blocks. A burned handle keeps resolving to its
-last holder.
+Burning a handle's token removes the handle, for every kind above (as on Kora Labs' API): it no longer
+resolves (404) and leaves the reverse lookups. If the same handle is minted again later, it resolves to
+its new holder. Burning a reference or settings token removes nothing.
+
+Chain rollbacks are handled: every ownership change and burn is kept in a history table, and a rollback
+restores the affected handles to their state before the abandoned blocks, including a handle whose burn
+is rolled back.
 
 ## 🚀 Getting Started
 

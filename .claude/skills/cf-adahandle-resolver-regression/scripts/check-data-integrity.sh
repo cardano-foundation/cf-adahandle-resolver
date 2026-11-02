@@ -30,8 +30,19 @@ label1=$(sql "SELECT count(*) FROM ada_handle WHERE encode(convert_to(name, 'UTF
 no_history=$(sql "SELECT count(*) FROM ada_handle h WHERE NOT EXISTS (SELECT 1 FROM ada_handle_history_item i WHERE i.name = h.name);")
 (( no_history == 0 )) && pass "every handle has history" || fail "$no_history handles without any history row"
 
-orphans=$(sql "SELECT count(*) FROM (SELECT DISTINCT name FROM ada_handle_history_item) n WHERE NOT EXISTS (SELECT 1 FROM ada_handle h WHERE h.name = n.name);")
-(( orphans == 0 )) && pass "every handle in history exists in ada_handle" || fail "$orphans handle names in history but missing from ada_handle"
+# A handle's latest history row says what it is now: an owner, or burned (then it has no row).
+orphans=$(sql "SELECT count(*) FROM (SELECT DISTINCT ON (name) name, burned FROM ada_handle_history_item ORDER BY name, slot DESC) latest
+               WHERE NOT latest.burned AND NOT EXISTS (SELECT 1 FROM ada_handle h WHERE h.name = latest.name);")
+(( orphans == 0 )) && pass "every handle in history that isn't burned exists in ada_handle" \
+  || fail "$orphans handle names in history, not burned, but missing from ada_handle"
+
+burned=$(sql "SELECT count(*) FROM (SELECT DISTINCT ON (name) name, burned FROM ada_handle_history_item ORDER BY name, slot DESC) latest
+              WHERE latest.burned;")
+resurrected=$(sql "SELECT count(*) FROM ada_handle h CROSS JOIN LATERAL (
+                     SELECT i.burned FROM ada_handle_history_item i WHERE i.name = h.name ORDER BY i.slot DESC LIMIT 1) latest
+                   WHERE latest.burned;")
+info "$burned burned handles"
+(( resurrected == 0 )) && pass "no burned handle is in ada_handle" || fail "$resurrected burned handles still in ada_handle"
 
 drift=$(sql "SELECT count(*) FROM ada_handle h CROSS JOIN LATERAL (
                SELECT i.stake_address, i.payment_address FROM ada_handle_history_item i

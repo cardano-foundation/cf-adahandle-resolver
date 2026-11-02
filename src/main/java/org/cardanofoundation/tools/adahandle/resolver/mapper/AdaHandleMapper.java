@@ -1,4 +1,5 @@
 package org.cardanofoundation.tools.adahandle.resolver.mapper;
+import com.bloxbean.cardano.yaci.core.model.Amount;
 import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +75,31 @@ public class AdaHandleMapper {
                                 name, addressUtxo.getTxHash(), addressUtxo.getOutputIndex());
                         return null;
                     });
+        }
+        return null;
+    }
+
+    /**
+     * Returns the handle a burned amount of a mint (negative quantity) removes, or null if it removes
+     * none. As on api.handle.me, burning the token of a legacy handle, a CIP-68 handle or NFT
+     * sub-handle (label 222) or a virtual sub-handle (label 0) removes the handle; burning a
+     * reference (100) or sub-handle settings (1) token removes nothing.
+     */
+    public static String burnedHandleName(Amount amount) {
+        if (amount.getQuantity() == null || amount.getQuantity().signum() >= 0
+                || !AdaHandlePolicies.contains(amount.getPolicyId())) {
+            return null;
+        }
+        byte[] assetName = amount.getAssetNameBytes() != null
+                ? amount.getAssetNameBytes()
+                : HexFormat.of().parseHex(amount.getUnit().replaceFirst("^" + amount.getPolicyId(), ""));
+
+        Integer label = cip67Label(assetName);
+        if (label == null) {
+            return new String(assetName, StandardCharsets.UTF_8);
+        }
+        if (label == LABEL_HANDLE || label == LABEL_VIRTUAL_SUBHANDLE) {
+            return new String(Arrays.copyOfRange(assetName, 4, assetName.length), StandardCharsets.UTF_8);
         }
         return null;
     }
