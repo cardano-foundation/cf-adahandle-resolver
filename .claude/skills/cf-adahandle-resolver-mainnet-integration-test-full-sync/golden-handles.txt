@@ -1,19 +1,15 @@
-# Golden ADA handles — commonly-known mainnet handles used as a deterministic
-# regression check by run-golden-handles.sh. One handle per line (no leading $);
-# blank lines and # comments ignored.
+# Golden ADA handles: well-known mainnet handles, at least one of every kind the resolver must
+# handle. run-golden-handles.sh checks each one on every run against Kora Labs' Handles API
+# (api.handle.me), the reference for who owns a handle: the resolver's payment address must equal
+# Kora's resolved ADA address, and the reverse lookup must list the handle.
+# One handle per line (no leading $); blank lines and # comments are ignored.
 #
-# WHY NAMES ONLY (no expected addresses): ADA handles are transferable NFTs, so
-# the stake/payment address behind a handle can change at any time. Pinning exact
-# addresses would produce false failures from on-chain drift. The golden test
-# therefore asserts that each handle RESOLVES and ROUND-TRIPS (forward lookup
-# returns a well-formed addr1...; reverse-by-payment-address contains the handle),
-# which is drift-proof and still a meaningful regression: after a full sync these
-# famous handles must be present and consistent.
-#
-# Every entry below was confirmed present on mainnet via the synced DB.
-# Run at tip (a handle minted after a mid-sync cursor won't be present yet).
+# Picked from Kora's API (handle_type, holder_type, policy as Kora reports them) and confirmed
+# there, not from the resolver's own database. Names only, no addresses: handles change owner,
+# so the expected address is read from Kora at run time.
+# Run at the tip (a handle minted after a mid-sync cursor isn't indexed yet).
 
-# Project / ecosystem names
+# Legacy (CIP-25) handles, original policy
 cardano
 ada
 sundae
@@ -22,28 +18,41 @@ snek
 nmkr
 jpgstore
 wmt
-hosky
-
-# People / brand names
 bigpey
 charles
 hoskinson
 ledger
-
-# Eras / generic
 shelley
 vasil
 king
 money
 whale
-bitcoin
 ethereum
-
-# Short / numeric
 ada1
-btc
-
-# Enterprise-address handles (payment only, no stake) — exercise the no-stake path
 eth
-satoshi
 crypto
+
+# CIP-68 handles (label 222), original policy
+hosky
+bitcoin
+btc
+satoshi
+
+# Held by an enterprise address (no stake address)
+_snek
+
+# Held by a script (here a legacy handle locked at a script address since 2022)
+-spacebudz
+
+# NFT sub-handles (label 222, sub@root)
+-4@legendary
+
+# Virtual sub-handles (label 0): resolve to the address in their datum
+331@hal
+003@hal
+# ... whose datum address is an enterprise address
+04b@hal
+
+# DeMi (decentralized minting) policy 6c32db33…
+demiking
+first_demi
