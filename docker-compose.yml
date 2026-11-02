@@ -25,7 +25,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    restart: on-failure
+    # Both services come back after a crash AND after a host reboot or Docker daemon restart;
+    # only `docker compose stop`/`down` keeps them down. Not `on-failure`: Postgres exits 0
+    # on a clean shutdown, so it stayed down after a reboot while the API restarted without it.
+    restart: unless-stopped
 
   api:
     build:
@@ -56,7 +59,9 @@ services:
       # fresh IP from the relay's round-robin pool (mitigates the yaci dead-relay
       # wedge described in the skill's "Known issue" section).
       JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:--Xmx4g -Dnetworkaddress.cache.ttl=0 -Dnetworkaddress.cache.negative.ttl=0}"
-    restart: always
+    # See db. After a reboot Docker starts containers without waiting for depends_on, so the
+    # API may fail until Postgres accepts connections; it is restarted until it does.
+    restart: unless-stopped
 
 volumes:
   adahandle-db:
