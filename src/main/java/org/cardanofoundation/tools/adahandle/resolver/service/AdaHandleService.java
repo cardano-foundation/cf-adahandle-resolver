@@ -4,6 +4,7 @@ import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
 import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleMapper;
 import org.cardanofoundation.tools.adahandle.resolver.projection.Addresses;
 import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleRepository;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,7 @@ public class AdaHandleService {
         adaHandleRepository.saveAll(adaHandles);
     }
 
-    public Addresses getAddressesByAdaHandle(String adaHandle) {
+    public @Nullable Addresses getAddressesByAdaHandle(String adaHandle) {
         if (adaHandle.startsWith("$") && adaHandle.length() > 1) {
             adaHandle = adaHandle.substring(1);
         }

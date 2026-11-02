@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Getter
@@ -15,16 +16,17 @@ public class AdaHandleHistoryItem {
     @Id
     private String name;
     @Column(name = "stake_address")
-    private String stakeAddress;
+    private @Nullable String stakeAddress;
+    /** Null only for a burn. */
     @Column(name = "payment_address")
-    private String paymentAddress;
+    private @Nullable String paymentAddress;
     @Id
     private long slot;
     /** The handle's token was burned at this slot: from here on the handle doesn't exist (no addresses). */
     @Column(name = "burned")
     private boolean burned;
 
-    public AdaHandleHistoryItem(String name, String stakeAddress, String paymentAddress, long slot) {
+    public AdaHandleHistoryItem(String name, @Nullable String stakeAddress, @Nullable String paymentAddress, long slot) {
         this.name = name;
         this.stakeAddress = stakeAddress;
         this.paymentAddress = paymentAddress;

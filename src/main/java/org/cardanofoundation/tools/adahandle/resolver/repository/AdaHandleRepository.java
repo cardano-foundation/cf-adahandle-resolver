@@ -2,6 +2,7 @@ package org.cardanofoundation.tools.adahandle.resolver.repository;
 
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
 import org.cardanofoundation.tools.adahandle.resolver.projection.Addresses;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +15,7 @@ public interface AdaHandleRepository extends JpaRepository<AdaHandle, String> {
 
     @Query("SELECT handle.stakeAddress AS stakeAddress , handle.paymentAddress AS paymentAddress FROM AdaHandle " +
             "AS handle WHERE handle.name = :adaHandle")
+    @Nullable
     Addresses findAddressesByAdaHandle(@Param("adaHandle") String adaHandle);
 
     @Query("SELECT name FROM AdaHandle WHERE stakeAddress = :stakeAddress")
