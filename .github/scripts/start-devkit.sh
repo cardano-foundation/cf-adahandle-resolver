@@ -39,7 +39,7 @@ stop_devkit() {
 
 for attempt in $(seq 1 "$ATTEMPTS"); do
   nohup yaci-devkit up --enable-yaci-store >> "$RUNNER_TEMP/devkit.log" 2>&1 &
-  if store_follows_devnet; then
+  if [ "$attempt" != 1 ] && store_follows_devnet; then  # TEMPORARY: force a restart
     echo "devkit Yaci Store follows the devnet (attempt $attempt)"
     exit 0
   fi
