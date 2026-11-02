@@ -60,16 +60,7 @@ jobs:
       - name: Start Yaci DevKit ${{ env.YACI_DEVKIT_VERSION }}
         run: |
           npm install --ignore-scripts -g "@bloxbean/yaci-devkit@${YACI_DEVKIT_VERSION}"
-          nohup yaci-devkit up --enable-yaci-store > "$RUNNER_TEMP/devkit.log" 2>&1 &
-          for i in $(seq 1 150); do
-            if curl -sf "${DEVNET_STORE_URL}epochs/latest/parameters" > /dev/null; then
-              echo "Yaci Store serves protocol parameters"
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "Yaci DevKit did not start within 5 minutes"
-          exit 1
+          .github/scripts/start-devkit.sh
 
       - name: Start the resolver
         run: .github/scripts/start-resolver.sh
@@ -93,6 +84,7 @@ jobs:
         run: |
           echo "::group::resolver"; cat "$RUNNER_TEMP"/resolver*.log || true; echo "::endgroup::"
           echo "::group::devkit"; cat "$RUNNER_TEMP/devkit.log" || true; echo "::endgroup::"
+          echo "::group::devkit Yaci Store"; tail -n 300 ~/.yaci-cli/components/store/logs/*.log 2>/dev/null || true; echo "::endgroup::"
 
       - name: Upload logs
         if: failure()
@@ -101,4 +93,7 @@ jobs:
           name: integration-test-logs
           path: |
             ${{ runner.temp }}/*.log
+            ${{ runner.temp }}/devkit-store-logs-attempt-*/
+            ~/.yaci-cli/components/store/logs/
+            ~/.yaci-cli/components/yano/*.log*
             target/failsafe-reports/
