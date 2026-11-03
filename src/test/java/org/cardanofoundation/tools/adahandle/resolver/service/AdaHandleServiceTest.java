@@ -7,9 +7,9 @@ import org.cardanofoundation.tools.adahandle.resolver.projection.Addresses;
 import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -29,7 +29,7 @@ import java.util.List;
 @ActiveProfiles({"disable-indexer", "test"})
 public class AdaHandleServiceTest {
 
-    @SpyBean
+    @MockitoSpyBean
     private AdaHandleService adaHandleService;
     @Autowired
     private AdaHandleHistoryService adaHandleHistoryService;
