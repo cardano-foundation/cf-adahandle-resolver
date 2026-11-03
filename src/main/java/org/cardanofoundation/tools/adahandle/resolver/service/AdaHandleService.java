@@ -1,7 +1,5 @@
 package org.cardanofoundation.tools.adahandle.resolver.service;
-import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
-import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleMapper;
 import org.cardanofoundation.tools.adahandle.resolver.projection.Addresses;
 import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleRepository;
 import org.jspecify.annotations.Nullable;
@@ -15,11 +13,7 @@ public class AdaHandleService {
     @Autowired
     private AdaHandleRepository adaHandleRepository;
 
-    public void saveAllAdaHandles(List<AddressUtxo> addressUtxoList) {
-        List<AdaHandle> adaHandles = addressUtxoList.stream()
-                .map(AdaHandleMapper::toAdaHandles).flatMap(List::stream)
-                .toList();
-
+    public void saveAll(List<AdaHandle> adaHandles) {
         adaHandleRepository.saveAll(adaHandles);
     }
 

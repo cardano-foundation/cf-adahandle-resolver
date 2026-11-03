@@ -6837,9 +6837,6 @@
       "type": "org.cardanofoundation.tools.adahandle.resolver.storage.AdaHandleStorage$$SpringCGLIB$$0"
     },
     {
-      "type": "org.cardanofoundation.tools.adahandle.resolver.storage.SlotAddressUtxo"
-    },
-    {
       "type": "org.crac.Core"
     },
     {

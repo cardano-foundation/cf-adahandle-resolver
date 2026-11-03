@@ -1,6 +1,5 @@
 package org.cardanofoundation.tools.adahandle.resolver.service;
 
-import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,16 +58,6 @@ public class AdaHandleHistoryService {
         log.info("Finished rollback to slot {}", slot);
     }
 
-    public void saveAdaHandleHistoryItems(List<AddressUtxo> addressUtxoList) {
-        List<AdaHandleHistoryItem> adaHandleHistoryItems = addressUtxoList.stream()
-                .map(AdaHandleHistoryMapper::fromAddressUtxoEntities).flatMap(List::stream).toList();
-        adaHandleHistoryRepository.saveAll(adaHandleHistoryItems);
-    }
-
-    /** Records the burn of each handle at this slot, so that a rollback past it restores the previous owner. */
-    public void saveBurns(List<String> names, long slot) {
-        adaHandleHistoryRepository.saveAll(names.stream().distinct().map(name -> AdaHandleHistoryItem.burn(name, slot)).toList());
-    }
 
     public void saveAll(List<AdaHandleHistoryItem> adaHandleHistoryItems) {
         adaHandleHistoryRepository.saveAll(adaHandleHistoryItems);
