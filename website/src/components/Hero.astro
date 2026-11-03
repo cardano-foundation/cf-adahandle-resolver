@@ -1,0 +1,297 @@
+---
+// Splash hero: Starlight's copy and actions on the left, a live-looking resolution card on the right.
+import { LinkButton } from '@astrojs/starlight/components';
+
+const { data } = Astro.locals.starlightRoute.entry;
+const { title = data.title, tagline, actions = [] } = data.hero || {};
+---
+
+<div class="hero">
+	<div class="stack">
+		<div class="copy">
+			<p class="eyebrow">
+				<span class="dot cf" aria-hidden="true"></span>Cardano Foundation
+				<span class="sep" aria-hidden="true">×</span>
+				<span class="dot handle-dot" aria-hidden="true"></span>ADA Handle
+			</p>
+			<h1 id="_top" data-page-title set:html={title} />
+			{tagline && <div class="tagline" set:html={tagline} />}
+		</div>
+		{
+			actions.length > 0 && (
+				<div class="actions">
+					{actions.map(({ attrs: { class: className, ...attrs } = {}, icon, link: href, text, variant }) => (
+						<LinkButton {href} {variant} icon={icon?.name} class:list={[className]} {...attrs}>
+							{text}
+							{icon?.html && <Fragment set:html={icon.html} />}
+						</LinkButton>
+					))}
+				</div>
+			)
+		}
+	</div>
+
+	<figure class="resolve-card" aria-label="Example: resolving a handle to its addresses">
+		<div class="bar">
+			<span></span><span></span><span></span>
+			<code class="method">GET</code>
+		</div>
+		<div class="body">
+			<p class="request">
+				<span class="muted">/api/v1/addresses/by-ada-handle/</span><span class="handle">$alice</span>
+			</p>
+			<pre><code>{'{'}
+  <span class="key">"stakeAddress"</span>: <span class="str">"stake1u8…k2w9"</span>,
+  <span class="key">"paymentAddress"</span>: <span class="str">"addr1q9…7xyz"</span>
+{'}'}</code></pre>
+		</div>
+		<figcaption>
+			<span class="live" aria-hidden="true"></span>
+			Indexed straight from chain · both ADA Handle policies
+		</figcaption>
+	</figure>
+</div>
+
+<style>
+	.hero {
+		display: grid;
+		grid-template-columns: 100%;
+		align-items: center;
+		gap: 2.5rem;
+		padding-bottom: 1rem;
+	}
+
+	.stack {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+		text-align: center;
+	}
+
+	.copy {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		align-items: center;
+	}
+
+	.eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0.3rem 0.85rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 999px;
+		font-size: var(--sl-text-xs);
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-2);
+	}
+
+	.dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 50%;
+	}
+
+	.dot.cf {
+		background: var(--brand-cf-blue-bright);
+	}
+
+	.dot.handle-dot {
+		background: var(--brand-handle-green);
+	}
+
+	.sep {
+		color: var(--sl-color-gray-4);
+	}
+
+	h1 {
+		margin: 0;
+		max-width: 16ch;
+		font-size: clamp(var(--sl-text-4xl), calc(0.5rem + 5vw), var(--sl-text-6xl));
+		line-height: 1.05;
+		font-weight: 800;
+		color: var(--sl-color-white);
+	}
+
+	.tagline {
+		max-width: 46ch;
+		font-size: clamp(var(--sl-text-base), calc(0.0625rem + 2vw), var(--sl-text-xl));
+		color: var(--sl-color-gray-2);
+	}
+
+	.actions {
+		display: flex;
+		gap: 1rem 1.5rem;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+
+	/* Resolution card */
+	.resolve-card {
+		position: relative;
+		margin: 0;
+		width: 100%;
+		max-width: 30rem;
+		justify-self: center;
+		border-radius: 1rem;
+		background: var(--brand-cf-deep);
+		color: #e8edff;
+		box-shadow:
+			0 30px 60px -20px rgba(3, 3, 33, 0.55),
+			0 0 0 1px rgba(255, 255, 255, 0.06);
+		overflow: hidden;
+	}
+
+	.resolve-card::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		padding: 1px;
+		border-radius: inherit;
+		background: var(--brand-gradient);
+		-webkit-mask:
+			linear-gradient(#000 0 0) content-box,
+			linear-gradient(#000 0 0);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		pointer-events: none;
+	}
+
+	.bar {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.75rem 1rem;
+		background: rgba(255, 255, 255, 0.04);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+	}
+
+	.bar span {
+		width: 0.6rem;
+		height: 0.6rem;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.18);
+	}
+
+	.method {
+		margin-inline-start: auto;
+		padding: 0.1rem 0.5rem;
+		border-radius: 0.35rem;
+		font-size: var(--sl-text-2xs);
+		font-weight: 700;
+		color: #030321;
+		background: var(--brand-handle-green);
+	}
+
+	.body {
+		padding: 1.1rem 1.25rem 0.5rem;
+		font-family: var(--__sl-font-mono, var(--sl-font-system-mono));
+		font-size: var(--sl-text-sm);
+	}
+
+	.request {
+		margin: 0 0 0.9rem;
+		overflow-wrap: anywhere;
+	}
+
+	.muted {
+		color: #89a3bc;
+	}
+
+	.resolve-card .handle {
+		color: var(--brand-handle-green);
+	}
+
+	pre {
+		margin: 0;
+		padding: 0;
+		background: none;
+		border: 0;
+		white-space: pre-wrap;
+		color: #c4cde6;
+	}
+
+	pre code {
+		font-family: inherit;
+		font-size: inherit;
+		background: none;
+		padding: 0;
+	}
+
+	.key {
+		color: #6e98ff;
+	}
+
+	.str {
+		color: #8ef5b6;
+	}
+
+	figcaption {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.75rem 1.25rem 1rem;
+		font-size: var(--sl-text-xs);
+		color: #89a3bc;
+	}
+
+	figcaption code {
+		white-space: nowrap;
+		background: rgba(255, 255, 255, 0.06);
+		color: #c4cde6;
+		padding: 0 0.3rem;
+		border-radius: 0.25rem;
+	}
+
+	.live {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 50%;
+		background: var(--brand-handle-green);
+		box-shadow: 0 0 0 0 rgba(12, 209, 91, 0.6);
+		animation: pulse 2s infinite;
+	}
+
+	@keyframes pulse {
+		70% {
+			box-shadow: 0 0 0 0.5rem rgba(12, 209, 91, 0);
+		}
+		100% {
+			box-shadow: 0 0 0 0 rgba(12, 209, 91, 0);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.live {
+			animation: none;
+		}
+	}
+
+	@media (min-width: 50rem) {
+		.hero {
+			grid-template-columns: 7fr 5fr;
+			gap: 4%;
+			padding-block: clamp(2.5rem, calc(1rem + 8vmin), 7rem);
+		}
+
+		.stack {
+			text-align: start;
+		}
+
+		.copy {
+			align-items: flex-start;
+		}
+
+		.actions {
+			justify-content: flex-start;
+		}
+
+		.resolve-card {
+			justify-self: end;
+		}
+	}
+</style>

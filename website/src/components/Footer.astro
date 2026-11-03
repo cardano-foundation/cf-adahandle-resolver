@@ -1,0 +1,25 @@
+---
+import Default from '@astrojs/starlight/components/Footer.astro';
+---
+
+<Default><slot /></Default>
+
+<p class="brand-credits">
+	Built and maintained by the{' '}<a href="https://cardanofoundation.org">Cardano Foundation</a>.
+	ADA Handle is a project by{' '}<a href="https://handle.me">Kora Labs</a>; this resolver is an
+	independent, MIT-licensed implementation.
+</p>
+
+<style>
+	.brand-credits {
+		margin-top: 2rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--sl-color-hairline);
+		font-size: var(--sl-text-xs);
+		color: var(--sl-color-gray-3);
+	}
+
+	.brand-credits a {
+		color: var(--sl-color-gray-2);
+	}
+</style>

@@ -1,0 +1,888 @@
+{
+	"openapi": "3.1.0",
+	"info": {
+		"title": "ADA Handle Resolver API",
+		"description": "Resolves ADA Handles to the addresses that hold them, and addresses back to handles. Data is indexed directly from the Cardano blockchain using Yaci Store.",
+		"contact": {
+			"name": "Cardano Foundation",
+			"url": "https://github.com/cardano-foundation/cf-adahandle-resolver"
+		},
+		"license": {
+			"name": "MIT",
+			"url": "https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/LICENSE"
+		},
+		"version": "0.1.6-SNAPSHOT"
+	},
+	"servers": [
+		{
+			"url": "http://localhost:9095",
+			"description": "Local resolver (default port)"
+		}
+	],
+	"tags": [
+		{
+			"name": "Addresses",
+			"description": "Resolve an ADA Handle to the addresses that hold it"
+		},
+		{
+			"name": "ADA Handles",
+			"description": "Look up the ADA Handles held by an address"
+		},
+		{
+			"name": "Network API",
+			"description": "APIs for Network information"
+		},
+		{
+			"name": "Plugin API",
+			"description": "Read-only monitoring API for all plugin types"
+		}
+	],
+	"paths": {
+		"/api/v1/addresses/by-ada-handle/{adaHandle}": {
+			"get": {
+				"tags": [
+					"Addresses"
+				],
+				"summary": "Resolve a handle to its addresses",
+				"description": "Returns the stake and payment address that currently hold the handle.",
+				"operationId": "getAddressesByAdaHandle",
+				"parameters": [
+					{
+						"name": "adaHandle",
+						"in": "path",
+						"description": "Handle name, with or without the leading $",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"example": "$alice"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Handle found",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/Addresses"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Handle not found or not indexed yet"
+					}
+				}
+			}
+		},
+		"/api/v1/ada-handles/by-stake-address/{stakeAddress}": {
+			"get": {
+				"tags": [
+					"ADA Handles"
+				],
+				"summary": "Handles held by a stake address",
+				"description": "Returns the names (without the leading $) of all handles held by addresses that belong to the given stake address. Returns an empty list if there are none.",
+				"operationId": "getAdaHandlesByStakeAddress",
+				"parameters": [
+					{
+						"name": "stakeAddress",
+						"in": "path",
+						"description": "Bech32 stake address",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/ada-handles/by-payment-address/{paymentAddress}": {
+			"get": {
+				"tags": [
+					"ADA Handles"
+				],
+				"summary": "Handles held at a payment address",
+				"description": "Returns the names (without the leading $) of all handles held at exactly the given address. Returns an empty list if there are none.",
+				"operationId": "getAdaHandlesByPaymentAddress",
+				"parameters": [
+					{
+						"name": "paymentAddress",
+						"in": "path",
+						"description": "Bech32 payment address",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/sync/status": {
+			"get": {
+				"tags": [
+					"Network API"
+				],
+				"description": "Get indexer sync status: store tip vs node tip. network_tip_available indicates whether lag_blocks, sync_percentage, and synced are based on a current node tip.",
+				"operationId": "getSyncStatus",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/SyncStatusDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/genesis": {
+			"get": {
+				"tags": [
+					"Network API"
+				],
+				"description": "Get network genesis information (Blockfrost compatible shape). Use network_magic to verify which Cardano network this instance is serving.",
+				"operationId": "getGenesisInfo",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/GenesisDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/admin/plugins": {
+			"get": {
+				"tags": [
+					"Plugin API"
+				],
+				"description": "Get overview of all plugin types with summary statistics",
+				"operationId": "getOverview",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginOverviewResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/admin/plugins/schedulers": {
+			"get": {
+				"tags": [
+					"Plugin API"
+				],
+				"description": "List all scheduler plugins with status and statistics",
+				"operationId": "listSchedulers",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/SchedulerListResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/admin/plugins/schedulers/{name}": {
+			"get": {
+				"tags": [
+					"Plugin API"
+				],
+				"description": "Get detailed status and statistics for a specific scheduler",
+				"operationId": "getSchedulerStatus",
+				"parameters": [
+					{
+						"name": "name",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/SchedulerStatusResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/admin/plugins/pre-actions": {
+			"get": {
+				"tags": [
+					"Plugin API"
+				],
+				"description": "List all pre-action plugins with execution metrics",
+				"operationId": "listPreActions",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginListResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/admin/plugins/pre-actions/{name}": {
+			"get": {
+				"tags": [
+					"Plugin API"
+				],
+				"description": "Get detailed metrics for a specific pre-action plugin",
+				"operationId": "getPreActionDetail",
+				"parameters": [
+					{
+						"name": "name",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginDetailResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/admin/plugins/post-actions": {
+			"get": {
+				"tags": [
+					"Plugin API"
+				],
+				"description": "List all post-action plugins with execution metrics",
+				"operationId": "listPostActions",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginListResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/admin/plugins/post-actions/{name}": {
+			"get": {
+				"tags": [
+					"Plugin API"
+				],
+				"description": "Get detailed metrics for a specific post-action plugin",
+				"operationId": "getPostActionDetail",
+				"parameters": [
+					{
+						"name": "name",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginDetailResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/admin/plugins/filters": {
+			"get": {
+				"tags": [
+					"Plugin API"
+				],
+				"description": "List all filter plugins with execution metrics",
+				"operationId": "listFilters",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginListResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/admin/plugins/filters/{name}": {
+			"get": {
+				"tags": [
+					"Plugin API"
+				],
+				"description": "Get detailed metrics for a specific filter plugin",
+				"operationId": "getFilterDetail",
+				"parameters": [
+					{
+						"name": "name",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginDetailResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/admin/plugins/event-handlers": {
+			"get": {
+				"tags": [
+					"Plugin API"
+				],
+				"description": "List all event handler plugins with execution metrics",
+				"operationId": "listEventHandlers",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginListResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/admin/plugins/event-handlers/{name}": {
+			"get": {
+				"tags": [
+					"Plugin API"
+				],
+				"description": "Get detailed metrics for a specific event handler plugin",
+				"operationId": "getEventHandlerDetail",
+				"parameters": [
+					{
+						"name": "name",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginDetailResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"SyncStatusDto": {
+				"type": "object",
+				"properties": {
+					"block": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"slot": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"epoch": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"era": {
+						"type": "string"
+					},
+					"block_hash": {
+						"type": "string"
+					},
+					"sync_percentage": {
+						"type": "number",
+						"format": "double"
+					},
+					"network_block": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"network_slot": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"lag_blocks": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"network_tip_available": {
+						"type": "boolean"
+					},
+					"synced": {
+						"type": "boolean"
+					},
+					"protocol_magic": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"GenesisDto": {
+				"type": "object",
+				"properties": {
+					"active_slots_coefficient": {
+						"type": "number",
+						"format": "double"
+					},
+					"update_quorum": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"max_lovelace_supply": {
+						"type": "string"
+					},
+					"network_magic": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"epoch_length": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"system_start": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"slots_per_kes_period": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"slot_length": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"max_kes_evolutions": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"security_param": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"PluginOverviewResponse": {
+				"type": "object",
+				"properties": {
+					"totalPlugins": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"activePlugins": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"filters": {
+						"$ref": "#/components/schemas/PluginTypeStats"
+					},
+					"preActions": {
+						"$ref": "#/components/schemas/PluginTypeStats"
+					},
+					"postActions": {
+						"$ref": "#/components/schemas/PluginTypeStats"
+					},
+					"eventHandlers": {
+						"$ref": "#/components/schemas/PluginTypeStats"
+					},
+					"schedulers": {
+						"$ref": "#/components/schemas/PluginTypeStats"
+					},
+					"initPlugins": {
+						"$ref": "#/components/schemas/PluginTypeStats"
+					}
+				}
+			},
+			"PluginTypeStats": {
+				"type": "object",
+				"properties": {
+					"count": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"totalExecutions": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"totalErrors": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"totalItemsProcessed": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"SchedulerListResponse": {
+				"type": "object",
+				"properties": {
+					"totalSchedulers": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"runningSchedulers": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"failedSchedulers": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"schedulers": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/SchedulerSummary"
+						}
+					}
+				}
+			},
+			"SchedulerSummary": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"status": {
+						"type": "string"
+					},
+					"scheduleType": {
+						"type": "string"
+					},
+					"scheduleValue": {
+						"type": "string"
+					},
+					"totalExecutions": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"lastExecutionTime": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"SchedulerStatistics": {
+				"type": "object",
+				"properties": {
+					"totalExecutions": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"successfulExecutions": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"failedExecutions": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"lastExecutionTime": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"lastExecutionDuration": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"averageExecutionDuration": {
+						"type": "number",
+						"format": "double"
+					},
+					"lastError": {
+						"type": "string"
+					}
+				}
+			},
+			"SchedulerStatusResponse": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"SCHEDULED",
+							"RUNNING",
+							"COMPLETED",
+							"FAILED",
+							"CANCELLED"
+						]
+					},
+					"scheduleType": {
+						"type": "string",
+						"enum": [
+							"INTERVAL",
+							"CRON"
+						]
+					},
+					"scheduleValue": {
+						"type": "string"
+					},
+					"statistics": {
+						"$ref": "#/components/schemas/SchedulerStatistics"
+					}
+				}
+			},
+			"PluginListResponse": {
+				"type": "object",
+				"properties": {
+					"pluginType": {
+						"type": "string"
+					},
+					"totalPlugins": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"totalExecutions": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"totalErrors": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"plugins": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/PluginSummary"
+						}
+					}
+				}
+			},
+			"PluginSummary": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"language": {
+						"type": "string"
+					},
+					"executionCount": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"successCount": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"errorCount": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"lastExecutionTime": {
+						"type": "string"
+					},
+					"lastDuration": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"itemsProcessed": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"DurationMetrics": {
+				"type": "object",
+				"properties": {
+					"lastDuration": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"minDuration": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"maxDuration": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"averageDuration": {
+						"type": "number",
+						"format": "double"
+					}
+				}
+			},
+			"ExecutionMetrics": {
+				"type": "object",
+				"properties": {
+					"totalExecutions": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"successfulExecutions": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"failedExecutions": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"successRate": {
+						"type": "number",
+						"format": "double"
+					},
+					"lastExecutionTime": {
+						"type": "string"
+					}
+				}
+			},
+			"ItemMetrics": {
+				"type": "object",
+				"properties": {
+					"totalItemsProcessed": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"PluginDetailResponse": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"type": {
+						"type": "string"
+					},
+					"language": {
+						"type": "string"
+					},
+					"executionMetrics": {
+						"$ref": "#/components/schemas/ExecutionMetrics"
+					},
+					"itemMetrics": {
+						"$ref": "#/components/schemas/ItemMetrics"
+					},
+					"durationMetrics": {
+						"$ref": "#/components/schemas/DurationMetrics"
+					}
+				}
+			},
+			"Addresses": {
+				"type": "object",
+				"description": "Addresses that currently hold an ADA Handle",
+				"properties": {
+					"stakeAddress": {
+						"type": [
+							"string",
+							"null"
+						],
+						"description": "Bech32 stake address, or null if the holding address has no stake part"
+					},
+					"paymentAddress": {
+						"type": "string",
+						"description": "Bech32 payment address that holds the handle"
+					}
+				}
+			}
+		}
+	}
+}

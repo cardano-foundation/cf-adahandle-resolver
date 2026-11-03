@@ -1,0 +1,13 @@
+---
+import Default from '@astrojs/starlight/components/ThemeProvider.astro';
+---
+
+{/* Default first-time visitors to dark. Picking "Auto" stores '' (not null), so an explicit choice still wins. */}
+<script is:inline>
+	try {
+		if (localStorage.getItem('starlight-theme') === null) {
+			localStorage.setItem('starlight-theme', 'dark');
+		}
+	} catch {}
+</script>
+<Default />

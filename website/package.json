@@ -1,0 +1,23 @@
+{
+  "name": "cf-adahandle-resolver-website",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "openapi:fetch": "node scripts/fetch-openapi.mjs"
+  },
+  "dependencies": {
+    "@astrojs/markdown-satteri": "^0.4.5",
+    "@astrojs/starlight": "^0.42.7",
+    "@fontsource-variable/syne": "^5.3.0",
+    "@fontsource/chivo": "^5.3.0",
+    "astro": "^7.2.10",
+    "sharp": "^0.35.3",
+    "starlight-openapi": "^0.27.0"
+  },
+  "private": true
+}

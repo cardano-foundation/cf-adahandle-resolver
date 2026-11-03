@@ -1,0 +1,97 @@
+---
+title: Deployment
+description: Deploy the resolver with Docker Compose or the bundled Helm chart.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+## Container image
+
+Every release is published to Docker Hub as
+[`cardanofoundation/adahandle-resolver`](https://hub.docker.com/r/cardanofoundation/adahandle-resolver),
+tagged with the release version and `latest`. Pin a version in production. The image is built for
+x86-64 (amd64) and runs on older CPUs too, including VMs with a generic CPU model.
+
+### Native image (experimental)
+
+A GraalVM native image is built weekly from `main` and published as
+`cardanofoundation/adahandle-resolver:native-weekly`. It starts in about two seconds and needs about
+half the memory of the JVM image, and syncs at roughly 80% of its speed. Configure it with the same
+environment variables; JVM flags go on the command line:
+
+```sh
+docker run -p 9095:9095 cardanofoundation/adahandle-resolver:native-weekly -Xmx2g
+```
+
+It's built with Oracle GraalVM. The GraalVM parts compiled into the executable are covered by the
+[GraalVM Free Terms and Conditions](https://www.graalvm.org/faq/), which allow free use, including in
+production and hosted services, and free redistribution, but not redistribution for a fee. The image
+includes Oracle's license and notices in `/licenses/graalvm`. The resolver's own code is MIT licensed,
+and the JVM image contains no GraalVM.
+
+## Docker Compose
+
+The repository's `docker-compose.yml` runs PostgreSQL 17 with a health check and the API. All settings
+come from `.env`. Copy `.env.example` to get started. The [Quickstart](../../getting-started/quickstart/)
+walks through it.
+
+Both services use `restart: unless-stopped`, so the stack comes back after a crash and after a host
+reboot. After upgrading, run `docker compose up -d` once so existing containers pick up the policy.
+
+## Kubernetes with Helm
+
+The chart lives in `deploy/adahandle-resolver`. It creates a Deployment, a Service on port `9095`
+and, if enabled, an Ingress. You can choose between three storage setups:
+
+<Tabs>
+<TabItem label="Embedded H2">
+
+This is the default (`values.yaml`). H2 stores its data on a 5 Gi PersistentVolumeClaim mounted at
+`/data`.
+
+```sh
+helm install adahandle-resolver deploy/adahandle-resolver
+```
+
+</TabItem>
+<TabItem label="Bitnami PostgreSQL">
+
+This option installs PostgreSQL as a chart dependency with generated credentials.
+
+```sh
+helm dependency build deploy/adahandle-resolver
+helm install adahandle-resolver deploy/adahandle-resolver \
+  -f deploy/adahandle-resolver/values-postgres.yaml
+```
+
+</TabItem>
+<TabItem label="Zalando operator">
+
+This option provisions a PostgreSQL cluster through an existing
+[Zalando Postgres operator](https://github.com/zalando/postgres-operator) installation.
+
+```sh
+helm install adahandle-resolver deploy/adahandle-resolver \
+  -f deploy/adahandle-resolver/values-zpg.yaml
+```
+
+</TabItem>
+</Tabs>
+
+### Useful values
+
+| Value                    | Purpose                                                              | Default                 |
+| ------------------------ | -------------------------------------------------------------------- | ----------------------- |
+| `image.tag`              | Resolver image version: set it to the release you run                | `0.1.4`                 |
+| `springProfiles`         | Same as `SPRING_ACTIVE_PROFILES`                                     | `mainnet,h2`            |
+| `javaToolOptions`        | JVM flags                                                            | `-Xmx4g …`              |
+| `resources`              | Pod requests and limits                                              | none                    |
+| `domain`, `ingress.*`    | Ingress host and extra domains                                       | `example.com`, enabled  |
+| `serviceAccount.name`    | Existing ServiceAccount to run under (the chart doesn't create one)  | namespace default       |
+| `imagePullSecrets`       | `["regcred"]` or `[{name: regcred}]`                                 | `[]`                    |
+| `startupProbe.*`         | Startup probe timing                                                 | 60s delay, 20s period   |
+
+<Aside type="caution" title="Memory limit vs. heap">
+Keep `resources.limits.memory` above the `-Xmx` in `javaToolOptions`, roughly `-Xmx` plus 0.5 Gi.
+Otherwise Kubernetes kills the pod (OOMKilled) as soon as the heap grows during the mainnet sync.
+</Aside>

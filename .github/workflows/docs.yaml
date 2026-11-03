@@ -1,0 +1,48 @@
+name: Publish Docs Site
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'website/**'
+      - '.github/workflows/docs.yaml'
+  pull_request:
+    paths:
+      - 'website/**'
+      - '.github/workflows/docs.yaml'
+  workflow_dispatch:
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Build
+        run: |
+          npm ci
+          npm run build
+
+      # The site lives at the gh-pages root next to the coverage report and badges
+      # published by tests.yaml, so those folders must survive the clean.
+      - name: Publish to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        if: github.ref == 'refs/heads/main'
+        with:
+          branch: gh-pages
+          folder: website/dist
+          clean-exclude: |
+            coverage-report
+            badges
