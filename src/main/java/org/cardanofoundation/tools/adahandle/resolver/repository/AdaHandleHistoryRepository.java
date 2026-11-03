@@ -2,6 +2,7 @@ package org.cardanofoundation.tools.adahandle.resolver.repository;
 
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItemKey;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -31,5 +32,6 @@ public interface AdaHandleHistoryRepository extends JpaRepository<AdaHandleHisto
      * this resolves as a PK index seek to the last entry — O(log n) — instead of the previous
      * full-table {@code GROUP BY name, MAX(slot)} over all history rows.
      */
+    @Nullable
     AdaHandleHistoryItem findFirstByNameOrderBySlotDesc(String name);
 }

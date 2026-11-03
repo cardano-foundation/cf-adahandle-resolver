@@ -8,6 +8,8 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.HOLDER;
 import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.POLICY;
 import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.RUN_ID;
@@ -15,9 +17,10 @@ import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.awaitOwne
 import static org.cardanofoundation.tools.adahandle.resolver.it.Devnet.submit;
 
 /**
- * Runs after AdaHandleIndexingIT and VirtualSubHandleIT, once the resolver was restarted (IT_AFTER_RESTART=true,
- * same IT_RUN_ID). Yaci Store publishes a rollback to its last block on every start; the handles indexed before the
- * restart, CIP-68 and virtual sub-handles included, must survive it.
+ * Runs after AdaHandleIndexingIT, VirtualSubHandleIT and HandleBurnIT, once the resolver was restarted
+ * (IT_AFTER_RESTART=true, same IT_RUN_ID). Yaci Store publishes a rollback to its last block on every start; the
+ * handles indexed before the restart, CIP-68 and virtual sub-handles included, must survive it, and burned handles
+ * must stay removed.
  */
 @EnabledIfEnvironmentVariable(named = "IT_AFTER_RESTART", matches = "true")
 class AdaHandleRestartIT {
@@ -35,5 +38,7 @@ class AdaHandleRestartIT {
 
         AdaHandleIndexingIT.FINAL_OWNERS.forEach(Devnet::awaitOwner);
         VirtualSubHandleIT.FINAL_OWNERS.forEach(Devnet::awaitOwner);
+        // A restart's rollback must not bring burned handles back.
+        HandleBurnIT.BURNED.forEach(handle -> assertThat(Devnet.resolve(handle)).as(handle).isEmpty());
     }
 }

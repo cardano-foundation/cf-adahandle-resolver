@@ -8,6 +8,7 @@ import com.bloxbean.cardano.client.plutus.spec.ConstrPlutusData;
 import com.bloxbean.cardano.client.plutus.spec.MapPlutusData;
 import com.bloxbean.cardano.client.plutus.spec.PlutusData;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -32,7 +33,7 @@ public class VirtualSubHandleDatum {
     private static final byte[] RESOLVED_ADDRESSES = "resolved_addresses".getBytes(StandardCharsets.UTF_8);
     private static final byte[] ADA = "ada".getBytes(StandardCharsets.UTF_8);
 
-    public record Owner(String paymentAddress, String stakeAddress) {
+    public record Owner(String paymentAddress, @Nullable String stakeAddress) {
     }
 
     /**

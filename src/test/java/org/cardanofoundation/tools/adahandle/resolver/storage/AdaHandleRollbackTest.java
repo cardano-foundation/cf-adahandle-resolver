@@ -1,10 +1,13 @@
 package org.cardanofoundation.tools.adahandle.resolver.storage;
 
+import com.bloxbean.cardano.yaci.core.model.Amount;
 import com.bloxbean.cardano.yaci.core.protocol.chainsync.messages.Point;
 import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
 import com.bloxbean.cardano.yaci.store.events.EventMetadata;
+import com.bloxbean.cardano.yaci.store.events.MintBurnEvent;
 import com.bloxbean.cardano.yaci.store.events.RollbackEvent;
+import com.bloxbean.cardano.yaci.store.events.domain.TxMintBurn;
 import com.bloxbean.cardano.yaci.store.events.internal.CommitEvent;
 import com.bloxbean.cardano.yaci.store.utxo.domain.AddressUtxoEvent;
 import com.bloxbean.cardano.yaci.store.utxo.domain.TxInputOutput;
@@ -16,6 +19,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.math.BigInteger;
 import java.util.HexFormat;
 import java.util.List;
 
@@ -110,6 +114,97 @@ public class AdaHandleRollbackTest {
         assertThat(adaHandleService.getAdaHandlesByPaymentAddress(script), empty());
     }
 
+    @Test
+    public void testBurnRemovesHandlesOfEveryKind() {
+        String virtualOwner = "addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgse35a3x";
+        commitBlock(60_001_000L, "addr_burn_holder", cip25("burnlegacy"));
+        commitBlock(60_001_100L, "addr_burn_holder", cip68(CIP68_USER_LABEL, "burnalice"));
+        commitBlock(60_001_200L, "addr_burn_holder", cip68(CIP68_USER_LABEL, "sub@burnalice"));
+        commitBlock(60_001_300L, "addr1wxktka03n943759y4pcexpmftdhzsrrv8kcd2qs8cwgtdhgg6j4ux",
+                cip68(CIP68_VIRTUAL_LABEL, "virtual@burnalice"), VirtualSubHandleDatumTest.cip68Datum(virtualOwner));
+
+        burnBlock(60_002_000L, burned("", "burnlegacy"), burned(CIP68_USER_LABEL, "burnalice"),
+                burned(CIP68_USER_LABEL, "sub@burnalice"), burned(CIP68_VIRTUAL_LABEL, "virtual@burnalice"));
+
+        for (String handle : List.of("burnlegacy", "burnalice", "sub@burnalice", "virtual@burnalice")) {
+            assertThat(handle, adaHandleService.getAddressesByAdaHandle(handle), nullValue());
+        }
+        assertThat(adaHandleService.getAdaHandlesByPaymentAddress("addr_burn_holder"), empty());
+        // Other tests' virtual sub-handles resolve to the same address.
+        assertThat(adaHandleService.getAdaHandlesByPaymentAddress(virtualOwner), not(hasItem("virtual@burnalice")));
+    }
+
+    @Test
+    public void testBurningReferenceOrSettingsTokenKeepsTheHandle() {
+        commitBlock(61_001_000L, "addr_burn_ref_holder", cip68(CIP68_USER_LABEL, "burnref"));
+
+        burnBlock(61_002_000L, burned(CIP68_REFERENCE_LABEL, "burnref"), burned("00001070", "burnref"));
+
+        assertThat(adaHandleService.getAddressesByAdaHandle("burnref").getPaymentAddress(), is("addr_burn_ref_holder"));
+    }
+
+    @Test
+    public void testHandleTransferredAndBurnedInOneBlockIsRemoved() {
+        commitBlock(62_001_000L, "addr_burn_seller", cip68(CIP68_USER_LABEL, "burnsameblock"));
+
+        addOutput(62_002_000L, "addr_burn_buyer", cip68(CIP68_USER_LABEL, "burnsameblock"), null);
+        burnBlock(62_002_000L, burned(CIP68_USER_LABEL, "burnsameblock"));
+
+        assertThat(adaHandleService.getAddressesByAdaHandle("burnsameblock"), nullValue());
+        assertThat(adaHandleService.getAdaHandlesByPaymentAddress("addr_burn_buyer"), empty());
+    }
+
+    @Test
+    public void testRollbackPastBurnRestoresTheOwner() {
+        commitBlock(63_001_000L, "addr_burn_owner", cip68(CIP68_USER_LABEL, "burnrollback"));
+        burnBlock(63_002_000L, burned(CIP68_USER_LABEL, "burnrollback"));
+        assertThat(adaHandleService.getAddressesByAdaHandle("burnrollback"), nullValue());
+
+        rollbackTo(63_001_500L);
+
+        assertThat(adaHandleService.getAddressesByAdaHandle("burnrollback").getPaymentAddress(), is("addr_burn_owner"));
+    }
+
+    @Test
+    public void testRollbackToAfterBurnKeepsTheHandleBurned() {
+        commitBlock(64_001_000L, "addr_burn_first_owner", cip25("burnremint"));
+        burnBlock(64_002_000L, burned("", "burnremint"));
+        // Minted again, on the fork that is abandoned.
+        commitBlock(64_003_000L, "addr_burn_second_owner", cip25("burnremint"));
+        assertThat(adaHandleService.getAddressesByAdaHandle("burnremint").getPaymentAddress(), is("addr_burn_second_owner"));
+
+        rollbackTo(64_002_500L);
+
+        assertThat(adaHandleService.getAddressesByAdaHandle("burnremint"), nullValue());
+    }
+
+    @Test
+    public void testHandleMintedAgainAfterBurnResolves() {
+        commitBlock(65_001_000L, "addr_burn_old_owner", cip25("burnagain"));
+        burnBlock(65_002_000L, burned("", "burnagain"));
+
+        commitBlock(65_003_000L, "addr_burn_new_owner", cip25("burnagain"));
+
+        assertThat(adaHandleService.getAddressesByAdaHandle("burnagain").getPaymentAddress(), is("addr_burn_new_owner"));
+    }
+
+    /** A burned amount of a mint, as yaci reports it: negative quantity, the asset name's bytes. */
+    private static Amount burned(String label, String handle) {
+        String assetNameHex = label + HexFormat.of().formatHex(handle.getBytes());
+        return Amount.builder()
+                .policyId(ADA_HANDLE_POLICY_ID)
+                .unit(ADA_HANDLE_POLICY_ID + assetNameHex)
+                .assetNameBytes(HexFormat.of().parseHex(assetNameHex))
+                .quantity(BigInteger.ONE.negate())
+                .build();
+    }
+
+    private void burnBlock(long slot, Amount... burns) {
+        TxMintBurn txMintBurn = TxMintBurn.builder().txHash("burn" + slot).amounts(List.of(burns)).build();
+        adaHandleProcessor.processBurns(new MintBurnEvent(EventMetadata.builder().slot(slot).build(), List.of(txMintBurn)));
+        adaHandleProcessor.handleCommitEvent(new CommitEvent<>(EventMetadata.builder().slot(slot).build(), List.of()));
+    }
+
     private static Amt cip25(String handle) {
         return Amt.builder()
                 .policyId(ADA_HANDLE_POLICY_ID)
@@ -132,6 +227,12 @@ public class AdaHandleRollbackTest {
     }
 
     private void commitBlock(long slot, String ownerAddr, Amt amount, String inlineDatum) {
+        addOutput(slot, ownerAddr, amount, inlineDatum);
+        adaHandleProcessor.handleCommitEvent(new CommitEvent<>(EventMetadata.builder().slot(slot).build(), List.of()));
+    }
+
+    /** An output of a block that isn't committed yet. */
+    private void addOutput(long slot, String ownerAddr, Amt amount, String inlineDatum) {
         AddressUtxo addressUtxo = new AddressUtxo();
         addressUtxo.setInlineDatum(inlineDatum);
         addressUtxo.setOwnerAddr(ownerAddr);
@@ -141,7 +242,6 @@ public class AdaHandleRollbackTest {
 
         TxInputOutput txInputOutput = TxInputOutput.builder().outputs(List.of(addressUtxo)).build();
         adaHandleProcessor.processAdaHandle(new AddressUtxoEvent(EventMetadata.builder().slot(slot).build(), List.of(txInputOutput)));
-        adaHandleProcessor.handleCommitEvent(new CommitEvent<>(EventMetadata.builder().slot(slot).build(), List.of()));
     }
 
     private void rollbackTo(long slot) {

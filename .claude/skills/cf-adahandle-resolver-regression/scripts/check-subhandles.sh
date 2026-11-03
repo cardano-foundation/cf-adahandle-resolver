@@ -4,7 +4,7 @@
 # address. Reports, per type (nft_subhandle / virtual_subhandle):
 #   - addresses that differ from Kora (re-checked after RECHECK_SEC on both sides): FAIL
 #   - sub-handles Kora lists but the resolver doesn't know: FAIL
-#   - sub-handles the resolver knows but Kora doesn't list: INFO (the resolver keeps burned handles)
+#   - sub-handles the resolver knows but Kora doesn't list: FAIL (both remove burned handles)
 
 set -euo pipefail
 # shellcheck disable=SC1091
@@ -54,10 +54,10 @@ if unavailable:
 
 covered = {n for n in ours if n.split("@", 1)[1] not in {u.split(' ')[0] for u in unavailable}}
 stats = collections.defaultdict(collections.Counter)
-mismatched = []
+mismatched, extra = [], []
 for name in covered:
     if name not in kora:
-        stats["(not in Kora)"]["extra"] += 1
+        extra.append(name)
         continue
     t = kora_type[name]
     if ours[name] == kora[name]:
@@ -97,12 +97,13 @@ if missing:
     failed = True
     print(f"  FAIL   {len(missing)} sub-handles listed by Kora are missing in the resolver: "
           + ", ".join(f"{n} ({kora_type[n]})" for n in missing[:15]))
+if extra:
+    # The resolver removes burned handles, as Kora does, so it shouldn't know sub-handles Kora doesn't list.
+    failed = True
+    print(f"  FAIL   {len(extra)} sub-handles not listed by Kora: " + ", ".join(sorted(extra)[:15]))
 if not failed:
     matched = sum(c["match"] for c in stats.values())
-    print(f"  PASS   {matched} sub-handles resolve to the same address as Kora; none missing")
-extra = stats["(not in Kora)"]["extra"]
-if extra:
-    print(f"  INFO   {extra} sub-handles not listed by Kora (burned? the resolver keeps burned handles)")
+    print(f"  PASS   {matched} sub-handles resolve to the same address as Kora; none missing or extra")
 sys.exit(1 if failed else 0)
 PY
 

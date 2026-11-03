@@ -1,6 +1,5 @@
 package org.cardanofoundation.tools.adahandle.resolver.service;
 
-import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,12 +43,12 @@ public class AdaHandleHistoryService {
 
         // Restore each affected handle to its latest REMAINING history entry (the pre-fork
         // owner), or drop it if it no longer has any history (it was first minted on the
-        // abandoned fork). This is O(affected handles) with a PK seek per handle — not the
+        // abandoned fork) or that entry is a burn. This is O(affected handles) with a PK seek per handle — not the
         // previous O(all history) re-aggregation + O(all handles) full-table rewrite — so it
         // stays cheap even on a slow DB and never blocks the chainsync event-loop thread.
         for (String name : affectedNames) {
             AdaHandleHistoryItem latest = adaHandleHistoryRepository.findFirstByNameOrderBySlotDesc(name);
-            if (latest == null) {
+            if (latest == null || latest.isBurned()) {
                 adaHandleService.deleteByName(name);
             } else {
                 adaHandleService.upsert(AdaHandleHistoryMapper.toAdaHandle(latest));
@@ -59,11 +58,6 @@ public class AdaHandleHistoryService {
         log.info("Finished rollback to slot {}", slot);
     }
 
-    public void saveAdaHandleHistoryItems(List<AddressUtxo> addressUtxoList) {
-        List<AdaHandleHistoryItem> adaHandleHistoryItems = addressUtxoList.stream()
-                .map(AdaHandleHistoryMapper::fromAddressUtxoEntities).flatMap(List::stream).toList();
-        adaHandleHistoryRepository.saveAll(adaHandleHistoryItems);
-    }
 
     public void saveAll(List<AdaHandleHistoryItem> adaHandleHistoryItems) {
         adaHandleHistoryRepository.saveAll(adaHandleHistoryItems);

@@ -1,11 +1,13 @@
 package org.cardanofoundation.tools.adahandle.resolver.mapper;
 
+import com.bloxbean.cardano.yaci.core.model.Amount;
 import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
@@ -167,5 +169,35 @@ public class AdaHandleMapperTest {
 
         assertThat(adaHandles, hasSize(1));
         assertThat(adaHandles.get(0).getName(), is("demiking"));
+    }
+
+    @Test
+    public void testBurnedHandleName() {
+        // Burning the token of a legacy handle, a CIP-68 handle or NFT sub-handle, or a virtual sub-handle removes it.
+        assertThat(AdaHandleMapper.burnedHandleName(mintAmount(POLICY_ID, "", "alice", -1)), is("alice"));
+        assertThat(AdaHandleMapper.burnedHandleName(mintAmount(POLICY_ID, "000de140", "alice", -1)), is("alice"));
+        assertThat(AdaHandleMapper.burnedHandleName(mintAmount(POLICY_ID, "000de140", "sub@alice", -1)), is("sub@alice"));
+        assertThat(AdaHandleMapper.burnedHandleName(mintAmount(POLICY_ID, "00000000", "331@hal", -1)), is("331@hal"));
+        // DeMi policy
+        assertThat(AdaHandleMapper.burnedHandleName(
+                mintAmount("6c32db33a422e0bc2cb535bb850b5a6e9a9572222056d6ddc9cbc26e", "000de140", "demiking", -1)), is("demiking"));
+    }
+
+    @Test
+    public void testBurnedHandleNameIgnoresWhatRemovesNoHandle() {
+        // Reference and sub-handle settings tokens
+        assertThat(AdaHandleMapper.burnedHandleName(mintAmount(POLICY_ID, "000643b0", "alice", -1)), nullValue());
+        assertThat(AdaHandleMapper.burnedHandleName(mintAmount(POLICY_ID, "00001070", "alice", -1)), nullValue());
+        // A mint, not a burn
+        assertThat(AdaHandleMapper.burnedHandleName(mintAmount(POLICY_ID, "000de140", "alice", 1)), nullValue());
+        // Another policy
+        assertThat(AdaHandleMapper.burnedHandleName(
+                mintAmount("a0aa112227bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca05678", "", "alice", -1)), nullValue());
+    }
+
+    private static Amount mintAmount(String policyId, String label, String name, long quantity) {
+        String assetNameHex = label + HexFormat.of().formatHex(name.getBytes());
+        return Amount.builder().policyId(policyId).unit(policyId + assetNameHex)
+                .assetNameBytes(HexFormat.of().parseHex(assetNameHex)).quantity(BigInteger.valueOf(quantity)).build();
     }
 }

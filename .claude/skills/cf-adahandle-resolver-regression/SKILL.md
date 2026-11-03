@@ -40,11 +40,11 @@ instance under test (the indexer resumes from its cursor; the API is down for ~1
 | `check-deployment` | What is under test: deployed commit vs branch head, image build time, Java, key libraries in the jar | the API container isn't running |
 | `check-api` | OpenAPI spec, Swagger UI, sync status, 404 for unknown handles, empty list for unknown addresses, all resolver paths in the spec | any endpoint deviates |
 | `check-sync-health` | At the tip (Koios), cursor advancing, era (default Conway = 7), zero block-parse errors; summarises ERROR lines and rollback activity | lag > `MAX_LAG_SLOTS` (600), cursor older than `MAX_CURSOR_AGE_SEC` (600), wrong era, any parse error |
-| `check-data-integrity` | No asset fingerprints as names (CIP-68 decoding); every handle has history and vice versa; **every handle's current owner equals its latest history entry** (guards the rollback repair) | any invariant broken |
+| `check-data-integrity` | No asset fingerprints as names (CIP-68 decoding); every handle has history, and every handle in history that isn't burned has a row; no burned handle has a row; **every handle's current owner equals its latest history entry** (guards the rollback repair) | any invariant broken |
 | `golden` | The handles in the full-sync skill's `golden-handles.txt`, at least one of every kind (legacy, CIP-68, held by an enterprise address or a script, NFT and virtual sub-handles, DeMi; picked from Kora's API), resolve to **the same address as Kora**, and round-trip | any golden handle fails or differs from Kora after `RECHECK_SEC` |
 | `check-oracle` | `ORACLE_SAMPLE_N` (200) truly random handles plus `ORACLE_SUBHANDLE_N` (50) NFT sub-handles (`sub@root`) resolve to the same address as Kora's API; mismatches are re-checked after `RECHECK_SEC` (60 s) on both sides | any persistent mismatch, or under half the sample comparable |
 | `check-coverage` | Starts from the chain instead of the resolver's DB: lists the handle tokens (legacy, label 222, label 0) of every ADA Handle policy from Koios (`HANDLE_POLICIES`: the original one and DeMi's) and checks the resolver knows each. All of a policy's handles up to `COVERAGE_FULL_MAX` (2000) assets, else `COVERAGE_SAMPLE_N` (200) from random pages. The other checks sample the resolver's own handles, so they can't see handles it never indexed | a handle Kora resolves is unknown to the resolver after `RECHECK_SEC` |
-| `check-subhandles` | **Every** sub-handle the resolver knows, NFT and virtual, against Kora's `GET /handles/{root}/subhandles` (one request per root, ~480 roots); differences are re-checked after `RECHECK_SEC` | a sub-handle resolves to a different address than Kora, or Kora lists one the resolver doesn't know |
+| `check-subhandles` | **Every** sub-handle the resolver knows, NFT and virtual, against Kora's `GET /handles/{root}/subhandles` (one request per root, ~480 roots); differences are re-checked after `RECHECK_SEC` | a sub-handle resolves to a different address than Kora, Kora lists one the resolver doesn't know, or the other way round |
 | `check-restart-rollback` | `CIP68_N` (20) real CIP-68 handles still resolve to Kora's address after an API restart; handle count doesn't drop | any handle changes or the count drops |
 
 ### Why an oracle
@@ -56,7 +56,7 @@ restart before #54. Kora Labs' Handles API is independent, so `check-oracle` and
 
 - `api.handle.me` answers 403 to a default client User-Agent; the scripts send their own.
 - Kora's `/stats` total isn't comparable with our row count (different definition of a handle); compare per handle, never totals.
-- Handles unknown to Kora are listed, not failed: the resolver keeps burned handles (it never removes a handle that was burned).
+- Handles unknown to Kora fail `check-oracle`: the resolver removes burned handles, as Kora does, so both should know the same handles.
 
 ## Reading results
 

@@ -1,9 +1,11 @@
 package org.cardanofoundation.tools.adahandle.resolver.mapper;
+import com.bloxbean.cardano.yaci.core.model.Amount;
 import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
 import org.cardanofoundation.tools.adahandle.resolver.util.Crc8;
+import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -41,7 +43,7 @@ public class AdaHandleMapper {
      * <p>
      * ada_handle and the history table both use this, so a rollback restores exactly what was stored.
      */
-    public static AdaHandle toAdaHandle(AddressUtxo addressUtxo, Amt amount) {
+    public static @Nullable AdaHandle toAdaHandle(AddressUtxo addressUtxo, Amt amount) {
         if (!AdaHandlePolicies.contains(amount.getPolicyId())) {
             return null;
         }
@@ -79,11 +81,36 @@ public class AdaHandleMapper {
     }
 
     /**
+     * Returns the handle a burned amount of a mint (negative quantity) removes, or null if it removes
+     * none. As on api.handle.me, burning the token of a legacy handle, a CIP-68 handle or NFT
+     * sub-handle (label 222) or a virtual sub-handle (label 0) removes the handle; burning a
+     * reference (100) or sub-handle settings (1) token removes nothing.
+     */
+    public static @Nullable String burnedHandleName(Amount amount) {
+        if (amount.getQuantity() == null || amount.getQuantity().signum() >= 0
+                || !AdaHandlePolicies.contains(amount.getPolicyId())) {
+            return null;
+        }
+        byte[] assetName = amount.getAssetNameBytes() != null
+                ? amount.getAssetNameBytes()
+                : HexFormat.of().parseHex(amount.getUnit().replaceFirst("^" + amount.getPolicyId(), ""));
+
+        Integer label = cip67Label(assetName);
+        if (label == null) {
+            return new String(assetName, StandardCharsets.UTF_8);
+        }
+        if (label == LABEL_HANDLE || label == LABEL_VIRTUAL_SUBHANDLE) {
+            return new String(Arrays.copyOfRange(assetName, 4, assetName.length), StandardCharsets.UTF_8);
+        }
+        return null;
+    }
+
+    /**
      * Returns the CIP-67 label of an asset name, or null if it doesn't start with one. The 4-byte
      * prefix is {@code 0000 | 16-bit label | CRC-8 of the label | 0000}, see {@link Crc8}. Legacy handle names are
      * printable ASCII, so they can't start with a valid label.
      */
-    static Integer cip67Label(byte[] assetName) {
+    static @Nullable Integer cip67Label(byte[] assetName) {
         if (assetName.length < 4 || (assetName[0] & 0xF0) != 0 || (assetName[3] & 0x0F) != 0) {
             return null;
         }

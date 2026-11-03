@@ -96,9 +96,9 @@ else:
     for name, actual, expected in mismatched[:20]:
         print(f"           {name}: ours={actual} kora={expected}")
 if not_in_oracle:
-    print(f"  INFO   {len(not_in_oracle)} handles unknown to Kora (burned? the resolver keeps burned handles): "
-          + ", ".join(not_in_oracle[:10]))
-sys.exit(1 if mismatched else 0)
+    # The resolver removes burned handles, as Kora does, so it shouldn't know handles Kora doesn't.
+    print(f"  FAIL   {len(not_in_oracle)} handles unknown to Kora: " + ", ".join(not_in_oracle[:10]))
+sys.exit(1 if mismatched or not_in_oracle else 0)
 PY
 
 exit $FAILED
