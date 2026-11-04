@@ -196,6 +196,18 @@ public class AdaHandleMapperTest {
                 mintAmount("a0aa112227bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca05678", "", "alice", -1)), nullValue());
     }
 
+    @Test
+    public void testMintedHandleName() {
+        assertThat(AdaHandleMapper.mintedHandleName(mintAmount(POLICY_ID, "", "alice", 1)), is("alice"));
+        assertThat(AdaHandleMapper.mintedHandleName(mintAmount(POLICY_ID, "000de140", "sub@alice", 1)), is("sub@alice"));
+        assertThat(AdaHandleMapper.mintedHandleName(mintAmount(POLICY_ID, "00000000", "331@hal", 1)), is("331@hal"));
+        // A reference token, a burn, another policy
+        assertThat(AdaHandleMapper.mintedHandleName(mintAmount(POLICY_ID, "000643b0", "alice", 1)), nullValue());
+        assertThat(AdaHandleMapper.mintedHandleName(mintAmount(POLICY_ID, "000de140", "alice", -1)), nullValue());
+        assertThat(AdaHandleMapper.mintedHandleName(
+                mintAmount("a0aa112227bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca05678", "", "alice", 1)), nullValue());
+    }
+
     private static Amount mintAmount(String policyId, String label, String name, long quantity) {
         String assetNameHex = label + HexFormat.of().formatHex(name.getBytes());
         return Amount.builder().policyId(policyId).unit(policyId + assetNameHex)

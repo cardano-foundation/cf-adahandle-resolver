@@ -84,8 +84,23 @@ public class AdaHandleMapper {
     }
 
     public static @Nullable String burnedHandleName(Amount amount) {
-        if (amount.getQuantity() == null || amount.getQuantity().signum() >= 0
-                || !AdaHandlePolicies.contains(amount.getPolicyId())) {
+        if (amount.getQuantity() == null || amount.getQuantity().signum() >= 0) {
+            return null;
+        }
+        return handleName(amount);
+    }
+
+    /** Returns the handle a minted amount (positive quantity) creates a token for, or null; see {@link #burn}. */
+    public static @Nullable String mintedHandleName(Amount amount) {
+        if (amount.getQuantity() == null || amount.getQuantity().signum() <= 0) {
+            return null;
+        }
+        return handleName(amount);
+    }
+
+    /** The handle whose ownership token this is (legacy, label 222 or label 0), or null. */
+    private static @Nullable String handleName(Amount amount) {
+        if (!AdaHandlePolicies.contains(amount.getPolicyId())) {
             return null;
         }
         byte[] assetName = amount.getAssetNameBytes() != null

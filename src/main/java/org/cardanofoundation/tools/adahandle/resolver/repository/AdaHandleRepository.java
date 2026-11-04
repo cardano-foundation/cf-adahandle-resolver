@@ -23,4 +23,8 @@ public interface AdaHandleRepository extends JpaRepository<AdaHandle, String> {
 
     @Query("SELECT name FROM AdaHandle WHERE paymentAddress = :paymentAddress")
     List<String> findAdaHandlesByPaymentAddress(@Param("paymentAddress") String paymentAddress);
+
+    /** Sub-handles (names with {@code @}), for the {@code adahandle_handles} metric. */
+    @Query("SELECT COUNT(handle) FROM AdaHandle handle WHERE handle.name LIKE '%@%'")
+    long countSubHandles();
 }

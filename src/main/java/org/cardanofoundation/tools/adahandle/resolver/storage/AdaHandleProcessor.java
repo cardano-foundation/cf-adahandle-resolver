@@ -14,6 +14,7 @@ import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryIte
 import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleHistoryMapper;
 import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleMapper;
 import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandlePolicies;
+import org.cardanofoundation.tools.adahandle.resolver.metrics.AdaHandleMetrics;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
 import org.springframework.context.event.EventListener;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
 public class AdaHandleProcessor {
     private final AdaHandleService adaHandleService;
     private final AdaHandleHistoryService adaHandleHistoryService;
+    private final AdaHandleMetrics metrics;
 
     /**
      * The handle changes of the blocks Yaci Store has delivered but not committed yet, as history rows: an owner for
@@ -44,6 +46,12 @@ public class AdaHandleProcessor {
      * on its CommitEvent, in chain order.
      */
     private final List<AdaHandleHistoryItem> pendingChanges = Collections.synchronizedList(new ArrayList<>());
+
+    /** Handle tokens minted in the blocks not committed yet, for the metrics; like pendingChanges. */
+    private final List<PendingMint> pendingMints = Collections.synchronizedList(new ArrayList<>());
+
+    private record PendingMint(long slot, String name) {
+    }
 
     @EventListener
     public void processAdaHandle(AddressUtxoEvent addressUtxoEvent) {
@@ -67,6 +75,18 @@ public class AdaHandleProcessor {
                 .flatMap(txMintBurn -> txMintBurn.getAmounts().stream())
                 .map(amount -> AdaHandleMapper.burn(amount, slot))
                 .filter(Objects::nonNull)
+                .toList());
+    }
+
+    @EventListener
+    public void processMints(MintBurnEvent mintBurnEvent) {
+        long slot = mintBurnEvent.getMetadata().getSlot();
+        pendingMints.addAll(mintBurnEvent.getTxMintBurns().stream()
+                .filter(txMintBurn -> txMintBurn.getAmounts() != null)
+                .flatMap(txMintBurn -> txMintBurn.getAmounts().stream())
+                .map(AdaHandleMapper::mintedHandleName)
+                .filter(Objects::nonNull)
+                .map(name -> new PendingMint(slot, name))
                 .toList());
     }
 
@@ -118,6 +138,13 @@ public class AdaHandleProcessor {
             changes = new ArrayList<>(pendingChanges);
             pendingChanges.clear();
         }
+        List<PendingMint> mints;
+        synchronized (pendingMints) {
+            mints = new ArrayList<>(pendingMints);
+            pendingMints.clear();
+        }
+        mints.forEach(mint -> metrics.minted(mint.name()));
+        changes.stream().filter(AdaHandleHistoryItem::isBurned).forEach(burn -> metrics.burned(burn.getName()));
         if (changes.isEmpty()) {
             return;
         }
@@ -132,6 +159,7 @@ public class AdaHandleProcessor {
                 .map(AdaHandleProcessor::endOfBlockState)
                 .toList();
         adaHandleHistoryService.saveAll(blockStates);
+        metrics.historyRowsWritten(blockStates.size());
 
         Map<String, AdaHandleHistoryItem> lastChanges = new LinkedHashMap<>();
         blockStates.forEach(change -> lastChanges.put(change.getName(), change));
@@ -153,7 +181,8 @@ public class AdaHandleProcessor {
         // Changes of rolled-back blocks have not been committed yet; drop them so the next CommitEvent does not write
         // the abandoned fork's owners or burns.
         pendingChanges.removeIf(change -> change.getSlot() > rollbackSlot);
-        adaHandleHistoryService.rollbackToSlot(rollbackSlot);
+        pendingMints.removeIf(mint -> mint.slot() > rollbackSlot);
+        metrics.rolledBack(adaHandleHistoryService.rollbackToSlot(rollbackSlot));
     }
 
 }
