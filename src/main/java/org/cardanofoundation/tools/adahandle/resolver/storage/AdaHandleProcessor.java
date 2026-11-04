@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
+import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItemKey;
 import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleHistoryMapper;
 import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleMapper;
 import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandlePolicies;
@@ -26,6 +27,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -62,10 +65,8 @@ public class AdaHandleProcessor {
         pendingChanges.addAll(mintBurnEvent.getTxMintBurns().stream()
                 .filter(txMintBurn -> txMintBurn.getAmounts() != null)
                 .flatMap(txMintBurn -> txMintBurn.getAmounts().stream())
-                .map(AdaHandleMapper::burnedHandleName)
+                .map(amount -> AdaHandleMapper.burn(amount, slot))
                 .filter(Objects::nonNull)
-                .distinct()
-                .map(name -> AdaHandleHistoryItem.burn(name, slot))
                 .toList());
     }
 
@@ -83,11 +84,32 @@ public class AdaHandleProcessor {
     }
 
     /**
-     * Applies the pending changes in chain order: by slot and, within a block, burns after outputs (a token is moved
-     * before it can be burned). Every change goes to the history; ada_handle only gets each handle's last state.
+     * Applies the pending changes in chain order: block by block, each handle's state at the end of the block (see
+     * {@link #endOfBlockState}) goes to the history, and each handle's last state to ada_handle.
      * <p>
      * Invoked once per batch of blocks (100) during the initial sync, and for each block at the tip.
      */
+    /**
+     * A handle's state at the end of a block, from its changes in that block. Yaci Store doesn't say in which order a
+     * block's transactions came, but a burned token does: an output carrying the burned token came before the burn,
+     * since a burned token no longer exists, and an output carrying another token of the same name came after it. That
+     * is how legacy handles were migrated to CIP-68: one transaction burns the legacy token and mints the CIP-68 token,
+     * and the handle lives on. Kora Labs applies a transaction's burns before its outputs, which agrees.
+     */
+    static AdaHandleHistoryItem endOfBlockState(List<AdaHandleHistoryItem> changes) {
+        Set<String> burnedTokens = changes.stream()
+                .filter(AdaHandleHistoryItem::isBurned)
+                .map(AdaHandleHistoryItem::getToken)
+                .collect(Collectors.toSet());
+        if (burnedTokens.isEmpty()) {
+            return changes.getLast();
+        }
+        return changes.stream()
+                .filter(change -> !change.isBurned() && !burnedTokens.contains(change.getToken()))
+                .reduce((first, second) -> second)
+                .orElseGet(() -> changes.stream().filter(AdaHandleHistoryItem::isBurned).findFirst().orElseThrow());
+    }
+
     @EventListener
     @Transactional
     public void handleCommitEvent(CommitEvent commitEvent) {
@@ -101,12 +123,18 @@ public class AdaHandleProcessor {
         }
 
         // Stable sort: a block's outputs keep their transaction order.
-        changes.sort(Comparator.comparingLong(AdaHandleHistoryItem::getSlot).thenComparing(AdaHandleHistoryItem::isBurned));
-        // Changes with the same (name, slot) key are saved in order, so the last one, e.g. a burn, wins.
-        adaHandleHistoryService.saveAll(changes);
+        changes.sort(Comparator.comparingLong(AdaHandleHistoryItem::getSlot));
+        // The history is keyed by (name, slot): one row per handle and block.
+        List<AdaHandleHistoryItem> blockStates = changes.stream()
+                .collect(Collectors.groupingBy(change -> new AdaHandleHistoryItemKey(change.getName(), change.getSlot()),
+                        LinkedHashMap::new, Collectors.toList()))
+                .values().stream()
+                .map(AdaHandleProcessor::endOfBlockState)
+                .toList();
+        adaHandleHistoryService.saveAll(blockStates);
 
         Map<String, AdaHandleHistoryItem> lastChanges = new LinkedHashMap<>();
-        changes.forEach(change -> lastChanges.put(change.getName(), change));
+        blockStates.forEach(change -> lastChanges.put(change.getName(), change));
         adaHandleService.saveAll(lastChanges.values().stream()
                 .filter(change -> !change.isBurned())
                 .map(AdaHandleHistoryMapper::toAdaHandle)

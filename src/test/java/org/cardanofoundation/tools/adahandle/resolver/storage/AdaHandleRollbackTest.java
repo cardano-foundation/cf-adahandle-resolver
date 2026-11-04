@@ -155,6 +155,23 @@ public class AdaHandleRollbackTest {
     }
 
     @Test
+    public void testLegacyHandleMigratedToCip68InOneBlockLivesOn() {
+        // 415 mainnet handles: one transaction burns the legacy token and mints the CIP-68 token of the same name.
+        commitBlock(66_001_000L, "addr_migration_owner", cip25("migratedhandle"));
+
+        addOutput(66_002_000L, "addr_migration_owner_cip68", cip68(CIP68_USER_LABEL, "migratedhandle"), null);
+        burnBlock(66_002_000L, burned("", "migratedhandle"));
+
+        assertThat(adaHandleService.getAddressesByAdaHandle("migratedhandle").getPaymentAddress(),
+                is("addr_migration_owner_cip68"));
+
+        // Rolling the migration back restores the legacy handle.
+        rollbackTo(66_001_500L);
+        assertThat(adaHandleService.getAddressesByAdaHandle("migratedhandle").getPaymentAddress(),
+                is("addr_migration_owner"));
+    }
+
+    @Test
     public void testRollbackPastBurnRestoresTheOwner() {
         commitBlock(63_001_000L, "addr_burn_owner", cip68(CIP68_USER_LABEL, "burnrollback"));
         burnBlock(63_002_000L, burned(CIP68_USER_LABEL, "burnrollback"));

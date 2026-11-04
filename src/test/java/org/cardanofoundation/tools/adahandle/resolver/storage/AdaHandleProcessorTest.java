@@ -100,16 +100,33 @@ public class AdaHandleProcessorTest {
     }
 
     @Test
-    public void testWithinABlockTheBurnComesAfterTheOutputs() {
+    public void testLegacyHandleMigratedToCip68InOneBlockKeepsTheHandle() {
+        // The migration burns the legacy token and mints the CIP-68 token of the same name in one transaction. As
+        // Kora does, the burn comes first and the new token's output re-creates the handle. The events arrive in
+        // either order.
+        adaHandleProcessor.processAdaHandle(addressUtxoEvent(100L, cip68HandleUtxo("bob", "addr1cip68")));
         adaHandleProcessor.processBurns(burnEvent(100L, "bob"));
-        adaHandleProcessor.processAdaHandle(addressUtxoEvent(100L, handleUtxo("bob", "addr1buyer")));
         commit(100L);
 
         verify(adaHandleHistoryService).saveAll(history.capture());
         List<AdaHandleHistoryItem> saved = history.getValue();
-        assertThat(saved.getLast().isBurned(), is(true));
+        assertThat(saved.size(), is(1));
+        assertThat(saved.getFirst().isBurned(), is(false));
+        assertThat(saved.getFirst().getPaymentAddress(), is("addr1cip68"));
+        verify(adaHandleService).saveAll(handles.capture());
+        assertThat(handles.getValue().stream().map(AdaHandle::getPaymentAddress).toList(), contains("addr1cip68"));
         verify(adaHandleService).deleteAllByName(deleted.capture());
-        assertThat(deleted.getValue(), contains("bob"));
+        assertThat(deleted.getValue(), empty());
+    }
+
+    @Test
+    public void testOneHistoryRowPerHandleAndBlockWithTheBlocksLastState() {
+        adaHandleProcessor.processAdaHandle(addressUtxoEvent(100L, handleUtxo("carol", "addr1first")));
+        adaHandleProcessor.processAdaHandle(addressUtxoEvent(100L, handleUtxo("carol", "addr1second")));
+        commit(100L);
+
+        verify(adaHandleHistoryService).saveAll(history.capture());
+        assertThat(history.getValue().stream().map(AdaHandleHistoryItem::getPaymentAddress).toList(), contains("addr1second"));
     }
 
     private void commit(long slot) {
@@ -123,6 +140,18 @@ public class AdaHandleProcessorTest {
                 .policyId(ADA_HANDLE_POLICY_ID)
                 .unit(ADA_HANDLE_POLICY_ID + HexFormat.of().formatHex(handle.getBytes()))
                 .assetName(handle)
+                .build()));
+        return addressUtxo;
+    }
+
+    private static AddressUtxo cip68HandleUtxo(String handle, String ownerAddr) {
+        AddressUtxo addressUtxo = new AddressUtxo();
+        addressUtxo.setOwnerAddr(ownerAddr);
+        addressUtxo.setAmounts(List.of(Amt.builder()
+                .policyId(ADA_HANDLE_POLICY_ID)
+                .unit(ADA_HANDLE_POLICY_ID + "000de140" + HexFormat.of().formatHex(handle.getBytes()))
+                // Yaci reports a non-UTF-8 asset name as its fingerprint.
+                .assetName("asset1fingerprint")
                 .build()));
         return addressUtxo;
     }

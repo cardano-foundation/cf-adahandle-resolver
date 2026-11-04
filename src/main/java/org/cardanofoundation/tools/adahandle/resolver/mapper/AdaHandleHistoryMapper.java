@@ -20,6 +20,7 @@ public class AdaHandleHistoryMapper {
                     adaHandleHistoryItem.setStakeAddress(adaHandle.getStakeAddress());
                     adaHandleHistoryItem.setPaymentAddress(adaHandle.getPaymentAddress());
                     adaHandleHistoryItem.setSlot(addressUtxo.getSlot());
+                    adaHandleHistoryItem.setToken(amount.getUnit());
                     adaHandleHistoryItems.add(adaHandleHistoryItem);
                 }
             }
