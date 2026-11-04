@@ -102,17 +102,25 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          # Spring Boot's health groups, see management.endpoint.health.group in application.yml. Readiness stays down
+          # until the sync reaches the tip; liveness fails when blocks stop arriving from the node.
           livenessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/liveness
               port: http
+            periodSeconds: 30
+            failureThreshold: 3
+            timeoutSeconds: 5
           readinessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/readiness
               port: http
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 5
           startupProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/startup
               port: http
             initialDelaySeconds: {{ $.Values.startupProbe.initialDelaySeconds }}
             periodSeconds: {{ $.Values.startupProbe.periodSeconds }}
