@@ -211,7 +211,7 @@ processed in parallel, so events also arrive out of order.
 
 ## Example: a scheduled report from the resolver's tables
 
-Counts the handles the resolver knows, every 20 seconds:
+Counts the handles the resolver knows, every minute:
 
 <Tabs syncKey="plugin-lang">
 <TabItem label="JavaScript">
@@ -229,7 +229,7 @@ store:
           console.log(`[plugin handle-count] ada_handle rows: ${n}`);
         schedule:
           type: INTERVAL
-          value: "20"
+          value: "60"
 ```
 
 </TabItem>
@@ -248,7 +248,7 @@ store:
           System.out.println("[plugin handle-count] ada_handle rows: " + n);
         schedule:
           type: INTERVAL
-          value: "20"
+          value: "60"
 ```
 
 </TabItem>
@@ -289,6 +289,8 @@ from the internet, keep `/api/v1/admin/` behind your proxy.
 - JavaScript runs on GraalJS's interpreter in the resolver's images, which is fine for short scripts like these.
   Keep heavy work out of event handlers.
 - `state` lives in memory and starts empty after a restart.
+- A scheduler's first run is at startup. Keep intervals at a minute or more: in Yaci Store 2.0.7, a second run while
+  the resolver is still starting can fail once with a missing variable, such as `named_jdbc is not defined`.
 - In a [scaled setup](../scaling/), run event handlers and schedulers on the indexer only, not on the
   `disable-indexer` replicas.
 - Yaci Store's own guides go further:
