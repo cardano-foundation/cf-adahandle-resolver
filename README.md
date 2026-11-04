@@ -89,19 +89,22 @@ cd cf-adahandle-resolver
 java -Xmx4g -jar target/cf-adahandle-resolver-*-SNAPSHOT.jar
 ```
 
-### ⚡ Native image (weekly, experimental)
+### ⚡ Native image (experimental)
 
-A GraalVM native image starts in about a second and needs far less memory than the JVM image. It is
-built weekly from `main` (the released code) and published as `cardanofoundation/adahandle-resolver:native-weekly`:
+A GraalVM native image starts in about a second and needs far less memory than the JVM image. Each release
+is published as `cardanofoundation/adahandle-resolver:<version>-native`, next to the JVM image `<version>`:
 
 ```zsh
-docker run -p 9095:9095 cardanofoundation/adahandle-resolver:native-weekly
+docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-native
 # build it yourself
 docker build -f Dockerfile.native -t adahandle-resolver:native .
 ```
 
 Configure it with the same environment variables as the JVM image. JVM flags such as `-Xmx` go on the
-command line (`docker run ... adahandle-resolver:native-weekly -Xmx2g`), not in `JAVA_TOOL_OPTIONS`.
+command line (`docker run ... adahandle-resolver:1.0.0-native -Xmx2g`), not in `JAVA_TOOL_OPTIONS`.
+
+The native image is also built and smoke-tested every week, without publishing anything, so a change
+that breaks it under GraalVM shows up before the next release.
 
 **Licensing:** the native image is built with Oracle GraalVM, licensed under the
 [GraalVM Free Terms and Conditions](https://www.graalvm.org/faq/) (GFTC). The GraalVM parts compiled into

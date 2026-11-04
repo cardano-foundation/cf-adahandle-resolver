@@ -34,3 +34,16 @@ jobs:
     with:
       tag: ${{ needs.create_release.outputs.tag_name }}
     secrets: inherit
+
+  # The native image of the same release, as <version>-native. Its own job: a native build failure doesn't stop the
+  # JVM image. Needs issues: write only because native-image.yaml declares it for its weekly failure report.
+  publish-native:
+    needs: create_release
+    if: needs.create_release.outputs.release_created == 'true'
+    permissions:
+      contents: read
+      issues: write
+    uses: ./.github/workflows/native-image.yaml
+    with:
+      tag: ${{ needs.create_release.outputs.tag_name }}
+    secrets: inherit

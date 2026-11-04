@@ -1,26 +1,34 @@
-name: Weekly Native Image
+name: Native Image
 
-# GraalVM native image of the resolver (Oracle GraalVM, see Dockerfile.native for licensing): lower
-# memory and faster startup than the JVM image.
-# Built weekly from main (the released code) so native-image breakages surface early; a failed scheduled run
-# opens (or updates) an issue labelled "native-image".
+# GraalVM native image of the resolver (Oracle GraalVM, see Dockerfile.native for licensing): lower memory and faster
+# startup than the JVM image. Two uses:
 #
-# Note: GitHub runs scheduled workflows from the default branch, so the schedule takes effect
-# once this file is on main.
+# - A weekly check, and by hand on any branch: build the image and smoke-test it, publish nothing. GraalVM needs
+#   reachability metadata (reflection, resources, proxies) that a dependency update or a code change can silently
+#   invalidate; this catches it within a week. A failed scheduled run opens (or updates) an issue labelled
+#   "native-image".
+# - With each release: release.yaml calls it with the release tag. The same build and smoke tests, then
+#   cardanofoundation/adahandle-resolver:<version>-native is pushed. No other native tag is published.
+#
+# Note: GitHub runs scheduled workflows from the default branch, so the schedule takes effect once this file is on
+# main.
 
 on:
   schedule:
     - cron: '0 3 * * 1' # Mondays 03:00 UTC
-  # Not on pull requests (a native build takes ~25 min): run it by hand on a branch before merging
-  # a change that may need new reachability metadata (dependency updates, NativeImageConfig, ...).
+  # Not on pull requests (a native build takes ~25 min): run it by hand on a branch before merging a change that may
+  # need new reachability metadata (dependency updates, NativeImageConfig, ...).
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      tag:
+        description: Release tag to build and publish as <version>-native, e.g. v1.0.0
+        required: true
+        type: string
 
 permissions:
   contents: read
   issues: write
-
-env:
-  IMAGE: cardanofoundation/adahandle-resolver
 
 jobs:
   native-image:
@@ -41,10 +49,30 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 10
 
     steps:
-      # Scheduled runs build main (GitHub runs schedules on the default branch); manual runs and
-      # PRs build their own ref.
+      # Scheduled runs build main (GitHub runs schedules on the default branch), manual runs their own branch, and
+      # release runs the release tag.
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || '' }}
+
+      # The same check as publish.yaml: only X.Y.Z releases are published.
+      - name: Check that the tag is a release
+        if: inputs.tag
+        id: version
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          VERSION=$(python3 -c "import xml.etree.ElementTree as E; print(E.parse('pom.xml').getroot().find('{http://maven.apache.org/POM/4.0.0}version').text)")
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::pom.xml version $VERSION is not a release version; snapshots and pre-releases are not published"
+            exit 1
+          fi
+          if [[ "$TAG" != "v$VERSION" ]]; then
+            echo "::error::tag $TAG does not match pom.xml version $VERSION"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Build native image
         run: docker build -f Dockerfile.native -t adahandle-resolver:native .
@@ -69,23 +97,21 @@ jobs:
       - name: Smoke test (mainnet sync, 3 minutes)
         run: .github/scripts/native-smoke-test.sh adahandle-resolver:native sync
 
-      # Only main's image is published: a manual run on another branch builds and tests, nothing more.
+      # Only for a release: the weekly and manual runs publish nothing.
       - name: Login to Docker Hub
-        if: github.ref == 'refs/heads/main'
+        if: inputs.tag
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push
-        if: github.ref == 'refs/heads/main'
+        if: inputs.tag
         run: |
-          tag="native-$(date -u +%Y%m%d)-$(git rev-parse --short HEAD)"
-          for t in native-weekly "$tag"; do
-            docker tag adahandle-resolver:native "$IMAGE:$t"
-            docker push "$IMAGE:$t"
-          done
-          echo "Pushed $IMAGE:native-weekly and $IMAGE:$tag" >> "$GITHUB_STEP_SUMMARY"
+          image="cardanofoundation/adahandle-resolver:${{ steps.version.outputs.version }}-native"
+          docker tag adahandle-resolver:native "$image"
+          docker push "$image"
+          echo "Pushed $image from ${{ inputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Report failure
         if: failure() && github.event_name == 'schedule'
