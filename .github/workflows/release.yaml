@@ -13,10 +13,24 @@ permissions:
 jobs:
   create_release:
     runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: 🚀 release-please-action
+        id: release
         uses: google-github-actions/release-please-action@v3
         with:
           release-type: maven
           bump-minor-pre-major: true
           bump-patch-for-minor-pre-major: true
+
+  # Only when release-please has just created a release, i.e. its release PR was merged. Its snapshot PRs
+  # (X.Y.Z-SNAPSHOT) create no release, so they publish nothing.
+  publish:
+    needs: create_release
+    if: needs.create_release.outputs.release_created == 'true'
+    uses: ./.github/workflows/publish.yaml
+    with:
+      tag: ${{ needs.create_release.outputs.tag_name }}
+    secrets: inherit
