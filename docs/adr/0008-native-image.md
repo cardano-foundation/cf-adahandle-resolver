@@ -1,4 +1,4 @@
-# 8. A native image built with Oracle GraalVM, weekly from main
+# 8. A native image built with Oracle GraalVM, checked weekly, published with releases
 
 - Status: Accepted
 - Date: 2026-11-03
@@ -18,9 +18,11 @@ redistribution, but not redistribution for a fee; Oracle's license and notices m
 - The image ships Oracle's `LICENSE.txt` and `NOTICE.txt` in `/licenses/graalvm` and our MIT license in
   `/licenses/LICENSE`, with the OCI label `MIT AND LicenseRef-GraalVM-Free-Terms-and-Conditions`. CI fails if a license
   file is missing.
-- Build weekly from `main` (Mondays 03:00 UTC), and by hand on any branch; only `main`'s build is published, as
-  `cardanofoundation/adahandle-resolver:native-weekly`. It is not built on pull requests (about 25 minutes per build):
-  run it by hand before merging a change that may need new reachability metadata.
+- Build and smoke-test it weekly from `main` (Mondays 03:00 UTC), and by hand on any branch, publishing nothing: a
+  check that GraalVM's reachability metadata still covers the code. It is not built on pull requests (about 25 minutes
+  per build): run it by hand before merging a change that may need new reachability metadata.
+- Publish it with each release, as `cardanofoundation/adahandle-resolver:<version>-native`, built from the release tag
+  next to the JVM image `<version>`. No moving native tag.
 - The JVM image stays the default; the native image is experimental.
 
 ## Consequences
@@ -31,4 +33,4 @@ redistribution, but not redistribution for a fee; Oracle's license and notices m
 
 ## References
 
-- #63, #82; `Dockerfile.native`, `.github/workflows/native-image.yaml`, `config/NativeImageConfig.java`.
+- #63, #82, #95 (until #95, the weekly build was published as `:native-weekly`); `Dockerfile.native`, `.github/workflows/native-image.yaml`, `config/NativeImageConfig.java`.
