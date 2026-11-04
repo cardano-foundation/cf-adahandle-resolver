@@ -63,6 +63,8 @@
         <native-build-tools-plugin.version>1.1.18</native-build-tools-plugin.version>
         <!-- Native image GC: G1 on Linux (see the native-linux profile); G1 is Linux-only. -->
         <native.gc>serial</native.gc>
+        <!-- GraalJS for JavaScript plugins: the polyglot version yaci-store-plugin-polyglot ${yaci.store.version} uses. -->
+        <graalvm.polyglot.version>24.2.1</graalvm.polyglot.version>
         <!-- Integration tests (*IT, failsafe) need a Yaci DevKit devnet and are skipped unless
              -DskipITs=false; -DskipUTs=true skips the unit tests (surefire).
              See .github/workflows/integration-tests.yaml. -->
@@ -234,6 +236,18 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <!-- GraalJS (JavaScript plugins) loads a native library; allow it without a JDK warning. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Enable-Native-Access>ALL-UNNAMED</Enable-Native-Access>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
             <!-- JDK 23+ does not run annotation processors found only on the classpath. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -293,7 +307,7 @@
     </build>
 
     <profiles>
-        <!-- GraalVM native image: ./mvnw -Pnative -DskipTests native:compile
+        <!-- GraalVM native image: ./mvnw -Pnative -DskipJsPlugins -DskipTests native:compile
              Extends the "native" profile from spring-boot-starter-parent (AOT processing and
              native-maven-plugin with the reachability metadata repository). -->
         <profile>
@@ -336,7 +350,7 @@
                             </buildArgs>
                         </configuration>
                         <executions>
-                            <!-- ./mvnw -Pnative package builds the native executable. -->
+                            <!-- ./mvnw -Pnative -DskipJsPlugins package builds the native executable. -->
                             <execution>
                                 <id>build-native</id>
                                 <goals>
@@ -348,6 +362,43 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <!-- JavaScript plugins (Yaci Store's polyglot module with GraalJS, community edition), on by default.
+             Python is left out on purpose (ADR 12). Native builds pass -DskipJsPlugins: the native image is
+             built and tested without GraalJS, so it keeps MVEL and SpEL plugins only. -->
+        <profile>
+            <id>js-plugins</id>
+            <activation>
+                <property>
+                    <name>!skipJsPlugins</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.bloxbean.cardano</groupId>
+                    <artifactId>yaci-store-plugin-polyglot</artifactId>
+                    <version>${yaci.store.version}</version>
+                    <exclusions>
+                        <!-- Python plugins: not supported (ADR 12). -->
+                        <exclusion>
+                            <groupId>org.graalvm.polyglot</groupId>
+                            <artifactId>python</artifactId>
+                        </exclusion>
+                        <!-- A POM-only artifact that Maven can't resolve as a jar; replaced by js-community. -->
+                        <exclusion>
+                            <groupId>org.graalvm.polyglot</groupId>
+                            <artifactId>js</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <!-- GraalJS, community edition (UPL). Keep the version equal to polyglot's in yaci-store-plugin-polyglot. -->
+                <dependency>
+                    <groupId>org.graalvm.polyglot</groupId>
+                    <artifactId>js-community</artifactId>
+                    <version>${graalvm.polyglot.version}</version>
+                    <type>pom</type>
+                </dependency>
+            </dependencies>
         </profile>
         <profile>
             <id>native-linux</id>

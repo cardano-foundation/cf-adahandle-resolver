@@ -19,9 +19,9 @@ COPY pom.xml /app/pom.xml
 COPY mvnw /app/mvnw
 COPY .mvn /app/.mvn
 
-RUN ./mvnw -B -Pnative verify clean --fail-never
+RUN ./mvnw -B -Pnative -DskipJsPlugins verify clean --fail-never
 COPY . /app
-RUN ./mvnw -B -Pnative -DskipTests package
+RUN ./mvnw -B -Pnative -DskipJsPlugins -DskipTests package
 
 RUN mkdir -p /licenses/graalvm \
     && cp "$JAVA_HOME/LICENSE.txt" /licenses/graalvm/LICENSE.txt \

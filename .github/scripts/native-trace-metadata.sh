@@ -7,7 +7,7 @@
 # Run with JAVA_HOME pointing at GraalVM for JDK 25, from the repository root:
 #   .github/scripts/native-trace-metadata.sh [sync-seconds]
 #
-# Then rebuild (./mvnw -Pnative -DskipTests native:compile) and run the smoke tests.
+# Then rebuild (./mvnw -Pnative -DskipJsPlugins -DskipTests native:compile) and run the smoke tests.
 
 set -euo pipefail
 
@@ -19,7 +19,7 @@ trap 'rm -rf "$WORK"' EXIT
 
 "$JAVA_HOME/bin/java" -version 2>&1 | grep -q GraalVM || { echo "JAVA_HOME must be GraalVM" >&2; exit 1; }
 
-./mvnw -B -q -Pnative -DskipTests clean package
+./mvnw -B -q -Pnative -DskipJsPlugins -DskipTests clean package
 JAR=$(ls target/cf-adahandle-resolver-*.jar | grep -v original | head -1)
 mkdir -p "$WORK/agent"
 

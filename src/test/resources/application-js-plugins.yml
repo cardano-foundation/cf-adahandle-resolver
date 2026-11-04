@@ -1,0 +1,29 @@
+# JavaScript plugins for JsPluginTest, written as an operator would in plugins.yml.
+store:
+  plugins:
+    enabled: true
+    exit-on-error: false
+    event-handlers:
+      MintBurnEvent:
+        - name: handle-mints-js
+          lang: js
+          inline-script: |
+            if (event.getMetadata().isSyncMode()) {
+              const policies = env.getProperty("adahandle.policy-ids").split(",");
+              for (const tx of event.getTxMintBurns()) {
+                for (const amt of tx.getAmounts()) {
+                  if (policies.includes(amt.getPolicyId())) {
+                    global_state.put("js-last-handle-unit", amt.getUnit());
+                  }
+                }
+              }
+            }
+    schedulers:
+      - name: handle-count-js
+        lang: js
+        inline-script: |
+          const n = named_jdbc.queryForObject("SELECT COUNT(*) FROM ada_handle", {}, Java.type("java.lang.Long"));
+          global_state.put("js-handle-count", n);
+        schedule:
+          type: INTERVAL
+          value: "1"
