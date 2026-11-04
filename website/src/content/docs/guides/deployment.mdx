@@ -14,18 +14,20 @@ x86-64 (amd64) and runs on older CPUs too, including VMs with a generic CPU mode
 
 ### Native image (experimental)
 
-A GraalVM native image is built weekly from `main` and published as
-`cardanofoundation/adahandle-resolver:native-weekly`. It starts in about two seconds and needs about
-half the memory of the JVM image, and syncs at roughly 80% of its speed. Configure it with the same
-environment variables; JVM flags go on the command line:
+Each release is also published as a GraalVM native image, tagged `<version>-native`, next to the JVM
+image `<version>`. It starts in about two seconds and needs about half the memory of the JVM image, and
+syncs at roughly 80% of its speed. Configure it with the same environment variables; JVM flags go on the
+command line:
 
 ```sh
-docker run -p 9095:9095 cardanofoundation/adahandle-resolver:native-weekly -Xmx2g
+docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-native -Xmx2g
 ```
 
-`native-weekly` moves to the newest build every Monday. Each build is also published under a dated tag,
-`native-<YYYYMMDD>-<commit>` (for example `native-20261109-1a2b3c4`), which doesn't move: pin that one if
-you need the same image every time. Like the JVM image, the native image is built for x86-64 (amd64) only.
+There is no moving native tag such as `latest`: pick the release you run. Like the JVM image, the native
+image is built for x86-64 (amd64) only.
+
+The native image is also built and smoke-tested every week, without publishing anything, so a change that
+breaks it under GraalVM shows up before the next release.
 
 It's built with Oracle GraalVM. The GraalVM parts compiled into the executable are covered by the
 [GraalVM Free Terms and Conditions](https://www.graalvm.org/faq/), which allow free use, including in

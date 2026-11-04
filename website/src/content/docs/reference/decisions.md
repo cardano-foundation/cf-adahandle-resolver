@@ -18,7 +18,7 @@ repository under
 | [5](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0005-burned-handles.md) | Burning a handle's token removes the handle |
 | [6](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0006-rollbacks-through-history.md) | Repair rollbacks from a history of ownership changes |
 | [7](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0007-yaci-store-2-and-resync.md) | Yaci Store 2.x, and a full resync for 1.0.0 |
-| [8](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0008-native-image.md) | A native image built with Oracle GraalVM, weekly from `main` |
+| [8](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0008-native-image.md) | A native image built with Oracle GraalVM, checked weekly, published with releases |
 | [9](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0009-testing-strategy.md) | Test on three levels: unit, devnet, and mainnet against Kora |
 | [10](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0010-keep-jpa-writes.md) | Keep JPA for the indexer's writes: batched upserts didn't make the sync faster |
 | [11](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0011-apply-changes-at-commit.md) | Apply handle changes at Yaci Store's `CommitEvent`, in chain order |
