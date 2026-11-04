@@ -35,8 +35,8 @@ and the JVM image contains no GraalVM.
 
 ## Docker Compose
 
-The repository's `docker-compose.yml` runs PostgreSQL 17 with a health check and the API. All settings
-come from `.env`. Copy `.env.example` to get started. The [Quickstart](../../getting-started/quickstart/)
+The repository's `docker-compose.yml` runs PostgreSQL 17 and the API, each with a health check (for the API,
+see [Monitoring](../monitoring/#docker-compose)). All settings come from `.env`. Copy `.env.example` to get started. The [Quickstart](../../getting-started/quickstart/)
 walks through it.
 
 Both services use `restart: unless-stopped`, so the stack comes back after a crash and after a host
@@ -94,6 +94,9 @@ helm install adahandle-resolver deploy/adahandle-resolver \
 | `serviceAccount.name`    | Existing ServiceAccount to run under (the chart doesn't create one)  | namespace default       |
 | `imagePullSecrets`       | `["regcred"]` or `[{name: regcred}]`                                 | `[]`                    |
 | `startupProbe.*`         | Startup probe timing                                                 | 60s delay, 20s period   |
+
+The liveness, readiness and startup probes use the health groups described in [Monitoring](../monitoring/#kubernetes).
+A new pod is not ready until its sync reaches the tip, about 6.5 hours on mainnet.
 
 <Aside type="caution" title="Memory limit vs. heap">
 Keep `resources.limits.memory` above the `-Xmx` in `javaToolOptions`, roughly `-Xmx` plus 0.5 Gi.

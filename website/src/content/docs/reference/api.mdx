@@ -108,3 +108,5 @@ curl http://localhost:9095/api/v1/sync/status
 `synced` turns `true` and `lag_blocks` drops to about `0` once the resolver follows the tip. Ignore
 `sync_percentage`: it counts from the start of the chain, not from the first ADA Handle block where the resolver
 starts, so it reads high from the beginning.
+
+For health probes and Prometheus metrics, see [Monitoring](../../guides/monitoring/).

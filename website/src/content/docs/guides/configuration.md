@@ -50,6 +50,7 @@ With the `postgres` profile and no `DB_URL`, the resolver connects to
 | `YACI_STORE_CARDANO_SYNC_START_SLOT`       | Slot to start syncing from                     | `47931310`                 |
 | `YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH` | Hash of the block at that slot                 | `89f934…877b`              |
 | `STORE_SYNCAUTOSTART`                      | Start syncing on boot                          | `true`                     |
+| `STORE_BLOCK_RECEIVE_DELAY_SECONDS`        | Seconds without a block before the health checks fail ([Monitoring](../monitoring/#threshold)) | `300` |
 
 The preprod and preview profiles default to the public `*-node.world.dev.cardano.org` relays
 on ports `30000` and `30002`.
