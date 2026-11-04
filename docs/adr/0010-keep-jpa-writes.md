@@ -52,3 +52,14 @@ the same tables, and no correctness gain (JPA's merge is already harmless if a b
   slot, on the same host.
 - Revisit if the write path changes (for example, many more rows per change) or if a profile shows the commit as the
   bottleneck.
+- All handle changes are written in the `CommitEvent` handler, none in the parallel block listeners. Yaci Store's own
+  guideline is the opposite: save in parallel in the normal listeners, and keep only the delta that can't be processed in
+  parallel for `CommitEvent`. For example, `address_utxo` is saved in parallel, and only the pending pointer addresses are
+  resolved at the commit. That matters for Yaci Store, whose UTxO tables are huge. Here it doesn't: handle changes are a
+  few thousand rows per batch, at most about 1,900 a second during the heaviest minting, and the benchmark above shows
+  the writes don't limit the sync. Deferring every change to the commit is also what puts them in chain order, which
+  the parallel listeners can't do (bloxbean/yaci-store#1320). The listeners do no database lookups on the hot path.
+- The commit runs on `CommitEvent`, not `PreCommitEvent`. Both are published once per batch, right after the parallel
+  processing and before the cursor is saved, and a listener sees the same data at either. `PreCommitEvent` comes first,
+  so that Yaci Store's modules (adapot, account balances) can prepare data the commit handlers use. Both are in Yaci
+  Store's `events.internal` package; `CommitEvent` is the one meant for writing a module's own delta.
