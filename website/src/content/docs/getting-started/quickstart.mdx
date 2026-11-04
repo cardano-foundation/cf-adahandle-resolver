@@ -37,6 +37,19 @@ database.
 
 </Steps>
 
+<Aside type="tip" title="Native image (experimental)">
+A GraalVM native image is also published, built weekly from `main` as
+`cardanofoundation/adahandle-resolver:native-weekly`. It starts in about two seconds and needs about half the
+memory. JVM flags go on the command line instead of `JAVA_TOOL_OPTIONS`:
+
+```sh
+docker run -d --name adahandle-resolver -p 9095:9095 -v adahandle-data:/app/data \
+  cardanofoundation/adahandle-resolver:native-weekly -Xmx2g
+```
+
+See [Deployment](../../guides/deployment/#native-image-experimental) for its licence (Oracle GraalVM).
+</Aside>
+
 </TabItem>
 <TabItem label="Compose + PostgreSQL" icon="seti:db">
 
