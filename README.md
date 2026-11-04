@@ -39,7 +39,8 @@ minting) policy `6c32db33a422e0bc2cb535bb850b5a6e9a9572222056d6ddc9cbc26e`. A ha
 
 CIP-68 reference tokens (label 100) and sub-handle settings tokens (label 1) are not handles. Labels follow
 [CIP-67](https://cips.cardano.org/cip/CIP-0067); the rules match Kora Labs' Handles API, which the
-regression suite compares against.
+regression suite compares against. [ADA Handle tokens and datums](docs/handle-datums.md) walks through each token and
+its datum, field by field, with real mainnet examples.
 
 Burning a handle's token removes the handle, for every kind above (as on Kora Labs' API): it no longer
 resolves (404) and leaves the reverse lookups. If the same handle is minted again later, it resolves to

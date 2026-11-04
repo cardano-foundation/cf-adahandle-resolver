@@ -32,3 +32,5 @@ The owner is in the token's datum, which follows CIP-68: `Constr 0 [metadata, ve
 ## References
 
 - #65; `mapper/VirtualSubHandleDatum.java`, `mapper/AdaHandleMapper.java`.
+- [ADA Handle tokens and datums](../handle-datums.md#5-virtual-sub-handles-the-datum-is-the-owner): the datum, field by
+  field, and how its address bytes become the address the API returns.

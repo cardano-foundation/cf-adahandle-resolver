@@ -4,11 +4,11 @@ import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
+import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
 import org.cardanofoundation.tools.adahandle.resolver.util.Crc8;
 import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HexFormat;
 
@@ -18,20 +18,6 @@ public class AdaHandleMapper {
     // label is skipped, e.g. 100 (CIP-68 reference token) and 1 (sub-handle settings token).
     private static final int LABEL_HANDLE = 222;
     private static final int LABEL_VIRTUAL_SUBHANDLE = 0;
-
-    public static ArrayList<AdaHandle> toAdaHandles(AddressUtxo addressUtxo) {
-        final ArrayList<AdaHandle> adaHandles = new ArrayList<>();
-
-        if (addressUtxo.getAmounts() != null) {
-            for (final Amt amount : addressUtxo.getAmounts()) {
-                AdaHandle adaHandle = toAdaHandle(addressUtxo, amount);
-                if (adaHandle != null) {
-                    adaHandles.add(adaHandle);
-                }
-            }
-        }
-        return adaHandles;
-    }
 
     /**
      * Returns the handle carried by an amount of this output, with the address it resolves to, or
@@ -86,6 +72,17 @@ public class AdaHandleMapper {
      * sub-handle (label 222) or a virtual sub-handle (label 0) removes the handle; burning a
      * reference (100) or sub-handle settings (1) token removes nothing.
      */
+    public static @Nullable AdaHandleHistoryItem burn(Amount amount, long slot) {
+        String name = burnedHandleName(amount);
+        return name == null ? null : AdaHandleHistoryItem.burn(name, slot, unit(amount));
+    }
+
+    /** The token's unit, policy id + asset name in hex, as in the outputs' amounts. */
+    private static String unit(Amount amount) {
+        return amount.getUnit() != null ? amount.getUnit()
+                : amount.getPolicyId() + HexFormat.of().formatHex(amount.getAssetNameBytes());
+    }
+
     public static @Nullable String burnedHandleName(Amount amount) {
         if (amount.getQuantity() == null || amount.getQuantity().signum() >= 0
                 || !AdaHandlePolicies.contains(amount.getPolicyId())) {

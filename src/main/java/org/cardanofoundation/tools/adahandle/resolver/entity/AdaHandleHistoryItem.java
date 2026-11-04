@@ -25,6 +25,12 @@ public class AdaHandleHistoryItem {
     /** The handle's token was burned at this slot: from here on the handle doesn't exist (no addresses). */
     @Column(name = "burned")
     private boolean burned;
+    /**
+     * The token (policy id + asset name, hex) whose output or burn this change comes from. Not stored: it is only used
+     * to order the changes of one block, see {@code AdaHandleProcessor}.
+     */
+    @Transient
+    private @Nullable String token;
 
     public AdaHandleHistoryItem(String name, @Nullable String stakeAddress, @Nullable String paymentAddress, long slot) {
         this.name = name;
@@ -33,9 +39,10 @@ public class AdaHandleHistoryItem {
         this.slot = slot;
     }
 
-    public static AdaHandleHistoryItem burn(String name, long slot) {
+    public static AdaHandleHistoryItem burn(String name, long slot, @Nullable String token) {
         AdaHandleHistoryItem item = new AdaHandleHistoryItem(name, null, null, slot);
         item.burned = true;
+        item.token = token;
         return item;
     }
 }

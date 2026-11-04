@@ -10,6 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Objects;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -106,7 +107,7 @@ public class AdaHandleHistoryMapperTest {
 
         List<String> historyNames = AdaHandleHistoryMapper.fromAddressUtxoEntities(addressUtxo).stream()
                 .map(AdaHandleHistoryItem::getName).toList();
-        List<String> adaHandleNames = AdaHandleMapper.toAdaHandles(addressUtxo).stream()
+        List<String> adaHandleNames = toAdaHandles(addressUtxo).stream()
                 .map(adaHandle -> adaHandle.getName()).toList();
 
         assertThat(historyNames, contains("alice", "legacy"));
@@ -126,7 +127,7 @@ public class AdaHandleHistoryMapperTest {
                 .build();
 
         List<AdaHandleHistoryItem> history = AdaHandleHistoryMapper.fromAddressUtxoEntities(addressUtxo);
-        List<AdaHandle> adaHandles = AdaHandleMapper.toAdaHandles(addressUtxo);
+        List<AdaHandle> adaHandles = toAdaHandles(addressUtxo);
 
         // A rollback restores the history entry, so it must hold the same name and owner.
         assertThat(history, hasSize(1));
@@ -134,5 +135,16 @@ public class AdaHandleHistoryMapperTest {
         assertThat(history.get(0).getPaymentAddress(), is(VirtualSubHandleDatumTest.RESOLVED_331_HAL));
         assertThat(history.get(0).getStakeAddress(), is(VirtualSubHandleDatumTest.STAKE_331_HAL));
         assertThat(history.get(0).getSlot(), is(1500L));
+    }
+
+    /** The handles an output carries, as the indexer maps them (one per handle token). */
+    private static List<AdaHandle> toAdaHandles(AddressUtxo addressUtxo) {
+        if (addressUtxo.getAmounts() == null) {
+            return List.of();
+        }
+        return addressUtxo.getAmounts().stream()
+                .map(amount -> AdaHandleMapper.toAdaHandle(addressUtxo, amount))
+                .filter(Objects::nonNull)
+                .toList();
     }
 }

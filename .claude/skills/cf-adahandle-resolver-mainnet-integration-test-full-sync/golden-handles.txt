@@ -56,3 +56,9 @@ _snek
 # DeMi (decentralized minting) policy 6c32db33…
 demiking
 first_demi
+
+# Legacy handles migrated to CIP-68: one transaction burned the legacy token and minted the label-222
+# token of the same name. The handle lives on (415 such handles on mainnet).
+kanemiller
+morrow
+cetf
