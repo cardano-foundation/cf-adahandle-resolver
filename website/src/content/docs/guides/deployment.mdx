@@ -23,6 +23,10 @@ environment variables; JVM flags go on the command line:
 docker run -p 9095:9095 cardanofoundation/adahandle-resolver:native-weekly -Xmx2g
 ```
 
+`native-weekly` moves to the newest build every Monday. Each build is also published under a dated tag,
+`native-<YYYYMMDD>-<commit>` (for example `native-20261109-1a2b3c4`), which doesn't move: pin that one if
+you need the same image every time. Like the JVM image, the native image is built for x86-64 (amd64) only.
+
 It's built with Oracle GraalVM. The GraalVM parts compiled into the executable are covered by the
 [GraalVM Free Terms and Conditions](https://www.graalvm.org/faq/), which allow free use, including in
 production and hosted services, and free redistribution, but not redistribution for a fee. The image

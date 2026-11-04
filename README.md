@@ -86,7 +86,7 @@ Java 25
 git clone https://github.com/cardano-foundation/cf-adahandle-resolver.git
 cd cf-adahandle-resolver
 ./mvnw clean package
-java -Xmx4g -jar target/cf-adahandle-resolver-*-SNAPSHOT.jar
+java -Xmx4g -jar target/cf-adahandle-resolver-*.jar
 ```
 
 ### ⚡ Native image (weekly, experimental)
@@ -120,7 +120,7 @@ in `/licenses/graalvm`. The resolver's own code is MIT licensed, and the JVM ima
   yaci-devkit up --enable-yaci-store          # npm install -g @bloxbean/yaci-devkit
   ADAHANDLE_POLICY_IDS=3a888d65f16790950a72daee1f63aa05add6d268434107cfa5b67712,db63f51afa43f19d42687acb2671c1bdfe04ab8dceb9526e8ceb6935 \
     SPRING_ACTIVE_PROFILES=devnet,postgres DB_URL=jdbc:postgresql://localhost:5432/adahandle \
-    DB_USERNAME=adahandle DB_PASSWORD=adahandle java -jar target/cf-adahandle-resolver-*-SNAPSHOT.jar &
+    DB_USERNAME=adahandle DB_PASSWORD=adahandle java -jar target/cf-adahandle-resolver-*.jar &
   ./mvnw verify -DskipUTs=true -DskipITs=false
   ```
 - **Mainnet regression** (Claude Code skills in `.claude/skills`): a full mainnet sync on a remote host,
@@ -144,7 +144,7 @@ However, you may not want a crawl job on every instance. To disable the indexer 
 utilize the `disable-indexer` profile as an environment variable.
 
 ```zsh
-SPRING_ACTIVE_PROFILES=mainnet,postgres,disable-indexer java -jar target/cf-adahandle-resolver-*-SNAPSHOT.jar
+SPRING_ACTIVE_PROFILES=mainnet,postgres,disable-indexer java -jar target/cf-adahandle-resolver-*.jar
 ```
 
 ## 🌱 Environment Variables
