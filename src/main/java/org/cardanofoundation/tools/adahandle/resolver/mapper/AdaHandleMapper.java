@@ -4,6 +4,7 @@ import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
+import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
 import org.cardanofoundation.tools.adahandle.resolver.util.Crc8;
 import org.jspecify.annotations.Nullable;
 
@@ -86,6 +87,17 @@ public class AdaHandleMapper {
      * sub-handle (label 222) or a virtual sub-handle (label 0) removes the handle; burning a
      * reference (100) or sub-handle settings (1) token removes nothing.
      */
+    public static @Nullable AdaHandleHistoryItem burn(Amount amount, long slot) {
+        String name = burnedHandleName(amount);
+        return name == null ? null : AdaHandleHistoryItem.burn(name, slot, unit(amount));
+    }
+
+    /** The token's unit, policy id + asset name in hex, as in the outputs' amounts. */
+    private static String unit(Amount amount) {
+        return amount.getUnit() != null ? amount.getUnit()
+                : amount.getPolicyId() + HexFormat.of().formatHex(amount.getAssetNameBytes());
+    }
+
     public static @Nullable String burnedHandleName(Amount amount) {
         if (amount.getQuantity() == null || amount.getQuantity().signum() >= 0
                 || !AdaHandlePolicies.contains(amount.getPolicyId())) {
