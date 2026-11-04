@@ -24,6 +24,9 @@ store:
         inline-script: |
           const n = named_jdbc.queryForObject("SELECT COUNT(*) FROM ada_handle", {}, Java.type("java.lang.Long"));
           global_state.put("js-handle-count", n);
+        # Runs once at startup, then every 10 minutes: no second run during the test. Yaci Store 2.0.7 fills the
+        # plugins' variables on first use without a lock, so a second run while the first one still fills them
+        # (on a slow CI runner) sees named_jdbc missing.
         schedule:
           type: INTERVAL
-          value: "1"
+          value: "600"

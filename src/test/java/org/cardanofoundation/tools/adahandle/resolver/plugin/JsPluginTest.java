@@ -5,6 +5,7 @@ import com.bloxbean.cardano.yaci.store.events.EventMetadata;
 import com.bloxbean.cardano.yaci.store.events.MintBurnEvent;
 import com.bloxbean.cardano.yaci.store.events.domain.TxMintBurn;
 import com.bloxbean.cardano.yaci.store.plugin.cache.PluginStateService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -38,6 +39,12 @@ public class JsPluginTest {
     @Autowired
     private PluginStateService pluginState;
 
+    /** The scheduler's first run, at startup, is the first plugin call: wait for it before calling another plugin. */
+    @BeforeEach
+    public void waitForSchedulerFirstRun() {
+        await().atMost(Duration.ofSeconds(30)).until(() -> pluginState.global().get("js-handle-count") != null);
+    }
+
     @Test
     public void testJsEventHandlerSeesHandleMints() {
         pluginState.global().remove("js-last-handle-unit");
@@ -53,8 +60,7 @@ public class JsPluginTest {
 
     @Test
     public void testJsSchedulerQueriesResolverTables() {
-        await().atMost(Duration.ofSeconds(10)).untilAsserted(() ->
-                assertThat(((Number) pluginState.global().get("js-handle-count")).longValue(), equalTo(0L)));
+        assertThat(((Number) pluginState.global().get("js-handle-count")).longValue(), equalTo(0L));
     }
 
     private static MintBurnEvent mint(boolean syncMode, String policyId, String assetNameHex) {
