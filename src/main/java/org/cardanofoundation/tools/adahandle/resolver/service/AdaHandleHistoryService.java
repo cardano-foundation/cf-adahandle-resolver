@@ -17,7 +17,8 @@ public class AdaHandleHistoryService {
     private final AdaHandleHistoryRepository adaHandleHistoryRepository;
     private final AdaHandleService adaHandleService;
 
-    public void rollbackToSlot(long slot) {
+    /** @return the handles restored or removed; 0 when nothing was stored after the slot */
+    public int rollbackToSlot(long slot) {
         log.info("Rollback to slot {}", slot);
 
         // Capture the distinct handle names touched on the abandoned fork BEFORE deleting,
@@ -31,7 +32,7 @@ public class AdaHandleHistoryService {
             // catch-up-to-tip transition). Nothing was removed, so the handle table is already
             // correct — skip the recalculation entirely.
             log.info("Rollback to slot {} deleted 0 history rows — nothing to do", slot);
-            return;
+            return 0;
         }
 
         log.info("Rollback to slot {} deleted {} history rows across {} handle(s)",
@@ -52,6 +53,7 @@ public class AdaHandleHistoryService {
         }
 
         log.info("Finished rollback to slot {}", slot);
+        return affectedNames.size();
     }
 
     public void saveAll(List<AdaHandleHistoryItem> adaHandleHistoryItems) {
