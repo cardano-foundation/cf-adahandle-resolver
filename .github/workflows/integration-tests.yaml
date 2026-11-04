@@ -8,6 +8,10 @@ on:
     types: [ opened, synchronize ]
   workflow_dispatch:
 
+# Read-only: it checks out the code and uploads logs (CodeQL actions/missing-workflow-permissions).
+permissions:
+  contents: read
+
 env:
   YACI_DEVKIT_VERSION: 0.12.0
   # The two policies the tests mint handles with (Devnet.POLICY_ID, Devnet.SECOND_POLICY_ID).
