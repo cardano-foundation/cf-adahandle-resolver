@@ -58,10 +58,14 @@ virtual sub-handle on mainnet uses one today.
 3. **Collect.** The changes are held in memory until Yaci Store commits. During the initial sync a
    commit covers a batch of 100 blocks. At the tip there's a commit after every block.
 4. **Order.** Yaci Store processes the blocks of a batch in parallel, so their events arrive in no
-   particular order. At the commit, the resolver sorts the changes by slot, putting a burn after the
-   outputs of its block, which gives the chain order.
-5. **Write.** In one transaction, every change is appended to the history, and each handle's last
-   state is written to `ada_handle`. A handle whose last change is a burn is deleted.
+   particular order. At the commit, the resolver sorts the changes by slot and works out each
+   handle's state at the end of each block. Within a block, the burned token tells the order: an
+   output carrying the burned token came before the burn, and an output carrying another token of
+   the same name came after it. That's how legacy handles were migrated to CIP-68: one transaction
+   burns the legacy token and mints the CIP-68 token, and the handle lives on.
+5. **Write.** In one transaction, each handle's state at the end of each block is appended to the
+   history, and its last state is written to `ada_handle`. A handle whose last state is burned is
+   deleted.
 
 ## Burned handles
 
@@ -76,7 +80,7 @@ The schema is managed by Flyway and has two tables:
 | Table                     | Key            | Holds                                                                  |
 | ------------------------- | -------------- | ---------------------------------------------------------------------- |
 | `ada_handle`              | `name`         | The current state: `payment_address`, `stake_address`                  |
-| `ada_handle_history_item` | `(name, slot)` | Every ownership change and every burn (`burned`), indexed by `slot`    |
+| `ada_handle_history_item` | `(name, slot)` | Each handle's state at the end of every block that changed it, including burns (`burned`) |
 
 `ada_handle` is indexed on both address columns, which serves the reverse lookups. A full mainnet index
 holds about 266,000 handles and some 15 million history rows.
