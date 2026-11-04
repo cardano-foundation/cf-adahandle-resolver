@@ -3,8 +3,8 @@ title: Design decisions
 description: The architecture decision records (ADRs) behind the resolver, including the ADA Handle rules it follows.
 ---
 
-ADA Handles have no CIP. What counts as a handle, whom it resolves to and what a burn does are defined
-only by the code of Kora Labs, who created ADA Handle. The resolver writes down the rules it follows,
+What counts as a handle, whom it resolves to and what a burn does are defined only by the code of
+Kora Labs, who created ADA Handle. The resolver writes down the rules it follows,
 and every other decision that shapes it, as **architecture decision records**. They live in the
 repository under
 [`docs/adr`](https://github.com/cardano-foundation/cf-adahandle-resolver/tree/main/docs/adr).

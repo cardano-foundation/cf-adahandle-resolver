@@ -11,7 +11,7 @@
 
 This project aims to provide a scoped indexer for retrieving ADA Handle information from the Cardano blockchain and exposing it via REST using [Yaci Store](https://github.com/bloxbean/yaci-store).
 
-Design decisions, including the ADA Handle resolution rules we follow (ADA Handles have no CIP), are recorded as
+Design decisions, including the ADA Handle resolution rules we follow, are recorded as
 [Architecture Decision Records](docs/adr/README.md).
 
 ## Why ADA Handle resolver?

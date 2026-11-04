@@ -1,6 +1,6 @@
 # ADA Handle tokens and datums
 
-ADA Handles have no CIP. This document describes, step by step, the tokens behind each kind of handle and the data
+This document describes, step by step, the tokens behind each kind of handle and the data
 attached to them on chain: CIP-25 metadata for legacy handles, and Plutus datums for everything else. It is built from
 Kora Labs' code (they created ADA Handle) and from real mainnet datums, decoded here field by field.
 
