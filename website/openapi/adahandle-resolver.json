@@ -27,10 +27,6 @@
 		{
 			"name": "ADA Handles",
 			"description": "Look up the ADA Handles held by an address"
-		},
-		{
-			"name": "Network API",
-			"description": "APIs for Network information"
 		}
 	],
 	"paths": {
@@ -151,145 +147,10 @@
 					}
 				}
 			}
-		},
-		"/api/v1/sync/status": {
-			"get": {
-				"tags": [
-					"Network API"
-				],
-				"description": "Get indexer sync status: store tip vs node tip. network_tip_available indicates whether lag_blocks, sync_percentage, and synced are based on a current node tip.",
-				"operationId": "getSyncStatus",
-				"responses": {
-					"200": {
-						"description": "OK",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/SyncStatusDto"
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/v1/genesis": {
-			"get": {
-				"tags": [
-					"Network API"
-				],
-				"description": "Get network genesis information (Blockfrost compatible shape). Use network_magic to verify which Cardano network this instance is serving.",
-				"operationId": "getGenesisInfo",
-				"responses": {
-					"200": {
-						"description": "OK",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/GenesisDto"
-								}
-							}
-						}
-					}
-				}
-			}
 		}
 	},
 	"components": {
 		"schemas": {
-			"SyncStatusDto": {
-				"type": "object",
-				"properties": {
-					"block": {
-						"type": "integer",
-						"format": "int64"
-					},
-					"slot": {
-						"type": "integer",
-						"format": "int64"
-					},
-					"epoch": {
-						"type": "integer",
-						"format": "int32"
-					},
-					"era": {
-						"type": "string"
-					},
-					"block_hash": {
-						"type": "string"
-					},
-					"sync_percentage": {
-						"type": "number",
-						"format": "double"
-					},
-					"network_block": {
-						"type": "integer",
-						"format": "int64"
-					},
-					"network_slot": {
-						"type": "integer",
-						"format": "int64"
-					},
-					"lag_blocks": {
-						"type": "integer",
-						"format": "int64"
-					},
-					"network_tip_available": {
-						"type": "boolean"
-					},
-					"synced": {
-						"type": "boolean"
-					},
-					"protocol_magic": {
-						"type": "integer",
-						"format": "int64"
-					}
-				}
-			},
-			"GenesisDto": {
-				"type": "object",
-				"properties": {
-					"active_slots_coefficient": {
-						"type": "number",
-						"format": "double"
-					},
-					"update_quorum": {
-						"type": "integer",
-						"format": "int32"
-					},
-					"max_lovelace_supply": {
-						"type": "string"
-					},
-					"network_magic": {
-						"type": "integer",
-						"format": "int64"
-					},
-					"epoch_length": {
-						"type": "integer",
-						"format": "int64"
-					},
-					"system_start": {
-						"type": "integer",
-						"format": "int64"
-					},
-					"slots_per_kes_period": {
-						"type": "integer",
-						"format": "int64"
-					},
-					"slot_length": {
-						"type": "integer",
-						"format": "int64"
-					},
-					"max_kes_evolutions": {
-						"type": "integer",
-						"format": "int32"
-					},
-					"security_param": {
-						"type": "integer",
-						"format": "int32"
-					}
-				}
-			},
 			"Addresses": {
 				"type": "object",
 				"description": "Addresses that currently hold an ADA Handle",

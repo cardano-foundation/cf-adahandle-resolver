@@ -9,8 +9,8 @@ import { writeFile } from 'node:fs/promises';
 const baseUrl = process.argv[2] ?? 'http://localhost:9095';
 const output = new URL('../openapi/adahandle-resolver.json', import.meta.url);
 
-// Resolver endpoints first; Yaci Store's built-in endpoints after.
-const tagOrder = ['Addresses', 'ADA Handles', 'Network API', 'Plugin API'];
+// The spec has only the resolver's endpoints (springdoc.packages-to-scan); addresses first.
+const tagOrder = ['Addresses', 'ADA Handles'];
 
 const response = await fetch(`${baseUrl}/apidocs`);
 if (!response.ok) {

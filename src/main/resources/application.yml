@@ -36,6 +36,9 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
   paths-to-match: /api/**
+  # Only the resolver's own controllers. Yaci Store's endpoints (/api/v1/sync/status, /api/v1/genesis, and the
+  # plugin API when switched on) still answer, but stay out of the API documentation.
+  packages-to-scan: org.cardanofoundation.tools.adahandle.resolver
 
 logging:
   file:

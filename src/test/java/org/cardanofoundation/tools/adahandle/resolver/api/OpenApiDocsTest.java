@@ -8,6 +8,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 
 import static io.restassured.RestAssured.when;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
@@ -38,6 +39,18 @@ public class OpenApiDocsTest {
                 .body("paths.'/api/v1/addresses/by-ada-handle/{adaHandle}'.get", notNullValue())
                 .body("paths.'/api/v1/ada-handles/by-stake-address/{stakeAddress}'.get", notNullValue())
                 .body("paths.'/api/v1/ada-handles/by-payment-address/{paymentAddress}'.get", notNullValue());
+    }
+
+    @Test
+    public void testApiDocsListOnlyResolverEndpoints() {
+        // Yaci Store's own endpoints, such as /api/v1/sync/status, are served but not documented.
+        when().get("/apidocs")
+                .then()
+                .statusCode(200)
+                .body("paths.keySet()", containsInAnyOrder(
+                        "/api/v1/addresses/by-ada-handle/{adaHandle}",
+                        "/api/v1/ada-handles/by-stake-address/{stakeAddress}",
+                        "/api/v1/ada-handles/by-payment-address/{paymentAddress}"));
     }
 
     @Test

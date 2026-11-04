@@ -11,8 +11,7 @@ by default. Any origin can call them (CORS).
 <Aside type="tip" title="OpenAPI">
 The resolver publishes its OpenAPI 3 spec at **`/apidocs`** and serves Swagger UI at
 **`/swagger-ui.html`**. The [OpenAPI section](../../api/) of this site is generated from the same
-spec. It also lists the endpoints built into Yaci Store, such as `/api/v1/sync/status`, which shows
-how far the indexer has synced.
+spec, and documents only the resolver's own endpoints, below.
 </Aside>
 
 ## Resolve a handle to addresses
@@ -89,3 +88,23 @@ responses never include the `$` prefix.
 - Addresses must be bech32 (`addr1…`, `stake1…`, or the `_test` variants on testnets).
 - Results show the **current** owner, as of the last block the indexer has processed. During the
   initial sync, recently transferred handles may still show an older owner.
+
+## Sync status
+
+Yaci Store, which the resolver is built on, adds endpoints of its own. They are for operators, not for
+looking up handles, so they are left out of the OpenAPI spec, but they work as usual:
+
+- `/api/v1/sync/status`: the block the indexer has reached, the chain tip, and whether it has caught up.
+- `/api/v1/genesis`: the network's genesis parameters.
+
+```sh
+curl http://localhost:9095/api/v1/sync/status
+```
+
+```json
+{"block":6638041,"slot":48154092,"era":"Alonzo","network_block":14157046,"lag_blocks":7519005,"synced":false, …}
+```
+
+`synced` turns `true` and `lag_blocks` drops to about `0` once the resolver follows the tip. Ignore
+`sync_percentage`: it counts from the start of the chain, not from the first ADA Handle block where the resolver
+starts, so it reads high from the beginning.
