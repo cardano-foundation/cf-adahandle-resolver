@@ -1,0 +1,59 @@
+/*
+ * Cardano Foundation branding (cardanofoundation.org): the Switzer typeface, a greyscale palette, one violet-blue
+ * accent, pill-shaped buttons, regular-weight headings with tight tracking.
+ */
+@import url('https://api.fontshare.com/v2/css?f[]=switzer@400,500,600&display=swap');
+
+:root {
+	--sl-font: 'Switzer', ui-sans-serif, system-ui, sans-serif;
+	--cf-ink: #0a0a0a;
+	--cf-ink-soft: #272727;
+	--cf-paper: #e5e5e5;
+	--cf-accent: #4221e2;
+
+	/* dark theme (Starlight's default when the system is dark) */
+	--sl-color-accent-low: #1d1450;
+	--sl-color-accent: #8c7bff;
+	--sl-color-accent-high: #d9d3ff;
+	--sl-color-white: #ffffff;
+	--sl-color-gray-1: #ececec;
+	--sl-color-gray-2: #c4c4c4;
+	--sl-color-gray-3: #9a9a9a;
+	--sl-color-gray-4: #6b6b6b;
+	--sl-color-gray-5: #3a3a3a;
+	--sl-color-gray-6: #1f1f1f;
+	--sl-color-black: #131313;
+}
+
+:root[data-theme='light'] {
+	--sl-color-accent-low: #dcd6fb;
+	--sl-color-accent: #4221e2;
+	--sl-color-accent-high: #1f0f78;
+	--sl-color-white: #0a0a0a;
+	--sl-color-gray-1: #272727;
+	--sl-color-gray-2: #404040;
+	--sl-color-gray-3: #5c5c5c;
+	--sl-color-gray-4: #838383;
+	--sl-color-gray-5: #c9c9c9;
+	--sl-color-gray-6: #e5e5e5;
+	--sl-color-gray-7: #f2f2f2;
+	--sl-color-black: #fafafa;
+}
+
+/* headings as on cardanofoundation.org: regular weight, tight tracking */
+.sl-markdown-content :is(h1, h2, h3),
+h1#_top {
+	font-weight: 400;
+	letter-spacing: -0.02em;
+}
+
+/* The docs are table-heavy. */
+.sl-markdown-content table {
+	font-size: var(--sl-text-sm);
+}
+
+.credit {
+	margin-top: 1.5rem;
+	font-size: var(--sl-text-xs);
+	color: var(--sl-color-gray-3);
+}

@@ -2,8 +2,10 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import starlightOpenAPI, { openAPISidebarGroups } from 'starlight-openapi';
+import tailwindcss from '@tailwindcss/vite';
 
-// Served from GitHub Pages next to the existing coverage report and badges.
+// Served from GitHub Pages next to the existing coverage report and badges. Themed like the Cardano Foundation's other
+// Starlight sites (cf-token-metadata-registry): src/styles/starlight.css for the docs, src/pages/index.astro for the home page.
 export default defineConfig({
 	site: 'https://cardano-foundation.github.io',
 	base: '/cf-adahandle-resolver',
@@ -12,22 +14,10 @@ export default defineConfig({
 			title: 'ADA Handle Resolver',
 			description:
 				'A scoped Cardano indexer by the Cardano Foundation that resolves ADA Handles to addresses, and back, over REST.',
-			logo: {
-				light: './src/assets/logo-light.svg',
-				dark: './src/assets/logo-dark.svg',
-				alt: 'ADA Handle Resolver',
-			},
-			favicon: '/favicon.svg',
-			customCss: [
-				'@fontsource-variable/syne',
-				'@fontsource/chivo/400.css',
-				'@fontsource/chivo/600.css',
-				'./src/styles/theme.css',
-			],
+			customCss: ['./src/styles/starlight.css'],
 			components: {
-				Hero: './src/components/Hero.astro',
 				Footer: './src/components/Footer.astro',
-				ThemeProvider: './src/components/ThemeProvider.astro',
+				SiteTitle: './src/components/SiteTitle.astro',
 			},
 			social: [
 				{
@@ -80,4 +70,7 @@ export default defineConfig({
 			],
 		}),
 	],
+	vite: {
+		plugins: [tailwindcss()],
+	},
 });

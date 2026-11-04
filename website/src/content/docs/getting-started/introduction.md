@@ -3,7 +3,7 @@ title: Introduction
 description: What the ADA Handle Resolver is, what it does and when to use it.
 ---
 
-[ADA Handles](https://handle.me) are human-readable names such as <span class="handle">$alice</span>
+[ADA Handles](https://handle.me) are human-readable names such as `$alice`
 that point to a Cardano address. Each handle is a native asset of one of the two ADA Handle minting
 policies. Whoever holds the token owns the handle, and the handle resolves to the address that holds
 it. Virtual sub-handles are the exception: they resolve to an address written in their datum.

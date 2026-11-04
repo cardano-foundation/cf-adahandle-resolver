@@ -1,0 +1,22 @@
+@import url('https://api.fontshare.com/v2/css?f[]=switzer@400,500,600&display=swap');
+@import 'tailwindcss';
+
+/* The Cardano Foundation theme, shared with the CF Token Metadata Registry's site. */
+@theme {
+	--font-sans: 'Switzer', ui-sans-serif, system-ui, sans-serif;
+	--color-cf-ink: #0a0a0a;
+	--color-cf-ink-soft: #272727;
+	--color-cf-paper: #e5e5e5;
+	--color-cf-stone: #d9d9d9;
+	--color-cf-night: #131313;
+	--color-cf-accent: #4221e2;
+}
+
+/* the soft orange-to-blue glow of the cardanofoundation.org hero */
+.cf-glow {
+	background:
+		radial-gradient(40rem 30rem at 22% 72%, rgb(255 168 76 / 0.55), transparent 70%),
+		radial-gradient(42rem 34rem at 78% 30%, rgb(86 156 255 / 0.55), transparent 70%),
+		radial-gradient(30rem 24rem at 55% 55%, rgb(120 200 255 / 0.35), transparent 70%);
+	filter: blur(10px);
+}

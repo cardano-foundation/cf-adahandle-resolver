@@ -14,13 +14,18 @@ npm run build     # static output in dist/
 
 ## Layout
 
-| Path                         | Contents                                                   |
-| ---------------------------- | ---------------------------------------------------------- |
-| `src/content/docs/`          | Pages (Markdown / MDX)                                     |
-| `src/components/`            | Hero and footer overrides                                  |
-| `src/styles/theme.css`       | CF × ADA Handle brand theme (colors, fonts, gradient)      |
-| `src/assets/logo-*.svg`      | Logo: Cardano Foundation mark with an ADA Handle `$` badge  |
-| `openapi/`                   | OpenAPI spec rendered by `starlight-openapi` under `/api/` |
+| Path                          | Contents                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| `src/pages/index.astro`       | Home page (Tailwind), styled after cardanofoundation.org                   |
+| `src/content/docs/`           | Docs pages (Markdown / MDX)                                               |
+| `src/styles/starlight.css`    | Cardano Foundation theme for the docs: Switzer, greyscale, violet accent |
+| `src/styles/landing.css`      | The same theme as Tailwind tokens, for the home page                      |
+| `src/components/`             | Header (CF logo + product name) and footer overrides                      |
+| `public/images/`              | Cardano Foundation logos                                                  |
+| `openapi/`                    | OpenAPI spec rendered by `starlight-openapi` under `/api/`                |
+
+The theme is the one the CF Token Metadata Registry's site uses, so the Cardano Foundation's Starlight sites look
+alike. Keep them in step when changing it.
 
 ## Pages kept in two places
 
