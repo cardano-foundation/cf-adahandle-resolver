@@ -263,7 +263,7 @@ expression (`type: CRON`), and post its result anywhere with `http`.
 | Setting | Environment variable | Default | Meaning |
 | ------- | -------------------- | ------- | ------- |
 | `store.plugins.enabled` | `STORE_PLUGINS_ENABLED` | `false` | Switches the plugin system on |
-| `store.plugins.exit-on-error` | `STORE_PLUGINS_EXIT_ON_ERROR` | `true` | When a plugin fails: a failing event handler stops the resolver, a failing scheduler is cancelled until restart. Set it to `false` |
+| `store.plugins.exit-on-error` | `STORE_PLUGINS_EXIT_ON_ERROR` | `true` | When a plugin fails: an event handler's error stops the sync, a failing scheduler is cancelled until restart. Set it to `false` |
 | `store.plugins.api-enabled` | `STORE_PLUGINS_API_ENABLED` | `false` | The plugin monitoring API, below |
 | `store.plugins.metrics-enabled` | `STORE_PLUGINS_METRICS_ENABLED` | `true` | Run counts and timings, for the monitoring API and `/actuator/prometheus` |
 
