@@ -137,6 +137,32 @@ in `/licenses/graalvm`. The resolver's own code is MIT licensed, and the JVM ima
 | http://localhost:9095/api/v1/ada-handles/by-stake-address/{stakeAddress}     | [GET]s the handles held by a stake address                                                   |
 | http://localhost:9095/api/v1/ada-handles/by-payment-address/{paymentAddress} | [GET]s the handles held by a payment address                                                 |
 
+## 📈 Monitoring
+
+| Endpoint                     | What it tells you                                                                            |
+|------------------------------|----------------------------------------------------------------------------------------------|
+| `/actuator/health/liveness`  | `200` while blocks arrive from the node (Yaci Store's `nodeHealth`)                          |
+| `/actuator/health/readiness` | `200` once the sync has reached the tip (`nodeSync`) and the database is up; `503` before    |
+| `/actuator/health/startup`   | `200` once the database is up and the node connected                                         |
+| `/actuator/health`           | All checks, with details                                                                     |
+| `/actuator/prometheus`       | Prometheus metrics, labelled `application="cf-adahandle-resolver"`                           |
+| `/api/v1/sync/status`        | Yaci Store's sync status: block reached, tip, `lag_blocks`, `synced`                         |
+
+The Helm chart's probes and the Docker Compose healthcheck use these groups. A fresh instance is not ready
+until it has synced, about 6.5 hours on mainnet. The node checks fail after 300 s without a block
+(`STORE_BLOCK_RECEIVE_DELAY_SECONDS`).
+
+Metrics about handles, next to Yaci Store's `yaci_store_*` sync metrics and the standard Spring Boot ones:
+
+| Metric                                | Meaning                                                                       |
+|---------------------------------------|-------------------------------------------------------------------------------|
+| `adahandle_handles{type}`             | Handles that exist now; `type` is `handle` or `subhandle`                    |
+| `adahandle_mints_total{type}`         | Handle tokens minted (a legacy handle moved to CIP-68 counts as a mint and a burn) |
+| `adahandle_burns_total{type}`         | Handle tokens burned                                                          |
+| `adahandle_history_rows_total`        | Handle states written to the history                                          |
+| `adahandle_rollbacks_total{outcome}`  | Rollbacks, `noop` or `applied`                                                |
+| `adahandle_rollback_handles_total`    | Handles that rollbacks restored or removed                                    |
+
 ## 👻 Disable Indexer
 
 If you intend to scale this service, running multiple instances of the API is advisable. 
@@ -166,4 +192,5 @@ Possible profiles: `mainnet`, `preprod`, `preview`, `devnet` (a local Yaci DevKi
 | YACI_STORE_CARDANO_SYNC_START_SLOT       | Slot to start syncing from (mainnet: the first ADA Handle mint) | 47931310                 |
 | YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH | Hash of the block at that slot                                  | `89f934…a877b`           |
 | ADAHANDLE_POLICY_IDS   | Comma-separated minting policies indexed as handles; only change it for tests | both ADA Handle policies |
+| STORE_BLOCK_RECEIVE_DELAY_SECONDS | Seconds without a block before the health checks report the node as down | 300 |
 | JAVA_TOOL_OPTIONS      | JVM options, e.g. the heap (`-Xmx4g` for a mainnet sync)       | `<No default value>`               |
