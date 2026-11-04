@@ -1,25 +1,21 @@
 package org.cardanofoundation.tools.adahandle.resolver.service;
 
-
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
 import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleHistoryMapper;
 import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleHistoryRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class AdaHandleHistoryService {
 
-    @Autowired
-    private AdaHandleHistoryRepository adaHandleHistoryRepository;
-
-    @Autowired
-    private AdaHandleService adaHandleService;
+    private final AdaHandleHistoryRepository adaHandleHistoryRepository;
+    private final AdaHandleService adaHandleService;
 
     public void rollbackToSlot(long slot) {
         log.info("Rollback to slot {}", slot);
@@ -58,12 +54,7 @@ public class AdaHandleHistoryService {
         log.info("Finished rollback to slot {}", slot);
     }
 
-
     public void saveAll(List<AdaHandleHistoryItem> adaHandleHistoryItems) {
         adaHandleHistoryRepository.saveAll(adaHandleHistoryItems);
-    }
-
-    public void deleteAll() {
-        adaHandleHistoryRepository.deleteAll();
     }
 }

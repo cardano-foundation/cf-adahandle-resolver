@@ -11,6 +11,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Objects;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -57,7 +58,7 @@ public class AdaHandleMapperTest {
                 .build());
 
         List<AdaHandle> adaHandles = addressUtxoEntities.stream()
-                .map(AdaHandleMapper::toAdaHandles).flatMap(List::stream)
+                .map(AdaHandleMapperTest::toAdaHandles).flatMap(List::stream)
                 .toList();
 
         assertThat(adaHandles, hasSize(2));
@@ -81,7 +82,7 @@ public class AdaHandleMapperTest {
                 .slot(1300L)
                 .build();
 
-        List<AdaHandle> adaHandles = AdaHandleMapper.toAdaHandles(addressUtxo);
+        List<AdaHandle> adaHandles = toAdaHandles(addressUtxo);
 
         assertThat(adaHandles, hasSize(1));
         assertThat(adaHandles.get(0).getName(), is("alice"));
@@ -106,7 +107,7 @@ public class AdaHandleMapperTest {
                 .slot(1400L)
                 .build();
 
-        List<AdaHandle> adaHandles = AdaHandleMapper.toAdaHandles(addressUtxo);
+        List<AdaHandle> adaHandles = toAdaHandles(addressUtxo);
 
         assertThat(adaHandles, hasSize(1));
         assertThat(adaHandles.get(0).getName(), is("331@hal"));
@@ -123,7 +124,7 @@ public class AdaHandleMapperTest {
                 .build();
 
         // Never store the script holding the token as the owner.
-        assertThat(AdaHandleMapper.toAdaHandles(addressUtxo), empty());
+        assertThat(toAdaHandles(addressUtxo), empty());
     }
 
     @Test
@@ -135,7 +136,7 @@ public class AdaHandleMapperTest {
                 .build();
 
         // CIP-67 label 1: a root handle's sub-handle settings, held by a Handle script; not a handle.
-        assertThat(AdaHandleMapper.toAdaHandles(addressUtxo), empty());
+        assertThat(toAdaHandles(addressUtxo), empty());
     }
 
     @Test
@@ -165,7 +166,7 @@ public class AdaHandleMapperTest {
                 .slot(154639737L)
                 .build();
 
-        List<AdaHandle> adaHandles = AdaHandleMapper.toAdaHandles(addressUtxo);
+        List<AdaHandle> adaHandles = toAdaHandles(addressUtxo);
 
         assertThat(adaHandles, hasSize(1));
         assertThat(adaHandles.get(0).getName(), is("demiking"));
@@ -199,5 +200,16 @@ public class AdaHandleMapperTest {
         String assetNameHex = label + HexFormat.of().formatHex(name.getBytes());
         return Amount.builder().policyId(policyId).unit(policyId + assetNameHex)
                 .assetNameBytes(HexFormat.of().parseHex(assetNameHex)).quantity(BigInteger.valueOf(quantity)).build();
+    }
+
+    /** The handles an output carries, as the indexer maps them (one per handle token). */
+    private static List<AdaHandle> toAdaHandles(AddressUtxo addressUtxo) {
+        if (addressUtxo.getAmounts() == null) {
+            return List.of();
+        }
+        return addressUtxo.getAmounts().stream()
+                .map(amount -> AdaHandleMapper.toAdaHandle(addressUtxo, amount))
+                .filter(Objects::nonNull)
+                .toList();
     }
 }

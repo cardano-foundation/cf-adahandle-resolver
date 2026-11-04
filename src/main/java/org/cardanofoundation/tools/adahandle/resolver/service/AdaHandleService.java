@@ -1,17 +1,18 @@
 package org.cardanofoundation.tools.adahandle.resolver.service;
+
+import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
 import org.cardanofoundation.tools.adahandle.resolver.projection.Addresses;
 import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleRepository;
 import org.jspecify.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class AdaHandleService {
-    @Autowired
-    private AdaHandleRepository adaHandleRepository;
+    private final AdaHandleRepository adaHandleRepository;
 
     public void saveAll(List<AdaHandle> adaHandles) {
         adaHandleRepository.saveAll(adaHandles);
