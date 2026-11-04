@@ -93,8 +93,8 @@ round-robin relay pool, so it doesn't keep retrying a relay that has gone away.
 
 ## Plugins
 
-Yaci Store's plugin system lets you run your own scripts inside the resolver, for example a webhook for handle
-mints and burns. It is off by default (`STORE_PLUGINS_ENABLED`), and so is its monitoring API
+Yaci Store's plugin system lets you run your own scripts, in JavaScript, MVEL or SpEL, inside the resolver, for
+example a webhook for handle mints and burns. It is off by default (`STORE_PLUGINS_ENABLED`), and so is its monitoring API
 (`STORE_PLUGINS_API_ENABLED`). See [Plugins](../plugins/).
 
 ## CORS

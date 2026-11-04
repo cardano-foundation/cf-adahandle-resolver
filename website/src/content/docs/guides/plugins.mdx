@@ -3,10 +3,11 @@ title: Plugins
 description: Run your own scripts inside the resolver with Yaci Store's plugin system, for example a webhook when an ADA Handle is minted or burned, without writing Java or rebuilding anything.
 ---
 
-import { Aside, Steps } from '@astrojs/starlight/components';
+import { Aside, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
 The resolver is built on [Yaci Store](https://github.com/bloxbean/yaci-store), and comes with Yaci Store's
-**plugin system**: small scripts, written in a configuration file, that the resolver runs for you. You don't need
+**plugin system**: small scripts, in JavaScript or a Java-like scripting language, written in a configuration file,
+that the resolver runs for you. You don't need
 to know Java or rebuild the resolver. A plugin can, for example:
 
 - call a **webhook** whenever an ADA Handle is minted or burned;
@@ -32,9 +33,24 @@ removed, virtual sub-handles at their datum's address), read the `ada_handle` ta
 
 ### Languages
 
-Plugins are written in **MVEL**, an expression language with Java-like syntax, or **SpEL**, Spring's expression
-language. Yaci Store also has JavaScript and Python plugins, in preview, but they need extra libraries that the
-resolver's images don't include.
+| Language | `lang` | Notes |
+| -------- | ------ | ----- |
+| **JavaScript** | `js` | The easiest choice for most people. Runs on GraalJS, inside the resolver |
+| **MVEL** | `mvel` | An expression language with Java-like syntax |
+| **SpEL** | `spel` | Spring's expression language, for one-line expressions |
+
+The examples below are in JavaScript and MVEL. Scripts work with the resolver's Java objects: in JavaScript, read
+their fields through getters, such as `event.getTxMintBurns()`; MVEL also accepts `event.txMintBurns`.
+
+- **JavaScript needs the JVM image** (the Docker image or the jar). The
+  [native image](../deployment/#native-image-experimental) runs MVEL and SpEL plugins only.
+- **TypeScript** isn't run directly: compile it to plain JavaScript first.
+- **Python:** Yaci Store also supports Python plugins, but the resolver leaves them out for now: they would more
+  than double the size of the image. This is a decision, not a technical limit, recorded in
+  [ADR 12](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0012-javascript-plugins.md),
+  and adding Python is straightforward. If you need it,
+  [open an issue on GitHub](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/new) and tell us what
+  for.
 
 ### What a script can use
 
@@ -95,19 +111,55 @@ Yaci Store's [context variables guide](https://store.yaci.xyz/plugins/context-va
 
    ```text
    PluginRegistry : Registered event-handler handle-webhook for key 'MintBurnEvent'
-   PluginRegistry : Created scheduler plugin: handle-count with language: mvel
+   PluginRegistry : Created scheduler plugin: handle-count with language: js
    ```
 
 </Steps>
 
 <Aside type="caution" title="Helm and the native image">
 The Helm chart can't mount a plugin file or set extra environment variables yet. The plugin examples were tested
-with the JVM image; the [native image](../deployment/#native-image-experimental) is not tested with plugins.
+with the JVM jar; the [native image](../deployment/#native-image-experimental) has no JavaScript plugins, and is not
+tested with MVEL or SpEL plugins.
 </Aside>
 
 ## Example: a webhook for ADA Handle mints and burns
 
 Calls a URL, with a small JSON body, for every ADA Handle token minted or burned in a new block:
+
+<Tabs syncKey="plugin-lang">
+<TabItem label="JavaScript">
+
+```yaml
+store:
+  plugins:
+    enabled: true
+    exit-on-error: false
+    event-handlers:
+      MintBurnEvent:
+        - name: handle-webhook
+          lang: js
+          inline-script: |
+            if (event.getMetadata().isSyncMode()) {
+              const policies = env.getProperty("adahandle.policy-ids").split(",");
+              const url = env.getProperty("HANDLE_WEBHOOK_URL");
+              for (const tx of event.getTxMintBurns()) {
+                if (tx.getAmounts() == null) continue;
+                for (const amt of tx.getAmounts()) {
+                  if (policies.includes(amt.getPolicyId())) {
+                    http.postJson(url, {
+                      unit: amt.getUnit(),
+                      quantity: amt.getQuantity().toString(),
+                      tx: tx.getTxHash(),
+                      slot: event.getMetadata().getSlot(),
+                    });
+                  }
+                }
+              }
+            }
+```
+
+</TabItem>
+<TabItem label="MVEL">
 
 ```yaml
 store:
@@ -134,6 +186,9 @@ store:
             }
 ```
 
+</TabItem>
+</Tabs>
+
 The webhook receives one call per token, here the mint of the legacy handle `$dwhite.ada`:
 
 ```json
@@ -145,6 +200,7 @@ The webhook receives one call per token, here the mint of the legacy handle `$dw
   handles (`000de140`) and sub-handles; [Tokens and datums](../../reference/datums/) explains how to read it.
 - `adahandle.policy-ids` is the resolver's own setting, so the plugin follows the same two policies as the
   resolver (the original one and DeMi's).
+- In JavaScript, `http.postJson` sends a JavaScript object as JSON; in MVEL, a map (`[key: value]`).
 
 <Aside title="Why `syncMode`">
 An event handler runs for **every block the resolver processes**, including the years of history during the
@@ -156,6 +212,28 @@ processed in parallel, so events also arrive out of order.
 ## Example: a scheduled report from the resolver's tables
 
 Counts the handles the resolver knows, every 20 seconds:
+
+<Tabs syncKey="plugin-lang">
+<TabItem label="JavaScript">
+
+```yaml
+store:
+  plugins:
+    enabled: true
+    exit-on-error: false
+    schedulers:
+      - name: handle-count
+        lang: js
+        inline-script: |
+          const n = named_jdbc.queryForObject("SELECT COUNT(*) FROM ada_handle", {}, Java.type("java.lang.Long"));
+          console.log(`[plugin handle-count] ada_handle rows: ${n}`);
+        schedule:
+          type: INTERVAL
+          value: "20"
+```
+
+</TabItem>
+<TabItem label="MVEL">
 
 ```yaml
 store:
@@ -172,6 +250,9 @@ store:
           type: INTERVAL
           value: "20"
 ```
+
+</TabItem>
+</Tabs>
 
 The resolver's tables are `ada_handle` (each handle's current owner) and `ada_handle_history_item` (every change),
 described in [How indexing works](../../reference/architecture/#storage). A scheduler can also run on a cron
@@ -205,6 +286,8 @@ from the internet, keep `/api/v1/admin/` behind your proxy.
 ## Good to know
 
 - Plugins run inside the indexer. A slow event handler, such as a slow webhook, slows the sync down.
+- JavaScript runs on GraalJS's interpreter in the resolver's images, which is fine for short scripts like these.
+  Keep heavy work out of event handlers.
 - `state` lives in memory and starts empty after a restart.
 - In a [scaled setup](../scaling/), run event handlers and schedulers on the indexer only, not on the
   `disable-indexer` replicas.
