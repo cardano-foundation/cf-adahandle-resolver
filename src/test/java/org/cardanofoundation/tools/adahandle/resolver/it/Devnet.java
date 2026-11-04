@@ -47,9 +47,9 @@ final class Devnet {
     static final String RUN_ID = env("IT_RUN_ID", Long.toString(System.currentTimeMillis(), 36));
 
     // Devnet-only keys. HOLDER mints and holds the handles; RECEIVER gets the transferred ones.
-    static final Account HOLDER = new Account(Networks.testnet(),
+    static final Account HOLDER = Account.createFromMnemonic(Networks.testnet(),
             "miss metal antenna jewel purity cause wear detail plastic engine idea clutch pony repair warfare indicate lizard dolphin various guide parent say space surprise");
-    static final Account RECEIVER = new Account(Networks.testnet(),
+    static final Account RECEIVER = Account.createFromMnemonic(Networks.testnet(),
             "shift half woman seven ketchup quick safe abstract record subway time wife cherry injury mad fresh advance autumn avocado response hard awake camera chunk");
 
     static final PlutusV2Script POLICY = PlutusV2Script.builder()
