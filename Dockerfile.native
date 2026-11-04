@@ -1,4 +1,5 @@
-# GraalVM native image of the resolver. Built weekly by .github/workflows/native-image.yaml.
+# GraalVM native image of the resolver. Built and smoke-tested weekly by .github/workflows/native-image.yaml, and
+# published with each release as cardanofoundation/adahandle-resolver:<version>-native.
 #
 #   docker build -f Dockerfile.native -t adahandle-resolver:native .
 #
