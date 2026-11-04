@@ -26,7 +26,7 @@ store:
           global_state.put("js-handle-count", n);
         # Runs once at startup, then every 10 minutes: no second run during the test. Yaci Store 2.0.7 fills the
         # plugins' variables on first use without a lock, so a second run while the first one still fills them
-        # (on a slow CI runner) sees named_jdbc missing.
+        # (on a slow CI runner) sees named_jdbc missing: bloxbean/yaci-store#1322.
         schedule:
           type: INTERVAL
           value: "600"
