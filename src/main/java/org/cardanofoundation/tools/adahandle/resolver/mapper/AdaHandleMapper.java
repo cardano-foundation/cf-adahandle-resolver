@@ -9,7 +9,6 @@ import org.cardanofoundation.tools.adahandle.resolver.util.Crc8;
 import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HexFormat;
 
@@ -19,20 +18,6 @@ public class AdaHandleMapper {
     // label is skipped, e.g. 100 (CIP-68 reference token) and 1 (sub-handle settings token).
     private static final int LABEL_HANDLE = 222;
     private static final int LABEL_VIRTUAL_SUBHANDLE = 0;
-
-    public static ArrayList<AdaHandle> toAdaHandles(AddressUtxo addressUtxo) {
-        final ArrayList<AdaHandle> adaHandles = new ArrayList<>();
-
-        if (addressUtxo.getAmounts() != null) {
-            for (final Amt amount : addressUtxo.getAmounts()) {
-                AdaHandle adaHandle = toAdaHandle(addressUtxo, amount);
-                if (adaHandle != null) {
-                    adaHandles.add(adaHandle);
-                }
-            }
-        }
-        return adaHandles;
-    }
 
     /**
      * Returns the handle carried by an amount of this output, with the address it resolves to, or

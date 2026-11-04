@@ -3,9 +3,8 @@ package org.cardanofoundation.tools.adahandle.resolver.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
+import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,12 +16,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/ada-handles/")
 @Tag(name = "ADA Handles", description = "Look up the ADA Handles held by an address")
+@RequiredArgsConstructor
 public class AdaHandleController {
 
-    @Autowired
-    private AdaHandleService adaHandleService;
-    @Autowired
-    private AdaHandleHistoryService adaHandleHistoryService;
+    private final AdaHandleService adaHandleService;
 
     @Operation(summary = "Handles held by a stake address",
             description = "Returns the names (without the leading $) of all handles held by addresses that " +
