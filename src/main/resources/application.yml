@@ -63,6 +63,11 @@ store:
     epoch-calculation-interval=14400:  # 14400 = 4 hours
   utxo:
     api-enabled: false
+  # Yaci Store's plugin system (scripted event handlers and schedulers, see the docs site's Plugins guide) is off unless
+  # store.plugins.enabled is set. Its read-only monitoring API ({apiPrefix}/admin/plugins) is on by default in Yaci
+  # Store; off here, so the public API serves only the resolver's endpoints. STORE_PLUGINS_API_ENABLED=true turns it on.
+  plugins:
+    api-enabled: false
 ---
 spring:
   config:

@@ -8,6 +8,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 
 import static io.restassured.RestAssured.when;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
@@ -37,6 +38,18 @@ public class OpenApiDocsTest {
                 .body("paths.'/api/v1/addresses/by-ada-handle/{adaHandle}'.get", notNullValue())
                 .body("paths.'/api/v1/ada-handles/by-stake-address/{stakeAddress}'.get", notNullValue())
                 .body("paths.'/api/v1/ada-handles/by-payment-address/{paymentAddress}'.get", notNullValue());
+    }
+
+    @Test
+    public void testYaciStorePluginApiIsOffByDefault() {
+        // Yaci Store enables its plugin monitoring API unless store.plugins.api-enabled is false.
+        when().get("/api/v1/admin/plugins")
+                .then()
+                .statusCode(404);
+        when().get("/apidocs")
+                .then()
+                .statusCode(200)
+                .body("paths.keySet().findAll { it.contains('/admin/') }", empty());
     }
 
     @Test

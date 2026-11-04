@@ -1,0 +1,214 @@
+---
+title: Plugins
+description: Run your own scripts inside the resolver with Yaci Store's plugin system, for example a webhook when an ADA Handle is minted or burned, without writing Java or rebuilding anything.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+The resolver is built on [Yaci Store](https://github.com/bloxbean/yaci-store), and comes with Yaci Store's
+**plugin system**: small scripts, written in a configuration file, that the resolver runs for you. You don't need
+to know Java or rebuild the resolver. A plugin can, for example:
+
+- call a **webhook** whenever an ADA Handle is minted or burned;
+- run a **scheduled job** that reads the resolver's tables and reports on them;
+- send data to a system of your own over HTTP.
+
+Plugins are **off by default**. This page shows how to switch them on, with two examples that have been tested
+against mainnet.
+
+## What fits the resolver
+
+Yaci Store has five kinds of plugin. Two of them are useful in the resolver:
+
+| Kind | Runs | Useful here |
+| ---- | ---- | ----------- |
+| **Event handler** | For each block's events: mints and burns, transaction outputs, rollbacks, … | **Yes.** React to ADA Handle mints, burns and transfers |
+| **Scheduler** | Every N seconds, or on a cron schedule | **Yes.** Reports and checks on the resolver's tables |
+| Filter, pre-action, post-action | When Yaci Store saves its own data | No. The resolver keeps only its handle tables, not Yaci Store's, so these never run |
+
+Event handlers see the **raw chain events**, before the resolver applies its rules: they see every token of the
+ADA Handle policies, including reference and settings tokens. For handles as the resolver resolves them (burned ones
+removed, virtual sub-handles at their datum's address), read the `ada_handle` table, as the scheduler example does.
+
+### Languages
+
+Plugins are written in **MVEL**, an expression language with Java-like syntax, or **SpEL**, Spring's expression
+language. Yaci Store also has JavaScript and Python plugins, in preview, but they need extra libraries that the
+resolver's images don't include.
+
+### What a script can use
+
+| Variable | What it is |
+| -------- | ---------- |
+| `event` | The event being handled (event handlers only), with `event.metadata` (slot, block, era, `syncMode`, …) |
+| `env` | Configuration and environment variables: `env.getProperty("HANDLE_WEBHOOK_URL")` |
+| `http` | An HTTP client: `http.postJson(url, body)`, `http.get(url)`, … |
+| `named_jdbc` | SQL against the resolver's database, for example the `ada_handle` table |
+| `state`, `global_state` | Key–value state kept between runs, per plugin or shared |
+
+Yaci Store's [context variables guide](https://store.yaci.xyz/plugins/context-variables) lists them all.
+
+## Switch plugins on
+
+<Steps>
+
+1. Write your plugins in a YAML file, say `plugins.yml`, starting with:
+
+   ```yaml
+   store:
+     plugins:
+       enabled: true
+       # Yaci Store's default is true: a failing script would stop the resolver.
+       exit-on-error: false
+   ```
+
+   and add the plugins below it, as in the examples further down.
+
+2. Give the file to the resolver and point Spring Boot at it with `SPRING_CONFIG_ADDITIONAL_LOCATION`. With Docker:
+
+   ```sh
+   docker run -d --name adahandle-resolver -p 9095:9095 \
+     -e JAVA_TOOL_OPTIONS=-Xmx4g \
+     -e SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/config/plugins.yml \
+     -e HANDLE_WEBHOOK_URL=https://example.com/handles \
+     -v "$PWD/plugins.yml:/app/config/plugins.yml:ro" \
+     -v adahandle-data:/app/data \
+     cardanofoundation/adahandle-resolver:latest
+   ```
+
+   With Docker Compose, put the same settings in a `docker-compose.override.yml` next to `docker-compose.yml`;
+   Compose merges it in automatically:
+
+   ```yaml
+   services:
+     api:
+       environment:
+         SPRING_CONFIG_ADDITIONAL_LOCATION: file:/app/config/plugins.yml
+         HANDLE_WEBHOOK_URL: https://example.com/handles
+       volumes:
+         - ./plugins.yml:/app/config/plugins.yml:ro
+   ```
+
+   Running the jar directly, set `SPRING_CONFIG_ADDITIONAL_LOCATION=file:./plugins.yml`.
+
+3. Check the log on startup. Each plugin is listed as it is registered:
+
+   ```text
+   PluginRegistry : Registered event-handler handle-webhook for key 'MintBurnEvent'
+   PluginRegistry : Created scheduler plugin: handle-count with language: mvel
+   ```
+
+</Steps>
+
+<Aside type="caution" title="Helm and the native image">
+The Helm chart can't mount a plugin file or set extra environment variables yet. The plugin examples were tested
+with the JVM image; the [native image](../deployment/#native-image-experimental) is not tested with plugins.
+</Aside>
+
+## Example: a webhook for ADA Handle mints and burns
+
+Calls a URL, with a small JSON body, for every ADA Handle token minted or burned in a new block:
+
+```yaml
+store:
+  plugins:
+    enabled: true
+    exit-on-error: false
+    event-handlers:
+      MintBurnEvent:
+        - name: handle-webhook
+          lang: mvel
+          inline-script: |
+            if (event.metadata.syncMode) {
+              policies = env.getProperty("adahandle.policy-ids");
+              url = env.getProperty("HANDLE_WEBHOOK_URL");
+              for (tx : event.txMintBurns) {
+                if (tx.amounts == null) { continue; }
+                for (amt : tx.amounts) {
+                  if (policies.contains(amt.policyId)) {
+                    http.postJson(url, ["unit": amt.unit, "quantity": amt.quantity.toString(),
+                                        "tx": tx.txHash, "slot": event.metadata.slot]);
+                  }
+                }
+              }
+            }
+```
+
+The webhook receives one call per token, here the mint of the legacy handle `$dwhite.ada`:
+
+```json
+{"unit":"f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a6477686974652e616461","quantity":"1","tx":"f9c13bb4e57d6006ab615d7ded6161bf4c58594b00e68f6276ccdefe9cb14a9d","slot":48194551}
+```
+
+- `quantity` is positive for a mint and negative for a burn.
+- `unit` is the policy id followed by the asset name in hex. The asset name starts with a CIP-67 label for CIP-68
+  handles (`000de140`) and sub-handles; [Tokens and datums](../../reference/datums/) explains how to read it.
+- `adahandle.policy-ids` is the resolver's own setting, so the plugin follows the same two policies as the
+  resolver (the original one and DeMi's).
+
+<Aside title="Why `syncMode`">
+An event handler runs for **every block the resolver processes**, including the years of history during the
+initial sync. `event.metadata.syncMode` is true only once the resolver has caught up and follows the chain live,
+so the webhook fires for new mints and burns, not for every handle ever minted. During the initial sync, blocks are
+processed in parallel, so events also arrive out of order.
+</Aside>
+
+## Example: a scheduled report from the resolver's tables
+
+Counts the handles the resolver knows, every 20 seconds:
+
+```yaml
+store:
+  plugins:
+    enabled: true
+    exit-on-error: false
+    schedulers:
+      - name: handle-count
+        lang: mvel
+        inline-script: |
+          n = named_jdbc.queryForObject("SELECT COUNT(*) FROM ada_handle", new java.util.HashMap(), java.lang.Long);
+          System.out.println("[plugin handle-count] ada_handle rows: " + n);
+        schedule:
+          type: INTERVAL
+          value: "20"
+```
+
+The resolver's tables are `ada_handle` (each handle's current owner) and `ada_handle_history_item` (every change),
+described in [How indexing works](../../reference/architecture/#storage). A scheduler can also run on a cron
+expression (`type: CRON`), and post its result anywhere with `http`.
+
+## Settings
+
+| Setting | Environment variable | Default | Meaning |
+| ------- | -------------------- | ------- | ------- |
+| `store.plugins.enabled` | `STORE_PLUGINS_ENABLED` | `false` | Switches the plugin system on |
+| `store.plugins.exit-on-error` | `STORE_PLUGINS_EXIT_ON_ERROR` | `true` | Stop the resolver when a plugin fails. Set it to `false` |
+| `store.plugins.api-enabled` | `STORE_PLUGINS_API_ENABLED` | `false` | The plugin monitoring API, below |
+| `store.plugins.metrics-enabled` | `STORE_PLUGINS_METRICS_ENABLED` | `true` | Run counts and timings, for the monitoring API and `/actuator/prometheus` |
+
+Plugins themselves are configured in YAML, as above: lists of scripts don't fit in environment variables.
+
+## Monitoring plugins
+
+Yaci Store has a read-only API that shows each plugin's runs and errors:
+
+```sh
+curl http://localhost:9095/api/v1/admin/plugins
+curl http://localhost:9095/api/v1/admin/plugins/event-handlers
+curl http://localhost:9095/api/v1/admin/plugins/schedulers
+```
+
+It is **off** in the resolver, so that the public API serves only the resolver's own endpoints. Turn it on with
+`STORE_PLUGINS_API_ENABLED=true`. It has no authentication, like the rest of the API: if the resolver is reachable
+from the internet, keep `/api/v1/admin/` behind your proxy.
+
+## Good to know
+
+- Plugins run inside the indexer. A slow event handler, such as a slow webhook, slows the sync down.
+- `state` lives in memory and starts empty after a restart.
+- In a [scaled setup](../scaling/), run event handlers and schedulers on the indexer only, not on the
+  `disable-indexer` replicas.
+- Yaci Store's own guides go further:
+  [getting started](https://store.yaci.xyz/plugins/plugin-getting-started),
+  [configuration reference](https://store.yaci.xyz/plugins/plugin-configuration-reference) and
+  [context variables](https://store.yaci.xyz/plugins/context-variables).
