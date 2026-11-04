@@ -86,6 +86,36 @@ gap happens about once in two years.
 `/actuator/prometheus` serves metrics in the Prometheus format, and `/actuator/metrics` serves the same as JSON. Every
 metric carries the label `application="cf-adahandle-resolver"`.
 
+### Handles
+
+| Metric                               | Type    | Meaning                                                                  |
+| ------------------------------------ | ------- | ------------------------------------------------------------------------ |
+| `adahandle_handles{type}`            | gauge   | Handles that exist now, as the API resolves them                         |
+| `adahandle_mints_total{type}`        | counter | Handle tokens minted                                                     |
+| `adahandle_burns_total{type}`        | counter | Handle tokens burned                                                     |
+| `adahandle_history_rows_total`       | counter | Handle states written to the history, one per handle and block           |
+| `adahandle_rollbacks_total{outcome}` | counter | Rollbacks: `noop` if nothing was stored after the rollback point, else `applied` |
+| `adahandle_rollback_handles_total`   | counter | Handles that rollbacks restored to an earlier owner, or removed          |
+
+`type` is `handle` or `subhandle` (a name with `@`); on mainnet, about 262,000 handles and 3,800 sub-handles.
+
+- **Mints and burns:** they count tokens. A legacy handle moved to CIP-68 counts as a mint and a burn, while
+  `adahandle_handles` stays the same.
+- **The counters** start at zero with each process, and count during the first sync too, from the first ADA Handle
+  block. Changes from blocks that are rolled back before they're stored aren't counted. Use `rate()` or
+  `increase()` on them.
+- **The gauge** counts the database at most every 30 s. [API-only replicas](../scaling/) report it too, but their
+  counters stay at zero.
+
+```promql
+# Handles minted in the last day
+sum(increase(adahandle_mints_total[1d]))
+# Rollbacks that changed something, per hour
+increase(adahandle_rollbacks_total{outcome="applied"}[1h])
+```
+
+### Sync
+
 The sync metrics from Yaci Store:
 
 | Metric                                | Meaning                                                    |
@@ -98,7 +128,9 @@ The sync metrics from Yaci Store:
 | `yaci_store_last_received_block_time` | When the last block arrived from the node, in milliseconds |
 | `yaci_store_sync_mode`                | `1` once the indexer follows the tip, `0` while catching up |
 
-There are also the standard Spring Boot metrics:
+### Others
+
+The standard Spring Boot metrics:
 - the JVM: memory, GC, threads;
 - the HikariCP connection pool;
 - `http_server_requests_seconds`, timings for each API endpoint;
