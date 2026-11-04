@@ -23,7 +23,8 @@ every handle through a small REST API.
 
 It indexes both ADA Handle minting policies: the original one and DeMi's (decentralized minting).
 A burned handle no longer resolves. The rules follow Kora Labs' implementation, the reference for
-handle.me and most wallets, and are explained in [How indexing works](../../reference/architecture/).
+handle.me and most wallets, and are explained in [How indexing works](../../reference/architecture/). The tokens
+and datums behind each kind are decoded field by field in [Tokens and datums](../../reference/datums/).
 
 ## What you can ask it
 

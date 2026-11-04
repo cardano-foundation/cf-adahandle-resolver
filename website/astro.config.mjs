@@ -72,6 +72,7 @@ export default defineConfig({
 					items: [
 						{ label: 'REST API', slug: 'reference/api' },
 						{ label: 'How indexing works', slug: 'reference/architecture' },
+						{ label: 'Tokens and datums', slug: 'reference/datums' },
 						{ label: 'Design decisions', slug: 'reference/decisions' },
 					],
 				},

@@ -11,7 +11,8 @@ rules for what a handle resolves to.
 ADA Handles have no CIP. The rules below follow the implementation of Kora Labs, who created ADA Handle
 and run [api.handle.me](https://api.handle.me), and the regression suite checks the resolver against
 their API. The reasoning behind each rule is recorded in the
-[design decisions](../decisions/).
+[design decisions](../decisions/), and every token and datum is described field by field in
+[Tokens and datums](../datums/).
 
 ## Which tokens are handles
 
@@ -55,7 +56,7 @@ virtual sub-handle on mainnet uses one today.
 2. **Filter and decode.** The processor keeps the outputs that carry a handle token and decodes each
    handle's name and address, using the rules above. A burn (a negative mint) of a handle token is
    recorded as a burn of that handle.
-3. **Collect.** The changes are held in memory until Yaci Store commits. During the initial sync a
+3. **Collect.** The changes are held in memory until Yaci Store commits ([ADR 11](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0011-apply-changes-at-commit.md)). During the initial sync a
    commit covers a batch of 100 blocks. At the tip there's a commit after every block.
 4. **Order.** Yaci Store processes the blocks of a batch in parallel, so their events arrive in no
    particular order. At the commit, the resolver sorts the changes by slot and works out each

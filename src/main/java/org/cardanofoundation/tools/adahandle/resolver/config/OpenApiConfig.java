@@ -18,7 +18,13 @@ public class OpenApiConfig {
                         .title("ADA Handle Resolver API")
                         .version(version)
                         .description("Resolves ADA Handles to the addresses that hold them, and addresses back to " +
-                                "handles. Data is indexed directly from the Cardano blockchain using Yaci Store.")
+                                "handles. Data is indexed directly from the Cardano blockchain using Yaci Store.\n\n" +
+                                "Every kind of ADA Handle is indexed, under both ADA Handle minting policies (the " +
+                                "original one and DeMi's, decentralized minting): legacy (CIP-25) and CIP-68 " +
+                                "handles, NFT sub-handles and virtual sub-handles (`sub@root`). A handle resolves to " +
+                                "the address holding its token, except a virtual sub-handle, which resolves to the " +
+                                "address in its datum. Burned handles are removed. The rules follow Kora Labs' " +
+                                "implementation (api.handle.me).")
                         .contact(new Contact()
                                 .name("Cardano Foundation")
                                 .url("https://github.com/cardano-foundation/cf-adahandle-resolver"))

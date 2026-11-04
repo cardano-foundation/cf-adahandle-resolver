@@ -2,7 +2,7 @@
 	"openapi": "3.1.0",
 	"info": {
 		"title": "ADA Handle Resolver API",
-		"description": "Resolves ADA Handles to the addresses that hold them, and addresses back to handles. Data is indexed directly from the Cardano blockchain using Yaci Store.",
+		"description": "Resolves ADA Handles to the addresses that hold them, and addresses back to handles. Data is indexed directly from the Cardano blockchain using Yaci Store.\n\nEvery kind of ADA Handle is indexed, under both ADA Handle minting policies (the original one and DeMi's, decentralized minting): legacy (CIP-25) and CIP-68 handles, NFT sub-handles and virtual sub-handles (`sub@root`). A handle resolves to the address holding its token, except a virtual sub-handle, which resolves to the address in its datum. Burned handles are removed. The rules follow Kora Labs' implementation (api.handle.me).",
 		"contact": {
 			"name": "Cardano Foundation",
 			"url": "https://github.com/cardano-foundation/cf-adahandle-resolver"
@@ -44,18 +44,27 @@
 					"Addresses"
 				],
 				"summary": "Resolve a handle to its addresses",
-				"description": "Returns the stake and payment address that currently hold the handle.",
+				"description": "Returns the payment address and, for a base address, the stake address the handle resolves to. Works for every kind of handle, under both ADA Handle policies (the original one and DeMi's): legacy and CIP-68 handles and NFT sub-handles resolve to the address holding the token; a virtual sub-handle resolves to the address in its datum (`extra.resolved_addresses.ada`), not to the script holding its token.",
 				"operationId": "getAddressesByAdaHandle",
 				"parameters": [
 					{
 						"name": "adaHandle",
 						"in": "path",
-						"description": "Handle name, with or without the leading $",
+						"description": "Handle name, with or without the leading $. A sub-handle, NFT or virtual, is written `sub@root`.",
 						"required": true,
 						"schema": {
 							"type": "string"
 						},
-						"example": "$alice"
+						"examples": {
+							"handle": {
+								"description": "handle",
+								"value": "$alice"
+							},
+							"sub-handle": {
+								"description": "sub-handle",
+								"value": "$sub@alice"
+							}
+						}
 					}
 				],
 				"responses": {
@@ -70,7 +79,7 @@
 						}
 					},
 					"404": {
-						"description": "Handle not found or not indexed yet"
+						"description": "Handle not found, burned, or not indexed yet"
 					}
 				}
 			}
@@ -81,7 +90,7 @@
 					"ADA Handles"
 				],
 				"summary": "Handles held by a stake address",
-				"description": "Returns the names (without the leading $) of all handles held by addresses that belong to the given stake address. Returns an empty list if there are none.",
+				"description": "Returns the names (without the leading $) of all handles held by addresses that belong to the given stake address: handles and NFT sub-handles held there, and virtual sub-handles whose datum points to such an address. Burned handles are not listed. Returns an empty list if there are none.",
 				"operationId": "getAdaHandlesByStakeAddress",
 				"parameters": [
 					{
@@ -117,7 +126,7 @@
 					"ADA Handles"
 				],
 				"summary": "Handles held at a payment address",
-				"description": "Returns the names (without the leading $) of all handles held at exactly the given address. Returns an empty list if there are none.",
+				"description": "Returns the names (without the leading $) of all handles held at exactly the given address: handles and NFT sub-handles held there, and virtual sub-handles whose datum points to it. Burned handles are not listed. Returns an empty list if there are none.",
 				"operationId": "getAdaHandlesByPaymentAddress",
 				"parameters": [
 					{

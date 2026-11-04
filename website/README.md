@@ -22,6 +22,11 @@ npm run build     # static output in dist/
 | `src/assets/logo-*.svg`      | Logo: Cardano Foundation mark with an ADA Handle `$` badge  |
 | `openapi/`                   | OpenAPI spec rendered by `starlight-openapi` under `/api/` |
 
+## Pages kept in two places
+
+`src/content/docs/reference/datums.md` is the site version of the repository's
+`docs/handle-datums.md` (no H1 or table of contents, ADR links to GitHub). Change both together.
+
 ## Refreshing the OpenAPI spec
 
 The API reference is generated from the spec the resolver serves at `/apidocs`. After changing the

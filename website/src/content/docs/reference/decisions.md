@@ -21,6 +21,7 @@ repository under
 | [8](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0008-native-image.md) | A native image built with Oracle GraalVM, weekly from `main` |
 | [9](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0009-testing-strategy.md) | Test on three levels: unit, devnet, and mainnet against Kora |
 | [10](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0010-keep-jpa-writes.md) | Keep JPA for the indexer's writes: batched upserts didn't make the sync faster |
+| [11](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0011-apply-changes-at-commit.md) | Apply handle changes at Yaci Store's `CommitEvent`, in chain order |
 
 ## Where the resolver differs from handle.me
 
