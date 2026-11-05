@@ -19,8 +19,9 @@ rules work with are described in [ADA Handle tokens and datums](../handle-datums
 | [11](0011-apply-changes-at-commit.md) | Apply handle changes at Yaci Store's CommitEvent, in chain order | Accepted |
 
 Guidelines shared by the Cardano Foundation's Java services, such as native image builds, testing layers, observability,
-packaging, CI and releases (including pre-releases `X.Y.Z-preN`), live in [cf-java-nfrs](https://github.com/cardano-foundation/cf-java-nfrs) and are
-not repeated here. These ADRs record what is specific to the resolver, and where it departs from those guidelines.
+packaging, CI and releases (including pre-releases `X.Y.Z-preN`), live in the Cardano Foundation's internal
+`cf-java-nfrs` repository and are not repeated here. These ADRs record what is specific to the resolver, and where it
+departs from those guidelines.
 
 To add one: copy the structure of an existing ADR (status, date, context, decision, consequences, references), give it
 the next number, and add it to this table. To change a decision, add an ADR that supersedes the old one.

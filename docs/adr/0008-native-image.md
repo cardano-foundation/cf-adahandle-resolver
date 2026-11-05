@@ -18,9 +18,8 @@ redistribution, but not redistribution for a fee; Oracle's license and notices m
 - The image ships Oracle's `LICENSE.txt` and `NOTICE.txt` in `/licenses/graalvm` and our MIT license in
   `/licenses/LICENSE`, with the OCI label `MIT AND LicenseRef-GraalVM-Free-Terms-and-Conditions`. CI fails if a license
   file is missing.
-- The weekly build and publishing with each release follow
-  [cf-java-nfrs NFR-02](https://github.com/cardano-foundation/cf-java-nfrs/blob/main/java-microservice-nfrs/NFR-02-native-image.md). Where the
-  resolver departs from it:
+- The weekly build and publishing with each release follow the Cardano Foundation's internal native image guideline
+  (`cf-java-nfrs`, NFR-02). Where the resolver departs from it:
   - the weekly build runs smoke tests (API on H2, Flyway on PostgreSQL, 3 minutes of mainnet sync), not the devnet
     integration suite against the native container (N2);
   - the image is published in the same repository as the JVM image, tagged `<version>-native`, not as a separate
@@ -36,4 +35,4 @@ redistribution, but not redistribution for a fee; Oracle's license and notices m
 
 ## References
 
-- cf-java-nfrs NFR-02; #63, #82, #95 (until #95, the weekly build was published as `:native-weekly`); `Dockerfile.native`, `.github/workflows/native-image.yaml`, `config/NativeImageConfig.java`.
+- `cf-java-nfrs` NFR-02 (internal); #63, #82, #95 (until #95, the weekly build was published as `:native-weekly`); `Dockerfile.native`, `.github/workflows/native-image.yaml`, `config/NativeImageConfig.java`.
