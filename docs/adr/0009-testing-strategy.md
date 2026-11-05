@@ -34,4 +34,6 @@ burns) were only visible on a synced mainnet instance or against Kora.
 
 ## References
 
+- The layers follow the Cardano Foundation's internal testing guideline (`cf-java-nfrs`, NFR-03); this ADR records
+  what each layer checks for ADA Handles.
 - #64, #65, #72, #73, #77, #79; `src/test/java/.../it/`, `.claude/skills/cf-adahandle-resolver-regression/`.
