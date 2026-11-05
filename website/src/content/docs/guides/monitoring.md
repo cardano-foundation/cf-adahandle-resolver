@@ -136,8 +136,6 @@ The standard Spring Boot metrics:
 - `http_server_requests_seconds`, timings for each API endpoint;
 - `spring_data_repository_invocations_seconds`, timings for each database query.
 
-The `yaci_plugin_*` metrics count [plugin](../plugins/) runs; they stay at zero while plugins are off.
-
 ### Alerts
 
 Two examples:

@@ -56,7 +56,6 @@ export default defineConfig({
 						{ label: 'Deployment', slug: 'guides/deployment' },
 						{ label: 'Scaling the API', slug: 'guides/scaling' },
 						{ label: 'Monitoring', slug: 'guides/monitoring' },
-						{ label: 'Plugins', slug: 'guides/plugins' },
 					],
 				},
 				{
