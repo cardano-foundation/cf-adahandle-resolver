@@ -83,7 +83,7 @@ The site is built with [Astro](https://astro.build) and [Starlight](https://star
 cd website
 npm install
 npm run dev              # http://localhost:4321/cf-adahandle-resolver/
-npm run openapi:fetch    # refresh the API reference from a running resolver
+npm run openapi:fetch -- http://localhost:9095 1.0.0   # refresh the API reference from a running resolver
 ```
 
 It is published to GitHub Pages from `main`.

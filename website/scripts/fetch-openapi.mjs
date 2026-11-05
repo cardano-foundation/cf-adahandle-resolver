@@ -1,7 +1,10 @@
 // Refreshes openapi/adahandle-resolver.json from a running resolver.
 //
 //   SPRING_ACTIVE_PROFILES=disable-indexer,h2 DB_URL=jdbc:h2:mem:spec java -jar target/cf-adahandle-resolver-*.jar
-//   npm run openapi:fetch                       # or: npm run openapi:fetch -- http://host:9095
+//   npm run openapi:fetch -- http://localhost:9095 1.0.0
+//
+// The second argument (or API_VERSION) is the release the site documents. The resolver reports the version it was
+// built as, which on develop is a -SNAPSHOT; the site must show a release, so a snapshot without one is refused.
 //
 // The spec is committed so the site builds without a running backend.
 import { writeFile } from 'node:fs/promises';
@@ -17,6 +20,17 @@ if (!response.ok) {
 	throw new Error(`GET ${baseUrl}/apidocs failed: ${response.status} ${response.statusText}`);
 }
 const spec = await response.json();
+
+const version = process.argv[3] ?? process.env.API_VERSION;
+if (version) {
+	spec.info.version = version;
+}
+if (/SNAPSHOT/i.test(spec.info.version)) {
+	throw new Error(
+		`The resolver reports version ${spec.info.version}. Pass the release the site documents: ` +
+			'npm run openapi:fetch -- http://localhost:9095 1.0.0',
+	);
+}
 
 // springdoc reports the URL it was fetched from; publish the default local one instead.
 spec.servers = [{ url: 'http://localhost:9095', description: 'Local resolver (default port)' }];
