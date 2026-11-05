@@ -10,8 +10,8 @@ repository under
 [`docs/adr`](https://github.com/cardano-foundation/cf-adahandle-resolver/tree/main/docs/adr).
 
 Guidelines shared by the Cardano Foundation's Java services, such as native image builds, testing, observability,
-packaging and releases, live in [cf-java-nfrs](https://github.com/cardano-foundation/cf-java-nfrs) and are not
-repeated here.
+packaging and releases, are kept in the Cardano Foundation's internal `cf-java-nfrs` repository and are not repeated
+here.
 
 | ADR | Decision |
 | --- | -------- |
