@@ -116,7 +116,8 @@ in `/licenses/graalvm`. The resolver's own code is MIT licensed, and the JVM ima
 ## 🏷️ Releases
 
 Releases follow [semantic versioning](https://semver.org). A release can be preceded by pre-releases, `1.0.0-pre1`,
-`1.0.0-pre2`, …, then the final `1.0.0` ([ADR 13](docs/adr/0013-pre-releases.md)). Each is a GitHub release, the
+`1.0.0-pre2`, …, then the final `1.0.0`, following the Cardano Foundation's release guidelines
+([cf-java-nfrs NFR-08](https://github.com/cardano-foundation/cf-java-nfrs/blob/main/java-microservice-nfrs/NFR-08-releases.md)). Each is a GitHub release, the
 pre-releases marked as such, and each is published to Docker Hub:
 
 | Version      | JVM image                  | Native image          |
