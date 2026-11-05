@@ -9,7 +9,11 @@ import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 
 Every release is published to Docker Hub as
 [`cardanofoundation/adahandle-resolver`](https://hub.docker.com/r/cardanofoundation/adahandle-resolver),
-tagged with the release version and `latest`. Pin a version in production. The image is built for
+tagged with the release version and `latest`. Pin a version in production.
+
+A release can be preceded by pre-releases, `1.0.0-pre1`, `1.0.0-pre2` and so on, published as
+`:1.0.0-pre1` (and `:1.0.0-pre1-native`) for testing. `latest` moves only with a final release such as
+`1.0.0`, never to a pre-release. The image is built for
 x86-64 (amd64) and runs on older CPUs too, including VMs with a generic CPU model.
 
 ### Native image (experimental)
