@@ -56,6 +56,7 @@ export default defineConfig({
 						{ label: 'Deployment', slug: 'guides/deployment' },
 						{ label: 'Scaling the API', slug: 'guides/scaling' },
 						{ label: 'Monitoring', slug: 'guides/monitoring' },
+						{ label: 'Developing ADA Handle Resolver', slug: 'guides/developing' },
 					],
 				},
 				{
@@ -63,8 +64,6 @@ export default defineConfig({
 					items: [
 						{ label: 'REST API', slug: 'reference/api' },
 						{ label: 'How indexing works', slug: 'reference/architecture' },
-						{ label: 'Tokens and datums', slug: 'reference/datums' },
-						{ label: 'Design decisions', slug: 'reference/decisions' },
 					],
 				},
 				...openAPISidebarGroups,

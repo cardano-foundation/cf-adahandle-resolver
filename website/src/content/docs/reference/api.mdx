@@ -89,6 +89,18 @@ responses never include the `$` prefix.
 - Results show the **current** owner, as of the last block the indexer has processed. During the
   initial sync, recently transferred handles may still show an older owner.
 
+## Differences from handle.me
+
+The resolver aims to answer exactly as Kora Labs' [api.handle.me](https://api.handle.me) does, and the
+regression suite compares the two. These differences are known and deliberate, for now:
+
+- **Datum hashes.** A virtual sub-handle's address is read from an inline datum only, not from a datum
+  given by hash. No virtual sub-handle on mainnet uses a datum hash today.
+- **Status codes.** handle.me answers `202` while it's catching up or rolling back, and `451` for
+  legally restricted names. The resolver answers `200` and `404`.
+- **Other chains.** handle.me can serve addresses on other blockchains from a handle's metadata. The
+  resolver serves Cardano addresses only.
+
 ## Sync status
 
 Yaci Store, which the resolver is built on, adds endpoints of its own. They are for operators, not for

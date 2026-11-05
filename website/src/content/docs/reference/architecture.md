@@ -11,8 +11,8 @@ rules for what a handle resolves to.
 ADA Handles have no CIP. The rules below follow the implementation of Kora Labs, who created ADA Handle
 and run [api.handle.me](https://api.handle.me), and the regression suite checks the resolver against
 their API. The reasoning behind each rule is recorded in the
-[design decisions](../decisions/), and every token and datum is described field by field in
-[Tokens and datums](../datums/).
+[design decisions](https://github.com/cardano-foundation/cf-adahandle-resolver/tree/main/docs/adr), and every token and datum is described field by field in
+[ADA Handle tokens and datums](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/handle-datums.md).
 
 ## Which tokens are handles
 
