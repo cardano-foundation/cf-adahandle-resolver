@@ -20,8 +20,11 @@ database.
      -p 9095:9095 \
      -e JAVA_TOOL_OPTIONS=-Xmx4g \
      -v adahandle-data:/app/data \
-     cardanofoundation/adahandle-resolver:latest
+     cardanofoundation/adahandle-resolver:1.0.0-pre1
    ```
+
+   Pin a version like this. `latest` follows final releases only, so it doesn't point at 1.0.0 until 1.0.0 is
+   released.
 
 2. Follow the sync. The resolver starts at the first ADA Handle mint and works its way to the tip:
 
@@ -43,7 +46,7 @@ seconds and needs about half the memory. JVM flags go on the command line instea
 
 ```sh
 docker run -d --name adahandle-resolver -p 9095:9095 -v adahandle-data:/app/data \
-  cardanofoundation/adahandle-resolver:1.0.0-native -Xmx2g
+  cardanofoundation/adahandle-resolver:1.0.0-pre1-native -Xmx2g
 ```
 
 See [Deployment](../../guides/deployment/#native-image-experimental) for its licence (Oracle GraalVM).
