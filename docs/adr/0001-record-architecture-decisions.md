@@ -9,7 +9,7 @@ The resolver's design decisions so far live in pull request descriptions and cod
 handles, how rollbacks are repaired, why the database must be resynced for 1.0.0, how the native image is licensed.
 That is hard to find, and easy to contradict by accident.
 
-CIP-25, CIP-67 and CIP-68 define the tokens behind ADA Handles, but not which of them are handles,
+ADA Handles have no CIP of their own. CIP-25, CIP-67 and CIP-68 define the tokens, but not which of them are handles,
 whom a handle resolves to, or what a burn means. Those rules exist only in Kora Labs' implementation. We need a place
 to write down the rules we follow and why.
 
