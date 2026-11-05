@@ -106,7 +106,7 @@ public class AdaHandleServiceTest {
 
         // A deeper rollback past slot 2000 restores Eve to the oldest (slot 1000) owner,
         // proving the PK-seek re-picks the new latest after each delete.
-        adaHandleHistoryService.rollbackToSlot(1500L);
+        assertThat(adaHandleHistoryService.rollbackToSlot(1500L), equalTo(1));
         eve = adaHandleService.getAddressesByAdaHandle("Eve");
         assertThat(eve.getStakeAddress(), equalTo("stake1eveOldA"));
         assertThat(eve.getPaymentAddress(), equalTo("addr1eveOldA"));
@@ -135,7 +135,7 @@ public class AdaHandleServiceTest {
         // slot 1305) is the no-op the node sends at the catch-up-to-tip transition. It must
         // not touch the handle table at all.
         clearInvocations(adaHandleService);
-        adaHandleHistoryService.rollbackToSlot(1305L);
+        assertThat(adaHandleHistoryService.rollbackToSlot(1305L), equalTo(0));
         verify(adaHandleService, never()).upsert(any());
         verify(adaHandleService, never()).deleteByName(anyString());
         Addresses tom = adaHandleService.getAddressesByAdaHandle("Tom");

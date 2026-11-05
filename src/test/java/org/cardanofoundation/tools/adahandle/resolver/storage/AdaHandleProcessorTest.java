@@ -13,6 +13,8 @@ import com.bloxbean.cardano.yaci.store.utxo.domain.AddressUtxoEvent;
 import com.bloxbean.cardano.yaci.store.utxo.domain.TxInputOutput;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
+import org.cardanofoundation.tools.adahandle.resolver.metrics.AdaHandleMetrics;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
 import org.junit.jupiter.api.Test;
@@ -21,6 +23,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigInteger;
@@ -34,6 +37,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class AdaHandleProcessorTest {
@@ -44,6 +48,9 @@ public class AdaHandleProcessorTest {
     private AdaHandleService adaHandleService;
     @Mock
     private AdaHandleHistoryService adaHandleHistoryService;
+    private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
+    @Spy
+    private AdaHandleMetrics metrics = new AdaHandleMetrics(registry);
     @InjectMocks
     private AdaHandleProcessor adaHandleProcessor;
 
@@ -129,6 +136,43 @@ public class AdaHandleProcessorTest {
         assertThat(history.getValue().stream().map(AdaHandleHistoryItem::getPaymentAddress).toList(), contains("addr1second"));
     }
 
+    @Test
+    public void testMetricsCountCommittedMintsBurnsAndHistoryRows() {
+        adaHandleProcessor.processMints(mintEvent(1000L, "alice"));
+        adaHandleProcessor.processMints(mintEvent(1000L, "sub@alice"));
+        adaHandleProcessor.processAdaHandle(addressUtxoEvent(1000L, handleUtxo("alice", "addr1alice")));
+        adaHandleProcessor.processAdaHandle(addressUtxoEvent(1000L, handleUtxo("sub@alice", "addr1alice")));
+        adaHandleProcessor.processBurns(burnEvent(1100L, "bob"));
+        // Minted on a block that is rolled back before the commit: not counted.
+        adaHandleProcessor.processMints(mintEvent(2000L, "onfork"));
+        adaHandleProcessor.processAdaHandle(addressUtxoEvent(2000L, handleUtxo("onfork", "addr1fork")));
+        adaHandleProcessor.handleRollback(RollbackEvent.builder().rollbackTo(new Point(1500L, "hash")).build());
+        commit(1500L);
+
+        assertThat(counter("adahandle.mints", "type", "handle"), is(1.0));
+        assertThat(counter("adahandle.mints", "type", "subhandle"), is(1.0));
+        assertThat(counter("adahandle.burns", "type", "handle"), is(1.0));
+        assertThat(counter("adahandle.burns", "type", "subhandle"), is(0.0));
+        assertThat(registry.get("adahandle.history.rows").counter().count(), is(3.0));
+    }
+
+    @Test
+    public void testMetricsCountRollbacks() {
+        when(adaHandleHistoryService.rollbackToSlot(1500L)).thenReturn(0);
+        when(adaHandleHistoryService.rollbackToSlot(1000L)).thenReturn(3);
+
+        adaHandleProcessor.handleRollback(RollbackEvent.builder().rollbackTo(new Point(1500L, "hash")).build());
+        adaHandleProcessor.handleRollback(RollbackEvent.builder().rollbackTo(new Point(1000L, "hash")).build());
+
+        assertThat(counter("adahandle.rollbacks", "outcome", "noop"), is(1.0));
+        assertThat(counter("adahandle.rollbacks", "outcome", "applied"), is(1.0));
+        assertThat(registry.get("adahandle.rollback.handles").counter().count(), is(3.0));
+    }
+
+    private double counter(String name, String tag, String value) {
+        return registry.get(name).tag(tag, value).counter().count();
+    }
+
     private void commit(long slot) {
         adaHandleProcessor.handleCommitEvent(new CommitEvent<>(EventMetadata.builder().slot(slot).build(), List.of()));
     }
@@ -160,6 +204,17 @@ public class AdaHandleProcessorTest {
         output.setSlot(slot);
         TxInputOutput txInputOutput = TxInputOutput.builder().outputs(List.of(output)).build();
         return new AddressUtxoEvent(EventMetadata.builder().slot(slot).build(), List.of(txInputOutput));
+    }
+
+    private static MintBurnEvent mintEvent(long slot, String handle) {
+        Amount minted = Amount.builder()
+                .policyId(ADA_HANDLE_POLICY_ID)
+                .unit(ADA_HANDLE_POLICY_ID + HexFormat.of().formatHex(handle.getBytes()))
+                .assetNameBytes(handle.getBytes())
+                .quantity(BigInteger.ONE)
+                .build();
+        TxMintBurn txMintBurn = TxMintBurn.builder().txHash("mint" + slot).amounts(List.of(minted)).build();
+        return new MintBurnEvent(EventMetadata.builder().slot(slot).build(), List.of(txMintBurn));
     }
 
     private static MintBurnEvent burnEvent(long slot, String handle) {
