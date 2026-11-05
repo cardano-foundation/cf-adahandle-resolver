@@ -41,8 +41,8 @@ database.
 </Steps>
 
 <Aside type="tip" title="Native image (experimental)">
-Each release is also published as a GraalVM native image, tagged `<version>-native`. It starts in about two
-seconds and needs about half the memory. JVM flags go on the command line instead of `JAVA_TOOL_OPTIONS`:
+Each release is also published as a GraalVM native image, tagged `<version>-native`. It starts in under two
+seconds. JVM flags go on the command line instead of `JAVA_TOOL_OPTIONS`:
 
 ```sh
 docker run -d --name adahandle-resolver -p 9095:9095 -v adahandle-data:/app/data \

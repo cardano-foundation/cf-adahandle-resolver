@@ -19,9 +19,9 @@ A release can be preceded by pre-releases, `1.0.0-pre1`, `1.0.0-pre2` and so on,
 ### Native image (experimental)
 
 Each release is also published as a GraalVM native image, tagged `<version>-native`, next to the JVM
-image `<version>`. It starts in about two seconds and needs about half the memory of the JVM image, and
-syncs at roughly 80% of its speed. Configure it with the same environment variables; JVM flags go on the
-command line:
+image `<version>`. It starts in under two seconds, against about nine for the JVM image, and used about
+1.1 GB of memory throughout a mainnet sync. Configure it with the same environment variables; JVM flags go on
+the command line:
 
 ```sh
 docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-pre1-native -Xmx2g
