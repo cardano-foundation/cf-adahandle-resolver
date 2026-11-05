@@ -9,6 +9,10 @@ and every other decision that shapes it, as **architecture decision records**. T
 repository under
 [`docs/adr`](https://github.com/cardano-foundation/cf-adahandle-resolver/tree/main/docs/adr).
 
+Guidelines shared by the Cardano Foundation's Java services, such as native image builds, testing, observability,
+packaging and releases, live in [cf-java-nfrs](https://github.com/cardano-foundation/cf-java-nfrs) and are not
+repeated here.
+
 | ADR | Decision |
 | --- | -------- |
 | [1](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0001-record-architecture-decisions.md) | Record architecture decisions |
@@ -22,7 +26,6 @@ repository under
 | [9](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0009-testing-strategy.md) | Test on three levels: unit, devnet, and mainnet against Kora |
 | [10](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0010-keep-jpa-writes.md) | Keep JPA for the indexer's writes: batched upserts didn't make the sync faster |
 | [11](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0011-apply-changes-at-commit.md) | Apply handle changes at Yaci Store's `CommitEvent`, in chain order |
-| [13](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/adr/0013-pre-releases.md) | Pre-releases `X.Y.Z-preN` before each final release; `latest` only for finals |
 
 ## Where the resolver differs from handle.me
 
