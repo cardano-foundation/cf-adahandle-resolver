@@ -89,25 +89,44 @@ cd cf-adahandle-resolver
 java -Xmx4g -jar target/cf-adahandle-resolver-*-SNAPSHOT.jar
 ```
 
-### ⚡ Native image (weekly, experimental)
+### ⚡ Native image (experimental)
 
-A GraalVM native image starts in about a second and needs far less memory than the JVM image. It is
-built weekly from `main` (the released code) and published as `cardanofoundation/adahandle-resolver:native-weekly`:
+A GraalVM native image starts in about a second and needs far less memory than the JVM image. Each release
+is published as `cardanofoundation/adahandle-resolver:<version>-native`, next to the JVM image `<version>`:
 
 ```zsh
-docker run -p 9095:9095 cardanofoundation/adahandle-resolver:native-weekly
+docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-native
 # build it yourself
 docker build -f Dockerfile.native -t adahandle-resolver:native .
 ```
 
 Configure it with the same environment variables as the JVM image. JVM flags such as `-Xmx` go on the
-command line (`docker run ... adahandle-resolver:native-weekly -Xmx2g`), not in `JAVA_TOOL_OPTIONS`.
+command line (`docker run ... adahandle-resolver:1.0.0-native -Xmx2g`), not in `JAVA_TOOL_OPTIONS`.
+
+The native image is also built and smoke-tested every week, without publishing anything, so a change
+that breaks it under GraalVM shows up before the next release.
 
 **Licensing:** the native image is built with Oracle GraalVM, licensed under the
 [GraalVM Free Terms and Conditions](https://www.graalvm.org/faq/) (GFTC). The GraalVM parts compiled into
 the executable are covered by the GFTC, which allows free use, including production and hosted services,
 and free redistribution, but not redistribution for a fee. The image includes Oracle's license and notices
 in `/licenses/graalvm`. The resolver's own code is MIT licensed, and the JVM image doesn't contain GraalVM.
+
+## 🏷️ Releases
+
+Releases follow [semantic versioning](https://semver.org). A release can be preceded by pre-releases, `1.0.0-pre1`,
+`1.0.0-pre2`, …, then the final `1.0.0` ([ADR 13](docs/adr/0013-pre-releases.md)). Each is a GitHub release, the
+pre-releases marked as such, and each is published to Docker Hub:
+
+| Version      | JVM image                  | Native image          |
+|--------------|----------------------------|-----------------------|
+| `1.0.0-pre1` | `:1.0.0-pre1`              | `:1.0.0-pre1-native`  |
+| `1.0.0`      | `:1.0.0` and `:latest`     | `:1.0.0-native`       |
+
+`latest` always points at the newest final release, never at a pre-release.
+
+To cut a pre-release or a final, merge into `main` a commit whose message ends with a `Release-As:` footer, e.g.
+`Release-As: 1.0.0-pre1`, then merge the release PR that release-please opens.
 
 ## 🧪 Tests
 

@@ -13,10 +13,11 @@ rules work with are described in [ADA Handle tokens and datums](../handle-datums
 | [5](0005-burned-handles.md) | Burning a handle's token removes the handle | Accepted (#78) |
 | [6](0006-rollbacks-through-history.md) | Repair rollbacks from a history of ownership changes | Accepted |
 | [7](0007-yaci-store-2-and-resync.md) | Yaci Store 2.x, and a full resync for 1.0.0 | Accepted |
-| [8](0008-native-image.md) | A native image built with Oracle GraalVM, weekly from main | Accepted |
+| [8](0008-native-image.md) | A native image built with Oracle GraalVM, checked weekly, published with releases | Accepted |
 | [9](0009-testing-strategy.md) | Test on three levels: unit, devnet, mainnet against Kora | Accepted |
 | [10](0010-keep-jpa-writes.md) | Keep JPA for the indexer's writes: batched upserts didn't make the sync faster | Accepted |
 | [11](0011-apply-changes-at-commit.md) | Apply handle changes at Yaci Store's CommitEvent, in chain order | Accepted |
+| [13](0013-pre-releases.md) | Pre-releases X.Y.Z-preN before each final release | Accepted |
 
 To add one: copy the structure of an existing ADR (status, date, context, decision, consequences, references), give it
 the next number, and add it to this table. To change a decision, add an ADR that supersedes the old one.
