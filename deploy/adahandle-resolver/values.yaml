@@ -5,9 +5,24 @@ image:
   tag: "0.1.4"
   pullPolicy: IfNotPresent
 
+# Accepts plain names (["regcred"]) or the Kubernetes form ([{name: regcred}]).
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+
+# Service account to run the resolver pod under.
+#
+# The chart does NOT create a ServiceAccount resource — it only references an
+# already-existing one (created out-of-band, e.g. via your platform's IAM/IRSA
+# or a separate baseline chart). Set `name` to the SA you want to use. With
+# `name: ""` the pod falls back to the namespace's `default` service account.
+serviceAccount:
+  name: ""
+
+# JVM options for the resolver container (JAVA_TOOL_OPTIONS, since the image
+# entrypoint is a fixed `java -jar`). A mainnet sync needs about 4g of heap; keep
+# resources.limits.memory above -Xmx (roughly -Xmx + 0.5Gi) or the pod is OOMKilled.
+javaToolOptions: "-Xmx4g -Dnetworkaddress.cache.ttl=0 -Dnetworkaddress.cache.negative.ttl=0"
 
 service:
   type: ClusterIP
@@ -39,6 +54,8 @@ startupProbe:
   initialDelaySeconds: 60
   periodSeconds: 20
   failureThreshold: 3
+
+dbSchema: public
 
 database:
   # Can be h2 or postgres

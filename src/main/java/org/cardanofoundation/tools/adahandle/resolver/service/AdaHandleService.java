@@ -1,30 +1,24 @@
 package org.cardanofoundation.tools.adahandle.resolver.service;
-import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
+
+import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
-import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
-import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleHistoryMapper;
-import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleMapper;
 import org.cardanofoundation.tools.adahandle.resolver.projection.Addresses;
 import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class AdaHandleService {
-    @Autowired
-    private AdaHandleRepository adaHandleRepository;
+    private final AdaHandleRepository adaHandleRepository;
 
-    public void saveAllAdaHandles(List<AddressUtxo> addressUtxoList) {
-        List<AdaHandle> adaHandles = addressUtxoList.stream()
-                .map(AdaHandleMapper::toAdaHandles).flatMap(List::stream)
-                .toList();
-
+    public void saveAll(List<AdaHandle> adaHandles) {
         adaHandleRepository.saveAll(adaHandles);
     }
 
-    public Addresses getAddressesByAdaHandle(String adaHandle) {
+    public @Nullable Addresses getAddressesByAdaHandle(String adaHandle) {
         if (adaHandle.startsWith("$") && adaHandle.length() > 1) {
             adaHandle = adaHandle.substring(1);
         }
@@ -40,9 +34,18 @@ public class AdaHandleService {
         return adaHandleRepository.findAdaHandlesByPaymentAddress(paymentAddress);
     }
 
-    public void recalculateAdaHandlesFromHistory(List<AdaHandleHistoryItem> adaHandleHistoryItems) {
-        adaHandleRepository.deleteAll();
-        List<AdaHandle> adaHandles = adaHandleHistoryItems.stream().map(AdaHandleHistoryMapper::toAdaHandle).toList();
-        adaHandleRepository.saveAll(adaHandles);
+    /** Upsert a single handle row (name is the @Id, so save() merges). */
+    public void upsert(AdaHandle adaHandle) {
+        adaHandleRepository.save(adaHandle);
+    }
+
+    /** Delete handles by name (primary key), e.g. burned ones. Names without a row are skipped. */
+    public void deleteAllByName(List<String> names) {
+        adaHandleRepository.deleteAllById(names);
+    }
+
+    /** Delete a single handle by its name (primary key). No-op if the row doesn't exist. */
+    public void deleteByName(String name) {
+        adaHandleRepository.deleteById(name);
     }
 }

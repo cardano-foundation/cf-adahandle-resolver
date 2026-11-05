@@ -1,25 +1,48 @@
 package org.cardanofoundation.tools.adahandle.resolver.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "ada_handle_history_item")
 @IdClass(AdaHandleHistoryItemKey.class) // Use IdClass to specify the composite key class
 public class AdaHandleHistoryItem {
     @Id
     private String name;
     @Column(name = "stake_address")
-    private String stakeAddress;
+    private @Nullable String stakeAddress;
+    /** Null only for a burn. */
     @Column(name = "payment_address")
-    private String paymentAddress;
+    private @Nullable String paymentAddress;
     @Id
     private long slot;
+    /** The handle's token was burned at this slot: from here on the handle doesn't exist (no addresses). */
+    @Column(name = "burned")
+    private boolean burned;
+    /**
+     * The token (policy id + asset name, hex) whose output or burn this change comes from. Not stored: it is only used
+     * to order the changes of one block, see {@code AdaHandleProcessor}.
+     */
+    @Transient
+    private @Nullable String token;
+
+    public AdaHandleHistoryItem(String name, @Nullable String stakeAddress, @Nullable String paymentAddress, long slot) {
+        this.name = name;
+        this.stakeAddress = stakeAddress;
+        this.paymentAddress = paymentAddress;
+        this.slot = slot;
+    }
+
+    public static AdaHandleHistoryItem burn(String name, long slot, @Nullable String token) {
+        AdaHandleHistoryItem item = new AdaHandleHistoryItem(name, null, null, slot);
+        item.burned = true;
+        item.token = token;
+        return item;
+    }
 }

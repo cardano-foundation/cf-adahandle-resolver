@@ -21,7 +21,9 @@ if ! ssh_exec "cd $REMOTE_PROJECT_DIR && { test -f $ENV_FILE || cp ${ENV_FILE}.e
 fi
 
 echo "[start] checking the adahandle-db volume isn't already populated ..."
-populated=$(ssh_exec "docker run --rm -v adahandle-db:/v alpine sh -c 'ls -A /v 2>/dev/null | head -1' 2>/dev/null || true")
+# docker compose prefixes volumes with the project name. Inspect the volume only if it exists:
+# `docker run -v <name>` would otherwise silently create an empty (orphan) volume.
+populated=$(ssh_exec "docker volume inspect cf-adahandle-resolver_adahandle-db >/dev/null 2>&1 && docker run --rm -v cf-adahandle-resolver_adahandle-db:/v alpine sh -c 'ls -A /v 2>/dev/null | head -1' 2>/dev/null || true")
 if [[ -n "$populated" ]]; then
   echo "ERROR: the adahandle-db volume already has data. A fresh sync needs it empty." >&2
   echo "       Decide with the user: resume (just 'up -d') or wipe ('docker compose --env-file $ENV_FILE down -v')." >&2

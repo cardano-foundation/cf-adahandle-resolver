@@ -22,7 +22,7 @@ echo "[spotcheck] sampling up to $SAMPLE_N handles from $DB_NAME.ada_handle on $
 # Emit a JSON array so handle names containing any UTF-8 (including spaces or the
 # pipe char — CIP-68 names are arbitrary) parse unambiguously. Skip empty names.
 samples=$(ssh -o BatchMode=yes "$REMOTE" \
-  "docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -tA -c \"SELECT coalesce(json_agg(row_to_json(t)),'[]') FROM (SELECT name, stake_address AS stake, payment_address AS payment FROM ada_handle WHERE name <> '' AND stake_address IS NOT NULL AND payment_address IS NOT NULL ORDER BY name LIMIT $SAMPLE_N) t;\"" 2>/dev/null || true)
+  "docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -tA -c \"SELECT coalesce(json_agg(row_to_json(t)),'[]') FROM (SELECT name, stake_address AS stake, payment_address AS payment FROM ada_handle WHERE name <> '' AND stake_address IS NOT NULL AND payment_address IS NOT NULL ORDER BY random() LIMIT $SAMPLE_N) t;\"" 2>/dev/null || true)
 
 if [[ -z "$samples" || "$samples" == "[]" ]]; then
   echo "ERROR: no usable handles found in ada_handle — is the sync populated yet?" >&2

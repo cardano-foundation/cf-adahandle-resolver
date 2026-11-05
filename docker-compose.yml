@@ -15,17 +15,20 @@ services:
     ports:
       - "${DB_PORT:-5432}:5432"
     environment:
-      POSTGRES_USER: "${DB_USERNAME}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
-      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: "${DB_USERNAME:-cardano}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-adahandle}"
+      POSTGRES_DB: "${DB_NAME:-adahandle}"
     volumes:
       - adahandle-db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-cardano} -d ${DB_NAME:-adahandle}"]
       interval: 5s
       timeout: 5s
       retries: 10
-    restart: on-failure
+    # Both services come back after a crash AND after a host reboot or Docker daemon restart;
+    # only `docker compose stop`/`down` keeps them down. Not `on-failure`: Postgres exits 0
+    # on a clean shutdown, so it stayed down after a reboot while the API restarted without it.
+    restart: unless-stopped
 
   api:
     build:
@@ -40,13 +43,15 @@ services:
     environment:
       SPRING_ACTIVE_PROFILES: "${SPRING_ACTIVE_PROFILES:-mainnet,postgres}"
       PORT: "${PORT:-9095}"
-      DB_URL: "${DB_URL}"
-      DB_USERNAME: "${DB_USERNAME}"
-      DB_PASSWORD: "${DB_PASSWORD}"
-      REMOTE_NODE_URL: "${REMOTE_NODE_URL}"
-      REMOTE_NODE_PORT: "${REMOTE_NODE_PORT}"
-      YACI_STORE_CARDANO_SYNC_START_SLOT: "${YACI_STORE_CARDANO_SYNC_START_SLOT}"
-      YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH: "${YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH}"
+      DB_URL: "${DB_URL:-jdbc:postgresql://db:5432/${DB_NAME:-adahandle}}"
+      DB_USERNAME: "${DB_USERNAME:-cardano}"
+      DB_PASSWORD: "${DB_PASSWORD:-adahandle}"
+      # Defaults match application.yml's mainnet defaults, so an unset variable behaves
+      # as if it were not passed at all (an empty value would override the app default).
+      REMOTE_NODE_URL: "${REMOTE_NODE_URL:-backbone.cardano.iog.io}"
+      REMOTE_NODE_PORT: "${REMOTE_NODE_PORT:-3001}"
+      YACI_STORE_CARDANO_SYNC_START_SLOT: "${YACI_STORE_CARDANO_SYNC_START_SLOT:-47931310}"
+      YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH: "${YACI_STORE_CARDANO_SYNC_START_BLOCK_HASH:-89f93419845d5f6ce8040fd5eeedda93d764c8569f7c2cc6802a8429a0da877b}"
       STORE_SYNCAUTOSTART: "${STORE_SYNCAUTOSTART:-true}"
       # NOTE: the Dockerfile entrypoint is a fixed `java -jar ...`, so JAVA_OPTS
       # would be ignored. JAVA_TOOL_OPTIONS is read automatically by the JVM at
@@ -54,7 +59,17 @@ services:
       # fresh IP from the relay's round-robin pool (mitigates the yaci dead-relay
       # wedge described in the skill's "Known issue" section).
       JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:--Xmx4g -Dnetworkaddress.cache.ttl=0 -Dnetworkaddress.cache.negative.ttl=0}"
-    restart: always
+    # Healthy while blocks arrive from the node (/actuator/health/liveness). The image has no curl or wget, so bash
+    # sends the request. /actuator/health/readiness tells whether the sync has reached the tip.
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/${PORT:-9095} && printf 'GET /actuator/health/liveness HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && head -1 <&3 | grep -q ' 200 '"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 2m
+    # See db. After a reboot Docker starts containers without waiting for depends_on, so the
+    # API may fail until Postgres accepts connections; it is restarted until it does.
+    restart: unless-stopped
 
 volumes:
   adahandle-db:
