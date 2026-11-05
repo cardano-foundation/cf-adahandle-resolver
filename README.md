@@ -59,7 +59,7 @@ docker run -p 9095:9095 -e JAVA_TOOL_OPTIONS=-Xmx4g cardanofoundation/adahandle-
 ```
 
 Pin a version like this: `latest` follows final releases only, so it doesn't point at 1.0.0 until 1.0.0 is
-released (see [Releases](#%EF%B8%8F-releases)). This syncs mainnet into an embedded H2 database. A mainnet sync needs about 4 GB of heap; pass JVM flags
+released (see Releases below). This syncs mainnet into an embedded H2 database. A mainnet sync needs about 4 GB of heap; pass JVM flags
 in `JAVA_TOOL_OPTIONS` (`JAVA_OPTS` is ignored by the image).
 
 ### 🐘 Docker Compose with PostgreSQL
