@@ -1,8 +1,8 @@
 # Architecture Decision Records
 
-Decisions that shape the resolver, and why ([ADR 1](0001-record-architecture-decisions.md)). ADA Handles have no CIP;
-[ADR 2](0002-ada-handle-resolution-rules.md) writes down the rules we follow instead. The tokens and datums those
-rules work with are described in [ADA Handle tokens and datums](../handle-datums.md).
+Decisions that shape the resolver, and why ([ADR 1](0001-record-architecture-decisions.md)).
+[ADR 2](0002-ada-handle-resolution-rules.md) writes down the ADA Handle resolution rules we follow. The tokens and
+datums those rules work with are described in [ADA Handle tokens and datums](../handle-datums.md).
 
 | ADR | Decision | Status |
 |---|---|---|
