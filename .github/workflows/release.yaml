@@ -24,6 +24,10 @@ jobs:
           release-type: maven
           bump-minor-pre-major: true
           bump-patch-for-minor-pre-major: true
+          # Pre-releases (X.Y.Z-preN, e.g. 1.0.0-pre1) are marked as pre-releases on GitHub. Their version is set
+          # with a "Release-As: 1.0.0-pre1" footer on a commit to main, like every pre-release and the final after
+          # them; see "Releases" in the README.
+          prerelease: true
 
   # Only when release-please has just created a release, i.e. its release PR was merged. Its snapshot PRs
   # (X.Y.Z-SNAPSHOT) create no release, so they publish nothing.

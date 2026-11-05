@@ -8,7 +8,8 @@ name: Native Image
 #   invalidate; this catches it within a week. A failed scheduled run opens (or updates) an issue labelled
 #   "native-image".
 # - With each release: release.yaml calls it with the release tag. The same build and smoke tests, then
-#   cardanofoundation/adahandle-resolver:<version>-native is pushed. No other native tag is published.
+#   cardanofoundation/adahandle-resolver:<version>-native is pushed, for pre-releases (1.0.0-pre1-native) too. No
+#   other native tag is published.
 #
 # Note: GitHub runs scheduled workflows from the default branch, so the schedule takes effect once this file is on
 # main.
@@ -56,7 +57,7 @@ jobs:
         with:
           ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || '' }}
 
-      # The same check as publish.yaml: only X.Y.Z releases are published.
+      # The same check as publish.yaml: releases (X.Y.Z) and pre-releases (X.Y.Z-preN) are published, nothing else.
       - name: Check that the tag is a release
         if: inputs.tag
         id: version
@@ -64,8 +65,8 @@ jobs:
           TAG: ${{ inputs.tag }}
         run: |
           VERSION=$(python3 -c "import xml.etree.ElementTree as E; print(E.parse('pom.xml').getroot().find('{http://maven.apache.org/POM/4.0.0}version').text)")
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::pom.xml version $VERSION is not a release version; snapshots and pre-releases are not published"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-pre[1-9][0-9]*)?$ ]]; then
+            echo "::error::pom.xml version $VERSION is neither a release (X.Y.Z) nor a pre-release (X.Y.Z-preN); not published"
             exit 1
           fi
           if [[ "$TAG" != "v$VERSION" ]]; then

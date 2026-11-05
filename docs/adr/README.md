@@ -17,6 +17,7 @@ rules work with are described in [ADA Handle tokens and datums](../handle-datums
 | [9](0009-testing-strategy.md) | Test on three levels: unit, devnet, mainnet against Kora | Accepted |
 | [10](0010-keep-jpa-writes.md) | Keep JPA for the indexer's writes: batched upserts didn't make the sync faster | Accepted |
 | [11](0011-apply-changes-at-commit.md) | Apply handle changes at Yaci Store's CommitEvent, in chain order | Accepted |
+| [13](0013-pre-releases.md) | Pre-releases X.Y.Z-preN before each final release | Accepted |
 
 To add one: copy the structure of an existing ADR (status, date, context, decision, consequences, references), give it
 the next number, and add it to this table. To change a decision, add an ADR that supersedes the old one.

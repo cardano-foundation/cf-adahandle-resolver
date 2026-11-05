@@ -1,13 +1,14 @@
 name: Publish the Docker image
 
-# Publishes cardanofoundation/adahandle-resolver:<version> and :latest for a release, and for nothing else.
+# Publishes cardanofoundation/adahandle-resolver:<version> for a release, and for nothing else. A final release
+# (X.Y.Z) also moves :latest; a pre-release (X.Y.Z-preN, e.g. 1.0.0-pre1) doesn't, so :latest is always a final.
 #
 # - release.yaml calls it when release-please has just created a release. (A release created with the default
 #   GITHUB_TOKEN doesn't start other workflows, so `on: release` would never fire.)
 # - It can be run by hand for an existing release tag, e.g. to republish one.
 #
-# Snapshots (-SNAPSHOT, which release-please's Maven strategy bumps to after a release) and pre-releases (any version
-# with a suffix) are refused, so :latest always points at a release.
+# Snapshots (-SNAPSHOT, which release-please's Maven strategy bumps to after a release) and any other suffix are
+# refused.
 
 on:
   workflow_call:
@@ -41,8 +42,12 @@ jobs:
           TAG: ${{ inputs.tag }}
         run: |
           VERSION=$(python3 -c "import xml.etree.ElementTree as E; print(E.parse('pom.xml').getroot().find('{http://maven.apache.org/POM/4.0.0}version').text)")
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::pom.xml version $VERSION is not a release version; snapshots and pre-releases are not published"
+          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "latest=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-pre[1-9][0-9]*$ ]]; then
+            echo "latest=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::pom.xml version $VERSION is neither a release (X.Y.Z) nor a pre-release (X.Y.Z-preN); not published"
             exit 1
           fi
           if [[ "$TAG" != "v$VERSION" ]]; then
@@ -76,10 +81,12 @@ jobs:
           file: ./Dockerfile
           context: .
           push: true
+          # :latest only for a final release; build-push-action skips the empty line of a pre-release.
           tags: |
             cardanofoundation/adahandle-resolver:${{ steps.version.outputs.version }}
-            cardanofoundation/adahandle-resolver:latest
+            ${{ steps.version.outputs.latest == 'true' && 'cardanofoundation/adahandle-resolver:latest' || '' }}
 
       - name: Summary
         run: |
-          echo "Published cardanofoundation/adahandle-resolver:${{ steps.version.outputs.version }} and :latest from ${{ inputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
+          if [[ "${{ steps.version.outputs.latest }}" == true ]]; then also=" and :latest"; else also=" (pre-release, :latest unchanged)"; fi
+          echo "Published cardanofoundation/adahandle-resolver:${{ steps.version.outputs.version }}$also from ${{ inputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
