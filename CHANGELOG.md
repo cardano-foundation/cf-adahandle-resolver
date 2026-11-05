@@ -1,5 +1,53 @@
 # Changelog
 
+## [1.0.0-pre1](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v0.1.5...v1.0.0-pre1) (2026-11-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* yaci-store 2.x changed its UTXO migration V0_200_1 in place, so databases created with 0.1.7 fail Flyway validation. A full resync from an empty database is required.
+
+### Features
+
+* expose OpenAPI spec at /apidocs with Swagger UI ([#60](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/60)) ([edaa986](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/edaa986bf26a6b0bd081773d15d844b9f2c95d4f))
+* handle chain rollbacks correctly, including CIP-68 handles ([#54](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/54)) ([9e7dbe4](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/9e7dbe4769a3e5e1cdcc1f03d5f78ffd09d02dd7))
+* health probes and metrics on par with cf-token-metadata-registry ([#93](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/93)) ([d75d154](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/d75d154a5444b11254a2e05a66f8220dcfe114f5))
+* Prometheus metrics about handles ([#94](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/94)) ([7e38850](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/7e38850c59b253e4ae411b067ff8d6e758b5dd9a))
+* resolve virtual sub-handles from their datum ([#65](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/65)) ([195eac4](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/195eac481d02931b8b385a7a8add3e5e39ff2d3e))
+* **skills:** golden handles of every kind, checked against Kora; all sub-handles too ([#77](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/77)) ([a79e831](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/a79e83127c9fda664243d3b632beafb621cf36fe))
+* **skills:** regression check that every ADA Handle policy's handles are indexed ([#72](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/72)) ([b05f9b4](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/b05f9b490960ffa37abe63aad433cfbdce2b4970))
+* **skills:** regression suite for a synced mainnet instance ([#64](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/64)) ([3b130ee](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/3b130eeb85a60050b495571eca7b055e2c4f8b50))
+* weekly GraalVM native image build ([#63](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/63)) ([926a472](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/926a4722466f0b932ba7d7a6676285188e1246da))
+
+
+### Bug Fixes
+
+* **compose:** restart both services after a crash and after a reboot ([#75](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/75)) ([eccb572](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/eccb5728ba327b7b3666e176c33fc8fbd35f3223))
+* **deps:** PostgreSQL driver 42.7.14 for known CVEs ([#67](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/67)) ([c51f078](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/c51f078f8f18756bcd2471c48d68f37582136b3e))
+* **deps:** security patch releases for Tomcat, Jackson, Netty, Bouncy Castle and more ([#69](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/69)) ([9940b82](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/9940b82bb9fa783c400c4386f57c03ee3373e4c8))
+* **docker:** use the Ubuntu noble JRE so the image runs on x86-64-v2 CPUs ([#62](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/62)) ([a59c3a2](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/a59c3a23c535e21085d90f712c9a2f6f0376b72a))
+* implement equals/hashCode on the history composite key ([#66](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/66)) ([c3cdd93](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/c3cdd93d5a6331eb8597707db2af3a355ceacc0d))
+* index handles of the DeMi policy too ([#71](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/71)) ([8124cf4](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/8124cf41b02e09a5dac44d3188ab8df5a29285e4))
+* keep legacy handles migrated to CIP-68 in one transaction ([#86](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/86)) ([fad12aa](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/fad12aade46b139e9c148de463e78f5261ded07a))
+* remove handles whose token is burned ([#78](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/78)) ([6d17c9e](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/6d17c9e6d49eb969ed34686096d4b7fd3f1d2f79))
+
+
+### Documentation
+
+* ADA Handle tokens and datums, field by field ([#87](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/87)) ([ebd72d5](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/ebd72d518f2548bec3e6548ecc2ec40ed20de281))
+* ADR 10, keep JPA for the indexer's writes ([#84](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/84)) ([a61a62c](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/a61a62c8065e9d2ca238d8ae31e1b862a0c984a7))
+* ADR 11, apply handle changes at Yaci Store's CommitEvent ([#88](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/88)) ([ff82521](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/ff82521cf3a60b0dd1d5cb141da71394e4bc0a0c))
+* architecture decision records ([#83](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/83)) ([7c0c5b0](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/7c0c5b000b50420de147ce4f3be09338cdac1a85))
+* bring the README up to date for 1.0.0 ([#74](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/74)) ([02d6d50](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/02d6d5096a2b8d8092ac7fc220c2608743631976))
+* monitoring in the README: health groups and the handle metrics ([#93](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/93), [#94](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/94)) ([#96](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/96)) ([c8693a8](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/c8693a82a616ad876a511496208bd4ce7e433f8d))
+
+
+### Miscellaneous Chores
+
+* release 1.0.0 ([dcfe1ae](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/dcfe1aeef2380ead36fde3d6d910048d5f4d77bc))
+* release 1.0.0-pre1 ([155511c](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/155511c30123d18dce109dab8658cc35b9aa6de0))
+* upgrade yaci-store to 2.0.7 ([#57](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/57)) ([b283f66](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/b283f6607d436a344071060469e7b909d8489ad7))
+
 ## [0.1.4](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v0.1.3...v0.1.4) (2025-05-08)
 
 
