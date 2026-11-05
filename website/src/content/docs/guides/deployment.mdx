@@ -29,6 +29,10 @@ image is built for x86-64 (amd64) only.
 The native image is also built and smoke-tested every week, without publishing anything, so a change that
 breaks it under GraalVM shows up before the next release.
 
+To build it yourself, run `docker build -f Dockerfile.native -t adahandle-resolver:native .`. GraalVM's
+compiler needs a lot of memory: a build on an 8-core host took 28 minutes and used up to 17.5 GB of memory.
+The resulting executable is about 430 MB.
+
 It's built with Oracle GraalVM. The GraalVM parts compiled into the executable are covered by the
 [GraalVM Free Terms and Conditions](https://www.graalvm.org/faq/), which allow free use, including in
 production and hosted services, and free redistribution, but not redistribution for a fee. The image
