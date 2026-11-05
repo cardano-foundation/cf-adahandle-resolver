@@ -52,6 +52,27 @@ management:
           - health
           - info
           - prometheus
+          - metrics
+  metrics:
+    tags:
+      application: cf-adahandle-resolver
+  endpoint:
+    health:
+      show-details: always
+      # /actuator/health/liveness, /readiness and /startup, for Kubernetes probes and the docker compose healthcheck.
+      # nodeHealth and nodeSync come from Yaci Store: nodeHealth is UP while blocks arrive from the node, nodeSync only
+      # once the sync is at the tip. Readiness waits for nodeSync, so an instance still syncing (about 6.5 hours on
+      # mainnet) takes no traffic: its answers would be out of date. Liveness fails when the node connection is lost
+      # or stuck, so Kubernetes restarts the pod; a fresh JVM reconnects, often to another relay.
+      probes:
+        enabled: true
+      group:
+        startup:
+          include: db,nodeHealth
+        liveness:
+          include: livenessState,nodeHealth
+        readiness:
+          include: readinessState,nodeSync,db
 
 store:
   cardano:
@@ -66,9 +87,13 @@ store:
     epoch-calculation-interval=14400:  # 14400 = 4 hours
   utxo:
     api-enabled: false
-  # Yaci Store's plugin system (scripted event handlers and schedulers, see the docs site's Plugins guide) is off unless
-  # store.plugins.enabled is set. Its read-only monitoring API ({apiPrefix}/admin/plugins) is on by default in Yaci
-  # Store; off here, so the public API serves only the resolver's endpoints. STORE_PLUGINS_API_ENABLED=true turns it on.
+  # nodeHealth and nodeSync turn OUT_OF_SERVICE after this long without a block, which fails the liveness and readiness
+  # probes. Yaci Store's default, 120 s, is too short for mainnet: a block comes every 20 s on average, so a gap over
+  # 120 s happens several times a day. Over 300 s, about once in two years.
+  block-receive-delay-seconds: ${STORE_BLOCK_RECEIVE_DELAY_SECONDS:300}
+  # Yaci Store's plugin system is off unless store.plugins.enabled is set; the resolver doesn't document or support it.
+  # Its read-only monitoring API ({apiPrefix}/admin/plugins) is on by default in Yaci Store; off here, so the public API
+  # serves only the resolver's endpoints.
   plugins:
     api-enabled: false
 ---
