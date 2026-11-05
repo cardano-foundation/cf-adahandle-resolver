@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdaHandlePoliciesConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.config</a> &gt; <span class="el_source">AdaHandlePoliciesConfig.java</span></div><h1>AdaHandlePoliciesConfig.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.config;
+
+import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandlePolicies;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Configuration
+<span class="fc" id="L13">@Slf4j</span>
+public class AdaHandlePoliciesConfig {
+
+<span class="fc" id="L16">    public AdaHandlePoliciesConfig(@Value(&quot;${adahandle.policy-ids}&quot;) String[] configuredPolicyIds) {</span>
+<span class="fc bfc" id="L17" title="All 2 branches covered.">        Set&lt;String&gt; policyIds = Arrays.stream(configuredPolicyIds).map(String::trim).filter(id -&gt; !id.isEmpty())</span>
+<span class="fc" id="L18">                .collect(Collectors.toSet());</span>
+<span class="fc bfc" id="L19" title="All 2 branches covered.">        if (policyIds.isEmpty()) {</span>
+<span class="fc" id="L20">            throw new IllegalArgumentException(&quot;adahandle.policy-ids must name at least one policy&quot;);</span>
+        }
+<span class="fc bfc" id="L22" title="All 2 branches covered.">        for (String policyId : policyIds) {</span>
+<span class="fc bfc" id="L23" title="All 2 branches covered.">            if (!policyId.matches(&quot;[0-9a-f]{56}&quot;)) {</span>
+<span class="fc" id="L24">                throw new IllegalArgumentException(&quot;adahandle.policy-ids must be policy ids (56 lowercase hex characters): &quot; + policyId);</span>
+            }
+<span class="fc" id="L26">        }</span>
+<span class="fc bfc" id="L27" title="All 2 branches covered.">        if (!policyIds.equals(AdaHandlePolicies.DEFAULT)) {</span>
+<span class="fc" id="L28">            log.warn(&quot;Indexing tokens of policies {} as handles instead of the ADA Handle policies {}&quot;, policyIds,</span>
+                    AdaHandlePolicies.DEFAULT);
+        }
+<span class="fc" id="L31">        AdaHandlePolicies.set(policyIds);</span>
+<span class="fc" id="L32">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

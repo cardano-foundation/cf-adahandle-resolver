@@ -1,49 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdaHandleService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.service</a> &gt; <span class="el_source">AdaHandleService.java</span></div><h1>AdaHandleService.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.service;
-import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
+
+import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandle;
-import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
-import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleHistoryMapper;
-import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleMapper;
 import org.cardanofoundation.tools.adahandle.resolver.projection.Addresses;
 import org.cardanofoundation.tools.adahandle.resolver.repository.AdaHandleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-<span class="fc" id="L15">public class AdaHandleService {</span>
-    @Autowired
-    private AdaHandleRepository adaHandleRepository;
+@RequiredArgsConstructor
+public class AdaHandleService {
+    private final AdaHandleRepository adaHandleRepository;
 
-    public void saveAllAdaHandles(List&lt;AddressUtxo&gt; addressUtxoList) {
-<span class="fc" id="L20">        List&lt;AdaHandle&gt; adaHandles = addressUtxoList.stream()</span>
-<span class="fc" id="L21">                .map(AdaHandleMapper::toAdaHandles).flatMap(List::stream)</span>
-<span class="fc" id="L22">                .toList();</span>
+    public void saveAll(List&lt;AdaHandle&gt; adaHandles) {
+<span class="fc" id="L18">        adaHandleRepository.saveAll(adaHandles);</span>
+<span class="fc" id="L19">    }</span>
 
-<span class="fc" id="L24">        adaHandleRepository.saveAll(adaHandles);</span>
-<span class="fc" id="L25">    }</span>
-
-    public Addresses getAddressesByAdaHandle(String adaHandle) {
-<span class="fc bfc" id="L28" title="All 4 branches covered.">        if (adaHandle.startsWith(&quot;$&quot;) &amp;&amp; adaHandle.length() &gt; 1) {</span>
-<span class="fc" id="L29">            adaHandle = adaHandle.substring(1);</span>
+    public @Nullable Addresses getAddressesByAdaHandle(String adaHandle) {
+<span class="fc bfc" id="L22" title="All 4 branches covered.">        if (adaHandle.startsWith(&quot;$&quot;) &amp;&amp; adaHandle.length() &gt; 1) {</span>
+<span class="fc" id="L23">            adaHandle = adaHandle.substring(1);</span>
         }
 
-<span class="fc" id="L32">        return adaHandleRepository.findAddressesByAdaHandle(adaHandle);</span>
+<span class="fc" id="L26">        return adaHandleRepository.findAddressesByAdaHandle(adaHandle);</span>
     }
 
     public List&lt;String&gt; getAdaHandlesByStakeAddress(String stakeAddress) {
-<span class="fc" id="L36">        return adaHandleRepository.findAdaHandlesByStakeAddress(stakeAddress);</span>
+<span class="fc" id="L30">        return adaHandleRepository.findAdaHandlesByStakeAddress(stakeAddress);</span>
     }
 
     public List&lt;String&gt; getAdaHandlesByPaymentAddress(String paymentAddress) {
-<span class="fc" id="L40">        return adaHandleRepository.findAdaHandlesByPaymentAddress(paymentAddress);</span>
+<span class="fc" id="L34">        return adaHandleRepository.findAdaHandlesByPaymentAddress(paymentAddress);</span>
     }
 
-    public void recalculateAdaHandlesFromHistory(List&lt;AdaHandleHistoryItem&gt; adaHandleHistoryItems) {
-<span class="fc" id="L44">        adaHandleRepository.deleteAll();</span>
-<span class="fc" id="L45">        List&lt;AdaHandle&gt; adaHandles = adaHandleHistoryItems.stream().map(AdaHandleHistoryMapper::toAdaHandle).toList();</span>
-<span class="fc" id="L46">        adaHandleRepository.saveAll(adaHandles);</span>
-<span class="fc" id="L47">    }</span>
+    /** Upsert a single handle row (name is the @Id, so save() merges). */
+    public void upsert(AdaHandle adaHandle) {
+<span class="fc" id="L39">        adaHandleRepository.save(adaHandle);</span>
+<span class="fc" id="L40">    }</span>
+
+    /** Delete handles by name (primary key), e.g. burned ones. Names without a row are skipped. */
+    public void deleteAllByName(List&lt;String&gt; names) {
+<span class="fc" id="L44">        adaHandleRepository.deleteAllById(names);</span>
+<span class="fc" id="L45">    }</span>
+
+    /** Delete a single handle by its name (primary key). No-op if the row doesn't exist. */
+    public void deleteByName(String name) {
+<span class="fc" id="L49">        adaHandleRepository.deleteById(name);</span>
+<span class="fc" id="L50">    }</span>
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

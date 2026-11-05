@@ -10,18 +10,18 @@ import java.util.ArrayList;
 <span class="nc" id="L10">public class AdaHandleHistoryMapper {</span>
     public static ArrayList&lt;AdaHandleHistoryItem&gt; fromAddressUtxoEntities(AddressUtxo addressUtxo) {
 <span class="fc" id="L12">        final ArrayList&lt;AdaHandleHistoryItem&gt; adaHandleHistoryItems = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L13">        final String ADA_HANDLE_POLICY_ID = &quot;f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a&quot;;</span>
-<span class="fc bfc" id="L14" title="All 2 branches covered.">        if (addressUtxo.getAmounts() != null) {</span>
-<span class="fc bfc" id="L15" title="All 2 branches covered.">            for (final Amt amount : addressUtxo.getAmounts()) {</span>
-<span class="fc bfc" id="L16" title="All 2 branches covered.">                if (amount.getPolicyId() != null) {</span>
-<span class="fc bfc" id="L17" title="All 2 branches covered.">                    if (amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {</span>
-<span class="fc" id="L18">                        AdaHandleHistoryItem adaHandleHistoryItem = new AdaHandleHistoryItem();</span>
-<span class="fc" id="L19">                        adaHandleHistoryItem.setName(amount.getAssetName());</span>
-<span class="fc" id="L20">                        adaHandleHistoryItem.setStakeAddress(addressUtxo.getOwnerStakeAddr());</span>
-<span class="fc" id="L21">                        adaHandleHistoryItem.setPaymentAddress(addressUtxo.getOwnerAddr());</span>
-<span class="fc" id="L22">                        adaHandleHistoryItem.setSlot(addressUtxo.getSlot());</span>
-<span class="fc" id="L23">                        adaHandleHistoryItems.add(adaHandleHistoryItem);</span>
-                    }
+<span class="fc bfc" id="L13" title="All 2 branches covered.">        if (addressUtxo.getAmounts() != null) {</span>
+<span class="fc bfc" id="L14" title="All 2 branches covered.">            for (final Amt amount : addressUtxo.getAmounts()) {</span>
+                // Same name and owner as ada_handle stores, so a rollback restores exactly that row.
+<span class="fc" id="L16">                AdaHandle adaHandle = AdaHandleMapper.toAdaHandle(addressUtxo, amount);</span>
+<span class="fc bfc" id="L17" title="All 2 branches covered.">                if (adaHandle != null) {</span>
+<span class="fc" id="L18">                    AdaHandleHistoryItem adaHandleHistoryItem = new AdaHandleHistoryItem();</span>
+<span class="fc" id="L19">                    adaHandleHistoryItem.setName(adaHandle.getName());</span>
+<span class="fc" id="L20">                    adaHandleHistoryItem.setStakeAddress(adaHandle.getStakeAddress());</span>
+<span class="fc" id="L21">                    adaHandleHistoryItem.setPaymentAddress(adaHandle.getPaymentAddress());</span>
+<span class="fc" id="L22">                    adaHandleHistoryItem.setSlot(addressUtxo.getSlot());</span>
+<span class="fc" id="L23">                    adaHandleHistoryItem.setToken(amount.getUnit());</span>
+<span class="fc" id="L24">                    adaHandleHistoryItems.add(adaHandleHistoryItem);</span>
                 }
 <span class="fc" id="L26">            }</span>
         }
@@ -32,4 +32,4 @@ import java.util.ArrayList;
 <span class="fc" id="L32">        return new AdaHandle(adaHandleHistoryItem.getName(), adaHandleHistoryItem.getStakeAddress(), adaHandleHistoryItem.getPaymentAddress());</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

@@ -2,10 +2,19 @@
 
 import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
+import com.bloxbean.cardano.yaci.store.events.MintBurnEvent;
 import com.bloxbean.cardano.yaci.store.events.RollbackEvent;
 import com.bloxbean.cardano.yaci.store.events.internal.CommitEvent;
 import com.bloxbean.cardano.yaci.store.utxo.domain.AddressUtxoEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItem;
+import org.cardanofoundation.tools.adahandle.resolver.entity.AdaHandleHistoryItemKey;
+import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleHistoryMapper;
+import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandleMapper;
+import org.cardanofoundation.tools.adahandle.resolver.mapper.AdaHandlePolicies;
+import org.cardanofoundation.tools.adahandle.resolver.metrics.AdaHandleMetrics;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleHistoryService;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
 import org.springframework.context.event.EventListener;
@@ -14,83 +23,167 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+<span class="fc" id="L36">@Slf4j</span>
 public class AdaHandleProcessor {
     private final AdaHandleService adaHandleService;
     private final AdaHandleHistoryService adaHandleHistoryService;
+    private final AdaHandleMetrics metrics;
 
-    private List&lt;SlotAddressUtxo&gt; slotAddressUtxosCache = Collections.synchronizedList(new ArrayList&lt;&gt;());
+    /**
+     * The handle changes of the blocks Yaci Store has delivered but not committed yet, as history rows: an owner for
+     * each output carrying a handle token, a burn for each burned one. During the initial sync Yaci Store processes a
+     * batch of blocks in parallel and delivers their events in no particular order, so the changes are only applied
+     * on its CommitEvent, in chain order.
+     */
+    private final List&lt;AdaHandleHistoryItem&gt; pendingChanges = Collections.synchronizedList(new ArrayList&lt;&gt;());
 
+    /** Handle tokens minted in the blocks not committed yet, for the metrics; like pendingChanges. */
+    private final List&lt;PendingMint&gt; pendingMints = Collections.synchronizedList(new ArrayList&lt;&gt;());
+
+<span class="fc" id="L53">    private record PendingMint(long slot, String name) {</span>
+    }
 
     @EventListener
     public void processAdaHandle(AddressUtxoEvent addressUtxoEvent) {
-<span class="fc" id="L30">        var addressUtxoList = addressUtxoEvent.getTxInputOutputs()</span>
-<span class="fc" id="L31">                .stream().flatMap(txInputOutput -&gt; txInputOutput.getOutputs().stream())</span>
-<span class="fc" id="L32">                .filter(this::includesAdaHandle).toList();</span>
+<span class="fc" id="L58">        long slot = addressUtxoEvent.getMetadata().getSlot();</span>
+<span class="fc" id="L59">        pendingChanges.addAll(addressUtxoEvent.getTxInputOutputs().stream()</span>
+<span class="fc" id="L60">                .flatMap(txInputOutput -&gt; txInputOutput.getOutputs().stream())</span>
+<span class="fc" id="L61">                .filter(this::includesAdaHandle)</span>
+<span class="fc" id="L62">                .flatMap(addressUtxo -&gt; AdaHandleHistoryMapper.fromAddressUtxoEntities(addressUtxo).stream())</span>
+<span class="fc" id="L63">                .map(change -&gt; {</span>
+<span class="fc" id="L64">                    change.setSlot(slot);</span>
+<span class="fc" id="L65">                    return change;</span>
+                })
+<span class="fc" id="L67">                .toList());</span>
+<span class="fc" id="L68">    }</span>
 
-<span class="fc bfc" id="L34" title="All 2 branches covered.">        if (addressUtxoList.isEmpty()) {</span>
-<span class="fc" id="L35">            return;</span>
-        }
+    @EventListener
+    public void processBurns(MintBurnEvent mintBurnEvent) {
+<span class="fc" id="L72">        long slot = mintBurnEvent.getMetadata().getSlot();</span>
+<span class="fc" id="L73">        pendingChanges.addAll(mintBurnEvent.getTxMintBurns().stream()</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">                .filter(txMintBurn -&gt; txMintBurn.getAmounts() != null)</span>
+<span class="fc" id="L75">                .flatMap(txMintBurn -&gt; txMintBurn.getAmounts().stream())</span>
+<span class="fc" id="L76">                .map(amount -&gt; AdaHandleMapper.burn(amount, slot))</span>
+<span class="fc" id="L77">                .filter(Objects::nonNull)</span>
+<span class="fc" id="L78">                .toList());</span>
+<span class="fc" id="L79">    }</span>
 
-<span class="fc" id="L38">        var slotAddressUtxo = new SlotAddressUtxo(addressUtxoEvent.getEventMetadata().getSlot(), addressUtxoList);</span>
-<span class="fc" id="L39">        slotAddressUtxosCache.add(slotAddressUtxo);</span>
-<span class="fc" id="L40">    }</span>
+    @EventListener
+    public void processMints(MintBurnEvent mintBurnEvent) {
+<span class="fc" id="L83">        long slot = mintBurnEvent.getMetadata().getSlot();</span>
+<span class="fc" id="L84">        pendingMints.addAll(mintBurnEvent.getTxMintBurns().stream()</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">                .filter(txMintBurn -&gt; txMintBurn.getAmounts() != null)</span>
+<span class="fc" id="L86">                .flatMap(txMintBurn -&gt; txMintBurn.getAmounts().stream())</span>
+<span class="fc" id="L87">                .map(AdaHandleMapper::mintedHandleName)</span>
+<span class="fc" id="L88">                .filter(Objects::nonNull)</span>
+<span class="fc" id="L89">                .map(name -&gt; new PendingMint(slot, name))</span>
+<span class="fc" id="L90">                .toList());</span>
+<span class="fc" id="L91">    }</span>
 
     public boolean includesAdaHandle(AddressUtxo addressUtxo) {
-<span class="fc" id="L43">        final String ADA_HANDLE_POLICY_ID = &quot;f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a&quot;;</span>
-<span class="fc" id="L44">        List&lt;Amt&gt; amounts = addressUtxo.getAmounts();</span>
+<span class="fc" id="L94">        List&lt;Amt&gt; amounts = addressUtxo.getAmounts();</span>
 
-<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if (amounts != null) {</span>
-<span class="fc bfc" id="L47" title="All 2 branches covered.">            for (final Amt amount : amounts) {</span>
-<span class="fc bfc" id="L48" title="All 4 branches covered.">                if (amount.getPolicyId() != null &amp;&amp; amount.getPolicyId().equals(ADA_HANDLE_POLICY_ID)) {</span>
-<span class="fc" id="L49">                    return true;</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">        if (amounts != null) {</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">            for (final Amt amount : amounts) {</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">                if (AdaHandlePolicies.contains(amount.getPolicyId())) {</span>
+<span class="fc" id="L99">                    return true;</span>
                 }
-<span class="fc" id="L51">            }</span>
+<span class="fc" id="L101">            }</span>
         }
-<span class="fc" id="L53">        return false;</span>
+<span class="fc" id="L103">        return false;</span>
     }
 
     /**
-     * This is invoked once per block batch (100 blocks) at the end of the block processing during initial sync when
-     * parallel processing is enabled.
+     * Applies the pending changes in chain order: block by block, each handle's state at the end of the block (see
+     * {@link #endOfBlockState}) goes to the history, and each handle's last state to ada_handle.
      * &lt;p&gt;
-     * After the sync reaches tip, batch size is 1 and this method is invoked for each block.
+     * Invoked once per batch of blocks (100) during the initial sync, and for each block at the tip.
      */
+    /**
+     * A handle's state at the end of a block, from its changes in that block. Yaci Store doesn't say in which order a
+     * block's transactions came, but a burned token does: an output carrying the burned token came before the burn,
+     * since a burned token no longer exists, and an output carrying another token of the same name came after it. That
+     * is how legacy handles were migrated to CIP-68: one transaction burns the legacy token and mints the CIP-68 token,
+     * and the handle lives on. Kora Labs applies a transaction's burns before its outputs, which agrees.
+     */
+    static AdaHandleHistoryItem endOfBlockState(List&lt;AdaHandleHistoryItem&gt; changes) {
+<span class="fc" id="L120">        Set&lt;String&gt; burnedTokens = changes.stream()</span>
+<span class="fc" id="L121">                .filter(AdaHandleHistoryItem::isBurned)</span>
+<span class="fc" id="L122">                .map(AdaHandleHistoryItem::getToken)</span>
+<span class="fc" id="L123">                .collect(Collectors.toSet());</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">        if (burnedTokens.isEmpty()) {</span>
+<span class="fc" id="L125">            return changes.getLast();</span>
+        }
+<span class="fc" id="L127">        return changes.stream()</span>
+<span class="fc bfc" id="L128" title="All 4 branches covered.">                .filter(change -&gt; !change.isBurned() &amp;&amp; !burnedTokens.contains(change.getToken()))</span>
+<span class="pc" id="L129">                .reduce((first, second) -&gt; second)</span>
+<span class="fc" id="L130">                .orElseGet(() -&gt; changes.stream().filter(AdaHandleHistoryItem::isBurned).findFirst().orElseThrow());</span>
+    }
+
     @EventListener
     @Transactional
     public void handleCommitEvent(CommitEvent commitEvent) {
-
-<span class="fc bfc" id="L66" title="All 2 branches covered.">        if (slotAddressUtxosCache.isEmpty()) {</span>
-<span class="fc" id="L67">            return;</span>
+        List&lt;AdaHandleHistoryItem&gt; changes;
+<span class="fc" id="L137">        synchronized (pendingChanges) {</span>
+<span class="fc" id="L138">            changes = new ArrayList&lt;&gt;(pendingChanges);</span>
+<span class="fc" id="L139">            pendingChanges.clear();</span>
+<span class="fc" id="L140">        }</span>
+        List&lt;PendingMint&gt; mints;
+<span class="fc" id="L142">        synchronized (pendingMints) {</span>
+<span class="fc" id="L143">            mints = new ArrayList&lt;&gt;(pendingMints);</span>
+<span class="fc" id="L144">            pendingMints.clear();</span>
+<span class="fc" id="L145">        }</span>
+<span class="fc" id="L146">        mints.forEach(mint -&gt; metrics.minted(mint.name()));</span>
+<span class="fc" id="L147">        changes.stream().filter(AdaHandleHistoryItem::isBurned).forEach(burn -&gt; metrics.burned(burn.getName()));</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">        if (changes.isEmpty()) {</span>
+<span class="fc" id="L149">            return;</span>
         }
 
-        //Sort slotAddressdUtxosCache by slot in ascending order to process the utxos in the correct order
-<span class="pc" id="L71">        slotAddressUtxosCache.sort((o1, o2) -&gt; Long.compare(o1.slot(), o2.slot()));</span>
+        // Stable sort: a block's outputs keep their transaction order.
+<span class="fc" id="L153">        changes.sort(Comparator.comparingLong(AdaHandleHistoryItem::getSlot));</span>
+        // The history is keyed by (name, slot): one row per handle and block.
+<span class="fc" id="L155">        List&lt;AdaHandleHistoryItem&gt; blockStates = changes.stream()</span>
+<span class="fc" id="L156">                .collect(Collectors.groupingBy(change -&gt; new AdaHandleHistoryItemKey(change.getName(), change.getSlot()),</span>
+<span class="fc" id="L157">                        LinkedHashMap::new, Collectors.toList()))</span>
+<span class="fc" id="L158">                .values().stream()</span>
+<span class="fc" id="L159">                .map(AdaHandleProcessor::endOfBlockState)</span>
+<span class="fc" id="L160">                .toList();</span>
+<span class="fc" id="L161">        adaHandleHistoryService.saveAll(blockStates);</span>
+<span class="fc" id="L162">        metrics.historyRowsWritten(blockStates.size());</span>
 
-        try {
-            // Process the cached slotAddressUtxos
-<span class="fc bfc" id="L75" title="All 2 branches covered.">            for (SlotAddressUtxo slotAddressUtxo : slotAddressUtxosCache) {</span>
-<span class="fc" id="L76">                adaHandleService.saveAllAdaHandles(slotAddressUtxo.addressUtxos());</span>
-<span class="fc" id="L77">                adaHandleHistoryService.saveAdaHandleHistoryItems(slotAddressUtxo.addressUtxos());</span>
-<span class="fc" id="L78">            }</span>
-
-        } finally {
-            // Clear the cache after processing
-<span class="fc" id="L82">            slotAddressUtxosCache.clear();</span>
-        }
-<span class="fc" id="L84">    }</span>
+<span class="fc" id="L164">        Map&lt;String, AdaHandleHistoryItem&gt; lastChanges = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L165">        blockStates.forEach(change -&gt; lastChanges.put(change.getName(), change));</span>
+<span class="fc" id="L166">        adaHandleService.saveAll(lastChanges.values().stream()</span>
+<span class="fc bfc" id="L167" title="All 2 branches covered.">                .filter(change -&gt; !change.isBurned())</span>
+<span class="fc" id="L168">                .map(AdaHandleHistoryMapper::toAdaHandle)</span>
+<span class="fc" id="L169">                .toList());</span>
+<span class="fc" id="L170">        adaHandleService.deleteAllByName(lastChanges.values().stream()</span>
+<span class="fc" id="L171">                .filter(AdaHandleHistoryItem::isBurned)</span>
+<span class="fc" id="L172">                .map(AdaHandleHistoryItem::getName)</span>
+<span class="fc" id="L173">                .toList());</span>
+<span class="fc" id="L174">    }</span>
 
     @EventListener
     @Transactional
     public void handleRollback(RollbackEvent rollbackEvent) {
-<span class="fc" id="L89">        adaHandleHistoryService.rollbackToSlot(rollbackEvent.getRollbackTo().getSlot());</span>
-<span class="fc" id="L90">    }</span>
+<span class="fc" id="L179">        log.info(&quot;Handle rollback&quot;);</span>
+<span class="fc" id="L180">        long rollbackSlot = rollbackEvent.getRollbackTo().getSlot();</span>
+        // Changes of rolled-back blocks have not been committed yet; drop them so the next CommitEvent does not write
+        // the abandoned fork's owners or burns.
+<span class="fc bfc" id="L183" title="All 2 branches covered.">        pendingChanges.removeIf(change -&gt; change.getSlot() &gt; rollbackSlot);</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">        pendingMints.removeIf(mint -&gt; mint.slot() &gt; rollbackSlot);</span>
+<span class="fc" id="L185">        metrics.rolledBack(adaHandleHistoryService.rollbackToSlot(rollbackSlot));</span>
+<span class="fc" id="L186">    }</span>
 
 }
-
-<span class="fc" id="L94">record SlotAddressUtxo(long slot, List&lt;AddressUtxo&gt; addressUtxos) {</span>
-}
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

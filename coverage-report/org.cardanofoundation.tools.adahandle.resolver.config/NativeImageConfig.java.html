@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NativeImageConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.config</a> &gt; <span class="el_source">NativeImageConfig.java</span></div><h1>NativeImageConfig.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.config;
+
+import com.bloxbean.cardano.yaci.store.common.config.StoreProperties;
+import com.bloxbean.cardano.yaci.store.core.storage.impl.CursorRepository;
+import com.bloxbean.cardano.yaci.store.core.storage.impl.CursorStorageImpl;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.AddressStorageImpl;
+import org.flywaydb.core.api.Location;
+import org.flywaydb.core.api.ResourceProvider;
+import org.flywaydb.core.api.resource.LoadableResource;
+import org.flywaydb.core.internal.resource.classpath.ClassPathResource;
+import org.jooq.DSLContext;
+import org.jspecify.annotations.Nullable;
+import org.springframework.aot.hint.RuntimeHints;
+import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.aot.hint.TypeReference;
+import org.springframework.boot.autoconfigure.flyway.FlywayConfigurationCustomizer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportRuntimeHints;
+import org.springframework.core.NativeDetector;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Support for running as a GraalVM native image (see the &quot;native&quot; Maven profile and Dockerfile.native).
+ * The Flyway provider and runtime hints only apply in a native image; the storage beans below are the
+ * same beans yaci-store would create, declared by their implementation type.
+ */
+@Configuration
+@ImportRuntimeHints(NativeImageConfig.Hints.class)
+<span class="fc" id="L41">public class NativeImageConfig {</span>
+
+    /**
+     * Spring Boot's native Flyway resource provider lists a classpath location in the first jar
+     * that contains it only. yaci-store ships migrations for the same location (e.g. db/store/h2)
+     * in several jars (yaci-store-core, yaci-store-utxo), so the others would be silently skipped.
+     * Boot only installs its provider when none is set, so this one takes precedence.
+     */
+    @Bean
+    public FlywayConfigurationCustomizer allJarsMigrationResourceProvider() {
+<span class="fc" id="L51">        return configuration -&gt; {</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">            if (NativeDetector.inNativeImage()) {</span>
+<span class="nc" id="L53">                configuration.resourceProvider(new AllJarsResourceProvider(configuration.getClassLoader(),</span>
+<span class="nc" id="L54">                        Arrays.asList(configuration.getLocations()), configuration.getEncoding()));</span>
+            }
+<span class="fc" id="L56">        };</span>
+    }
+
+    /*
+     * yaci-store declares these @Transactional beans by their interface type (CursorStorage,
+     * AddressStorage), so AOT can't pregenerate the CGLIB proxy of the implementation class and a
+     * native image can't generate it at runtime. Declaring the implementation type here (yaci-store's
+     * definitions are @ConditionalOnMissingBean) lets AOT generate the proxies. Same beans on the JVM.
+     */
+    @Bean
+    public CursorStorageImpl cursorStorage(CursorRepository cursorRepository) {
+<span class="fc" id="L67">        return new CursorStorageImpl(cursorRepository);</span>
+    }
+
+    @Bean
+    public AddressStorageImpl addressStorage(DSLContext dslContext, StoreProperties storeProperties) {
+<span class="fc" id="L72">        return new AddressStorageImpl(dslContext, storeProperties);</span>
+    }
+
+    static class AllJarsResourceProvider implements ResourceProvider {
+        private final ClassLoader classLoader;
+        private final Collection&lt;Location&gt; locations;
+        private final Charset encoding;
+        private Map&lt;String, LoadableResource&gt; resources;
+
+<span class="nc" id="L81">        AllJarsResourceProvider(ClassLoader classLoader, Collection&lt;Location&gt; locations, Charset encoding) {</span>
+<span class="nc" id="L82">            this.classLoader = classLoader;</span>
+<span class="nc" id="L83">            this.locations = locations;</span>
+<span class="nc" id="L84">            this.encoding = encoding;</span>
+<span class="nc" id="L85">        }</span>
+
+        @Override
+        public @Nullable LoadableResource getResource(String name) {
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if (classLoader.getResource(name) == null) {</span>
+<span class="nc" id="L90">                return null;</span>
+            }
+<span class="nc" id="L92">            return new ClassPathResource(null, name, classLoader, encoding);</span>
+        }
+
+        @Override
+        public synchronized Collection&lt;LoadableResource&gt; getResources(String prefix, String[] suffixes) {
+<span class="nc bnc" id="L97" title="All 2 branches missed.">            if (resources == null) {</span>
+<span class="nc" id="L98">                resources = findAll();</span>
+            }
+<span class="nc" id="L100">            List&lt;LoadableResource&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            for (LoadableResource resource : resources.values()) {</span>
+<span class="nc" id="L102">                String filename = resource.getFilename();</span>
+<span class="nc bnc" id="L103" title="All 4 branches missed.">                if (filename.startsWith(prefix) &amp;&amp; Arrays.stream(suffixes).anyMatch(filename::endsWith)) {</span>
+<span class="nc" id="L104">                    result.add(resource);</span>
+                }
+<span class="nc" id="L106">            }</span>
+<span class="nc" id="L107">            return result;</span>
+        }
+
+        private Map&lt;String, LoadableResource&gt; findAll() {
+<span class="nc" id="L111">            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(classLoader);</span>
+<span class="nc" id="L112">            Map&lt;String, LoadableResource&gt; found = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">            for (Location location : locations) {</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">                if (!location.isClassPath()) {</span>
+<span class="nc" id="L115">                    continue;</span>
+                }
+                try {
+                    // classpath*: visits the location in every jar, not only the first one.
+<span class="nc bnc" id="L119" title="All 2 branches missed.">                    for (Resource resource : resolver.getResources(&quot;classpath*:&quot; + location.getPath() + &quot;/*&quot;)) {</span>
+<span class="nc" id="L120">                        String filename = resource.getFilename();</span>
+<span class="nc bnc" id="L121" title="All 4 branches missed.">                        if (filename == null || filename.isEmpty()) {</span>
+<span class="nc" id="L122">                            continue;</span>
+                        }
+<span class="nc" id="L124">                        String path = location.getPath() + &quot;/&quot; + filename;</span>
+<span class="nc" id="L125">                        found.putIfAbsent(path, new ClassPathResource(location, path, classLoader, encoding));</span>
+                    }
+<span class="nc" id="L127">                } catch (IOException e) {</span>
+<span class="nc" id="L128">                    throw new UncheckedIOException(&quot;Failed to list migrations in &quot; + location.getDescriptor(), e);</span>
+<span class="nc" id="L129">                }</span>
+<span class="nc" id="L130">            }</span>
+<span class="nc" id="L131">            return found;</span>
+        }
+    }
+
+<span class="nc" id="L135">    static class Hints implements RuntimeHintsRegistrar {</span>
+        @Override
+        public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+            // Netty (yaci's node client) reads java.nio.Bits.UNALIGNED through Unsafe while initializing;
+            // on the JVM this bypasses reflection, so the tracing agent doesn't record it.
+<span class="nc" id="L140">            hints.reflection().registerType(TypeReference.of(&quot;java.nio.Bits&quot;), type -&gt; type.withField(&quot;UNALIGNED&quot;));</span>
+            // Flyway migrations from all jars and vendors (a trace only sees the vendor it ran on).
+<span class="nc" id="L142">            hints.resources().registerPattern(&quot;db/store/**&quot;);</span>
+<span class="nc" id="L143">            hints.resources().registerPattern(&quot;db/migration/**&quot;);</span>
+<span class="nc" id="L144">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

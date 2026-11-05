@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AddressesController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.controller</a> &gt; <span class="el_source">AddressesController.java</span></div><h1>AddressesController.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.tools.adahandle.resolver.projection.Addresses;
 import org.cardanofoundation.tools.adahandle.resolver.service.AdaHandleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,19 +16,25 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(&quot;/api/v1/addresses/&quot;)
-<span class="fc" id="L14">public class AddressesController {</span>
+@Tag(name = &quot;Addresses&quot;, description = &quot;Resolve an ADA Handle to the addresses that hold it&quot;)
+@RequiredArgsConstructor
+public class AddressesController {
 
-    @Autowired
-    private AdaHandleService adaHandleService;
+    private final AdaHandleService adaHandleService;
 
+    @Operation(summary = &quot;Resolve a handle to its addresses&quot;,
+            description = &quot;Returns the stake and payment address that currently hold the handle.&quot;)
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Handle found&quot;)
+    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Handle not found or not indexed yet&quot;, content = @Content)
     @GetMapping(&quot;/by-ada-handle/{adaHandle}&quot;)
     public ResponseEntity&lt;Addresses&gt; getAddressesByAdaHandle(
+            @Parameter(description = &quot;Handle name, with or without the leading $&quot;, example = &quot;$alice&quot;)
             @PathVariable String adaHandle) {
-<span class="fc" id="L22">        Addresses addresses = adaHandleService.getAddressesByAdaHandle(adaHandle);</span>
-<span class="pc bpc" id="L23" title="1 of 2 branches missed.">        if (addresses == null) {</span>
-<span class="nc" id="L24">            return ResponseEntity.notFound().build();</span>
+<span class="fc" id="L33">        Addresses addresses = adaHandleService.getAddressesByAdaHandle(adaHandle);</span>
+<span class="pc bpc" id="L34" title="1 of 2 branches missed.">        if (addresses == null) {</span>
+<span class="nc" id="L35">            return ResponseEntity.notFound().build();</span>
         }
-<span class="fc" id="L26">        return ResponseEntity.ok(addresses);</span>
+<span class="fc" id="L37">        return ResponseEntity.ok(addresses);</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

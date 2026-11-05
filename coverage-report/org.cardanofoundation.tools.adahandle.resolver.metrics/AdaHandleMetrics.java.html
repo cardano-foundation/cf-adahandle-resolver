@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdaHandleMetrics.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.metrics</a> &gt; <span class="el_source">AdaHandleMetrics.java</span></div><h1>AdaHandleMetrics.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.metrics;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.stereotype.Component;
+
+/**
+ * Counters of what the indexer writes, in Prometheus as {@code adahandle_*_total}. They count from the start of the
+ * process: during the initial sync they count every block from the first ADA Handle mint. Changes of blocks rolled back
+ * before they were committed are not counted.
+ * &lt;p&gt;
+ * {@code type} is {@code handle} or {@code subhandle} (a name with {@code @}).
+ */
+@Component
+public class AdaHandleMetrics {
+
+    static final String HANDLE = &quot;handle&quot;;
+    static final String SUBHANDLE = &quot;subhandle&quot;;
+
+    private final Counter handleMints;
+    private final Counter subHandleMints;
+    private final Counter handleBurns;
+    private final Counter subHandleBurns;
+    private final Counter historyRows;
+    private final Counter noopRollbacks;
+    private final Counter appliedRollbacks;
+    private final Counter rolledBackHandles;
+
+<span class="fc" id="L29">    public AdaHandleMetrics(MeterRegistry registry) {</span>
+<span class="fc" id="L30">        handleMints = mints(registry, HANDLE);</span>
+<span class="fc" id="L31">        subHandleMints = mints(registry, SUBHANDLE);</span>
+<span class="fc" id="L32">        handleBurns = burns(registry, HANDLE);</span>
+<span class="fc" id="L33">        subHandleBurns = burns(registry, SUBHANDLE);</span>
+<span class="fc" id="L34">        historyRows = Counter.builder(&quot;adahandle.history.rows&quot;)</span>
+<span class="fc" id="L35">                .description(&quot;Handle states written to the history: one per handle and block it changed in&quot;)</span>
+<span class="fc" id="L36">                .register(registry);</span>
+<span class="fc" id="L37">        noopRollbacks = rollbacks(registry, &quot;noop&quot;);</span>
+<span class="fc" id="L38">        appliedRollbacks = rollbacks(registry, &quot;applied&quot;);</span>
+<span class="fc" id="L39">        rolledBackHandles = Counter.builder(&quot;adahandle.rollback.handles&quot;)</span>
+<span class="fc" id="L40">                .description(&quot;Handles restored to their previous owner, or removed, by rollbacks&quot;)</span>
+<span class="fc" id="L41">                .register(registry);</span>
+<span class="fc" id="L42">    }</span>
+
+    private static Counter mints(MeterRegistry registry, String type) {
+<span class="fc" id="L45">        return Counter.builder(&quot;adahandle.mints&quot;)</span>
+<span class="fc" id="L46">                .description(&quot;Handle tokens minted (a legacy handle moved to CIP-68 counts as a mint and a burn)&quot;)</span>
+<span class="fc" id="L47">                .tag(&quot;type&quot;, type)</span>
+<span class="fc" id="L48">                .register(registry);</span>
+    }
+
+    private static Counter burns(MeterRegistry registry, String type) {
+<span class="fc" id="L52">        return Counter.builder(&quot;adahandle.burns&quot;)</span>
+<span class="fc" id="L53">                .description(&quot;Handle tokens burned&quot;)</span>
+<span class="fc" id="L54">                .tag(&quot;type&quot;, type)</span>
+<span class="fc" id="L55">                .register(registry);</span>
+    }
+
+    private static Counter rollbacks(MeterRegistry registry, String outcome) {
+<span class="fc" id="L59">        return Counter.builder(&quot;adahandle.rollbacks&quot;)</span>
+<span class="fc" id="L60">                .description(&quot;Rollbacks handled; noop: nothing stored after the rollback point&quot;)</span>
+<span class="fc" id="L61">                .tag(&quot;outcome&quot;, outcome)</span>
+<span class="fc" id="L62">                .register(registry);</span>
+    }
+
+    static String type(String name) {
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        return name.contains(&quot;@&quot;) ? SUBHANDLE : HANDLE;</span>
+    }
+
+    public void minted(String name) {
+<span class="fc bfc" id="L70" title="All 2 branches covered.">        (type(name).equals(SUBHANDLE) ? subHandleMints : handleMints).increment();</span>
+<span class="fc" id="L71">    }</span>
+
+    public void burned(String name) {
+<span class="fc bfc" id="L74" title="All 2 branches covered.">        (type(name).equals(SUBHANDLE) ? subHandleBurns : handleBurns).increment();</span>
+<span class="fc" id="L75">    }</span>
+
+    public void historyRowsWritten(int rows) {
+<span class="fc" id="L78">        historyRows.increment(rows);</span>
+<span class="fc" id="L79">    }</span>
+
+    /** @param affectedHandles handles restored or removed; 0 when the rollback removed nothing */
+    public void rolledBack(int affectedHandles) {
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (affectedHandles == 0) {</span>
+<span class="fc" id="L84">            noopRollbacks.increment();</span>
+        } else {
+<span class="fc" id="L86">            appliedRollbacks.increment();</span>
+<span class="fc" id="L87">            rolledBackHandles.increment(affectedHandles);</span>
+        }
+<span class="fc" id="L89">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OpenApiConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.config</a> &gt; <span class="el_source">OpenApiConfig.java</span></div><h1>OpenApiConfig.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.config;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+<span class="fc" id="L12">public class OpenApiConfig {</span>
+
+    @Bean
+    public OpenAPI adaHandleResolverOpenAPI(@Value(&quot;${app.version:dev}&quot;) String version) {
+<span class="fc" id="L16">        return new OpenAPI()</span>
+<span class="fc" id="L17">                .info(new Info()</span>
+<span class="fc" id="L18">                        .title(&quot;ADA Handle Resolver API&quot;)</span>
+<span class="fc" id="L19">                        .version(version)</span>
+<span class="fc" id="L20">                        .description(&quot;Resolves ADA Handles to the addresses that hold them, and addresses back to &quot; +</span>
+                                &quot;handles. Data is indexed directly from the Cardano blockchain using Yaci Store.&quot;)
+<span class="fc" id="L22">                        .contact(new Contact()</span>
+<span class="fc" id="L23">                                .name(&quot;Cardano Foundation&quot;)</span>
+<span class="fc" id="L24">                                .url(&quot;https://github.com/cardano-foundation/cf-adahandle-resolver&quot;))</span>
+<span class="fc" id="L25">                        .license(new License()</span>
+<span class="fc" id="L26">                                .name(&quot;MIT&quot;)</span>
+<span class="fc" id="L27">                                .url(&quot;https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/LICENSE&quot;)));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>
