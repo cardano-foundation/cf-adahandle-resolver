@@ -12,9 +12,8 @@ Every release is published to Docker Hub as
 tagged with the release version and `latest`. Pin a version in production. The image is built for
 x86-64 (amd64) and runs on older CPUs too, including VMs with a generic CPU model.
 
-A release can be preceded by pre-releases, `1.0.0-pre1`, `1.0.0-pre2` and so on, published as
-`:1.0.0-pre1` (and `:1.0.0-pre1-native`) for testing. `latest` moves only with a final release such as
-`1.0.0`, never to a pre-release.
+A release can be preceded by pre-releases for testing, versioned `X.Y.Z-preN` and published under that tag
+(`-native` for the native image). `latest` moves only with final releases, never to a pre-release.
 
 ### Native image (experimental)
 
@@ -24,7 +23,7 @@ image `<version>`. It starts in under two seconds, against about nine for the JV
 the command line:
 
 ```sh
-docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-pre1-native -Xmx2g
+docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-native -Xmx2g
 ```
 
 There is no moving native tag such as `latest`: pick the release you run. Like the JVM image, the native
@@ -56,12 +55,6 @@ reboot. After upgrading, run `docker compose up -d` once so existing containers 
 
 The chart lives in `deploy/adahandle-resolver`. It creates a Deployment, a Service on port `9095`
 and, if enabled, an Ingress. You can choose between three storage setups:
-
-<Aside type="caution" title="Known issues in 1.0.0-pre1">
-The chart still deploys image `0.1.4` by default: set `image.tag` to the release you run, for example
-`--set image.tag=1.0.0-pre1`. The Bitnami PostgreSQL option doesn't work, because Bitnami removed the PostgreSQL
-image it uses. Until the chart is fixed in a later release, Docker Compose is the recommended way to run 1.0.0-pre1.
-</Aside>
 
 <Tabs>
 <TabItem label="Embedded H2">

@@ -1,5 +1,5 @@
 ---
-title: Developing ADA Handle Resolver
+title: Contributing
 description: Build the resolver from source, run its tests, and find the design decisions and handle formats it is built on.
 ---
 
@@ -64,16 +64,16 @@ describes every kind of handle: its tokens, its CIP-25 metadata or CIP-68 datum,
 mainnet data, and how a virtual sub-handle's datum becomes the address the API returns.
 [How indexing works](../../reference/architecture/) gives the shorter version.
 
-## Contributing and releases
+## Pull requests and releases
 
 - Discuss a change in an [issue](https://github.com/cardano-foundation/cf-adahandle-resolver/issues) first, then open a
   pull request against `develop`. See
   [CONTRIBUTING.md](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/CONTRIBUTING.md).
 - Commit messages and pull request titles follow
   [Conventional Commits](https://www.conventionalcommits.org/): release-please builds the changelog from them.
-- `develop` is promoted to `main` for a release. A pre-release (`1.0.0-pre1`) or a final release (`1.0.0`) gets its
-  version from a `Release-As:` footer on a commit, e.g. `Release-As: 1.0.0-pre1`; release-please then opens the
-  release pull request. Merging it tags the release and publishes the Docker images.
+- `develop` is promoted to `main` for a release. A pre-release (`X.Y.Z-preN`) or a final release (`X.Y.Z`) gets its
+  version from a `Release-As:` footer on a commit, e.g. `Release-As: 1.1.0`; release-please then opens the release
+  pull request. Merging it tags the release and publishes the Docker images.
 
 ## This website
 
