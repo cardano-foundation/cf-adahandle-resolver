@@ -141,6 +141,9 @@ public class NativeImageConfig {
             // Flyway migrations from all jars and vendors (a trace only sees the vendor it ran on).
             hints.resources().registerPattern("db/store/**");
             hints.resources().registerPattern("db/migration/**");
+            // /actuator/info: version and build time (spring-boot build-info) and commit (git-commit-id).
+            hints.resources().registerPattern("META-INF/build-info.properties");
+            hints.resources().registerPattern("git.properties");
         }
     }
 }

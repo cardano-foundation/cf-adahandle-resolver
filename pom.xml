@@ -230,9 +230,26 @@
 
     <build>
         <plugins>
+            <!-- build-info: version and build time on /actuator/info (META-INF/build-info.properties). -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build-info</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- git.properties: branch and commit on /actuator/info. The execution and output file are configured by
+                 spring-boot-starter-parent. A build without .git (e.g. a source tarball) still succeeds. -->
+            <plugin>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <configuration>
+                    <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                </configuration>
             </plugin>
             <!-- JDK 23+ does not run annotation processors found only on the classpath. -->
             <plugin>
