@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MemoryMetrics.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.metrics</a> &gt; <span class="el_source">MemoryMetrics.java</span></div><h1>MemoryMetrics.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.metrics;
+
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryType;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.OptionalLong;
+
+/**
+ * Memory metrics that also work in the GraalVM native image.
+ * &lt;p&gt;
+ * Micrometer's {@code jvm_memory_*} metrics come from the JVM's memory pools (eden, survivor, old gen). The native
+ * image built with G1 reports none for the heap, only two code cache pools that read 0, so Prometheus showed no heap
+ * at all. When no heap pool exists, this adds {@code jvm_memory_used_bytes}, {@code jvm_memory_committed_bytes} and
+ * {@code jvm_memory_max_bytes} with {@code area=&quot;heap&quot;, id=&quot;heap&quot;}, from {@link Runtime}, which the native image
+ * supports. On the JVM, Micrometer's per-pool metrics stay as they are and nothing is added.
+ * &lt;p&gt;
+ * {@code process_memory_rss_bytes}: the process's resident memory, from {@code /proc/self/status} (Linux only), for both
+ * images. It includes the native binary's mapped pages, which the kernel can reclaim, so it reads higher than a
+ * container's memory usage.
+ */
+<span class="fc" id="L31">@Slf4j</span>
+@Component
+public class MemoryMetrics {
+
+    static final String HEAP_ID = &quot;heap&quot;;
+
+    /** The heap as {@link Runtime} reports it. */
+    interface Heap {
+        long total();
+
+        long free();
+
+        long max();
+    }
+
+<span class="fc" id="L46">    private static final Heap RUNTIME_HEAP = new Heap() {</span>
+        @Override
+        public long total() {
+<span class="nc" id="L49">            return Runtime.getRuntime().totalMemory();</span>
+        }
+
+        @Override
+        public long free() {
+<span class="nc" id="L54">            return Runtime.getRuntime().freeMemory();</span>
+        }
+
+        @Override
+        public long max() {
+<span class="nc" id="L59">            return Runtime.getRuntime().maxMemory();</span>
+        }
+    };
+
+    private final Path procStatus;
+
+    @Autowired
+    public MemoryMetrics(MeterRegistry registry) {
+<span class="fc" id="L67">        this(registry, ManagementFactory.getMemoryPoolMXBeans(), RUNTIME_HEAP, Path.of(&quot;/proc/self/status&quot;));</span>
+<span class="fc" id="L68">    }</span>
+
+<span class="fc" id="L70">    MemoryMetrics(MeterRegistry registry, List&lt;MemoryPoolMXBean&gt; pools, Heap heap, Path procStatus) {</span>
+<span class="fc" id="L71">        this.procStatus = procStatus;</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        boolean heapPools = pools.stream().anyMatch(pool -&gt; pool.getType() == MemoryType.HEAP);</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (!heapPools) {</span>
+<span class="fc" id="L74">            log.info(&quot;No heap memory pools (GraalVM native image): reporting the heap as a whole&quot;);</span>
+<span class="fc" id="L75">            heapGauge(registry, &quot;jvm.memory.used&quot;, &quot;The amount of used memory&quot;, heap,</span>
+<span class="fc" id="L76">                    h -&gt; h.total() - h.free());</span>
+<span class="fc" id="L77">            heapGauge(registry, &quot;jvm.memory.committed&quot;,</span>
+                    &quot;The amount of memory in bytes that is committed for the Java virtual machine to use&quot;, heap,
+                    Heap::total);
+<span class="fc" id="L80">            heapGauge(registry, &quot;jvm.memory.max&quot;,</span>
+                    &quot;The maximum amount of memory in bytes that can be used for memory management&quot;, heap, Heap::max);
+        }
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (residentBytes().isPresent()) {</span>
+<span class="fc" id="L84">            Gauge.builder(&quot;process.memory.rss&quot;, this, metrics -&gt; metrics.residentBytes().orElse(-1))</span>
+<span class="fc" id="L85">                    .description(&quot;Resident memory of the process (VmRSS), including mapped pages of the executable&quot;)</span>
+<span class="fc" id="L86">                    .baseUnit(&quot;bytes&quot;)</span>
+<span class="fc" id="L87">                    .register(registry);</span>
+        }
+<span class="fc" id="L89">    }</span>
+
+    private static void heapGauge(MeterRegistry registry, String name, String description, Heap heap,
+                                  java.util.function.ToDoubleFunction&lt;Heap&gt; value) {
+<span class="fc" id="L93">        Gauge.builder(name, heap, value)</span>
+<span class="fc" id="L94">                .description(description)</span>
+<span class="fc" id="L95">                .tag(&quot;area&quot;, &quot;heap&quot;)</span>
+<span class="fc" id="L96">                .tag(&quot;id&quot;, HEAP_ID)</span>
+<span class="fc" id="L97">                .baseUnit(&quot;bytes&quot;)</span>
+<span class="fc" id="L98">                .register(registry);</span>
+<span class="fc" id="L99">    }</span>
+
+    /** VmRSS from /proc/self/status, in bytes; empty where there is no such file (not Linux). */
+    OptionalLong residentBytes() {
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (!Files.isReadable(procStatus)) {</span>
+<span class="fc" id="L104">            return OptionalLong.empty();</span>
+        }
+        try {
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">            for (String line : Files.readAllLines(procStatus)) {</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">                if (line.startsWith(&quot;VmRSS:&quot;)) {</span>
+                    // &quot;VmRSS:     488988 kB&quot;
+<span class="fc" id="L110">                    String[] parts = line.substring(&quot;VmRSS:&quot;.length()).trim().split(&quot;\\s+&quot;);</span>
+<span class="fc" id="L111">                    return OptionalLong.of(Long.parseLong(parts[0]) * 1024);</span>
+                }
+<span class="fc" id="L113">            }</span>
+<span class="fc" id="L114">        } catch (IOException | RuntimeException e) {</span>
+<span class="fc" id="L115">            log.debug(&quot;Could not read {}: {}&quot;, procStatus, e.getMessage());</span>
+<span class="nc" id="L116">        }</span>
+<span class="fc" id="L117">        return OptionalLong.empty();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

@@ -84,64 +84,68 @@ import java.util.Map;
 <span class="nc" id="L84">            this.encoding = encoding;</span>
 <span class="nc" id="L85">        }</span>
 
+        /** Null when there is no such resource, as Flyway's {@code ResourceProvider} contract requires. */
         @Override
         public @Nullable LoadableResource getResource(String name) {
-<span class="nc bnc" id="L89" title="All 2 branches missed.">            if (classLoader.getResource(name) == null) {</span>
-<span class="nc" id="L90">                return null;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            if (classLoader.getResource(name) == null) {</span>
+<span class="nc" id="L91">                return null;</span>
             }
-<span class="nc" id="L92">            return new ClassPathResource(null, name, classLoader, encoding);</span>
+<span class="nc" id="L93">            return new ClassPathResource(null, name, classLoader, encoding);</span>
         }
 
         @Override
         public synchronized Collection&lt;LoadableResource&gt; getResources(String prefix, String[] suffixes) {
-<span class="nc bnc" id="L97" title="All 2 branches missed.">            if (resources == null) {</span>
-<span class="nc" id="L98">                resources = findAll();</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">            if (resources == null) {</span>
+<span class="nc" id="L99">                resources = findAll();</span>
             }
-<span class="nc" id="L100">            List&lt;LoadableResource&gt; result = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">            for (LoadableResource resource : resources.values()) {</span>
-<span class="nc" id="L102">                String filename = resource.getFilename();</span>
-<span class="nc bnc" id="L103" title="All 4 branches missed.">                if (filename.startsWith(prefix) &amp;&amp; Arrays.stream(suffixes).anyMatch(filename::endsWith)) {</span>
-<span class="nc" id="L104">                    result.add(resource);</span>
+<span class="nc" id="L101">            List&lt;LoadableResource&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">            for (LoadableResource resource : resources.values()) {</span>
+<span class="nc" id="L103">                String filename = resource.getFilename();</span>
+<span class="nc bnc" id="L104" title="All 4 branches missed.">                if (filename.startsWith(prefix) &amp;&amp; Arrays.stream(suffixes).anyMatch(filename::endsWith)) {</span>
+<span class="nc" id="L105">                    result.add(resource);</span>
                 }
-<span class="nc" id="L106">            }</span>
-<span class="nc" id="L107">            return result;</span>
+<span class="nc" id="L107">            }</span>
+<span class="nc" id="L108">            return result;</span>
         }
 
         private Map&lt;String, LoadableResource&gt; findAll() {
-<span class="nc" id="L111">            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(classLoader);</span>
-<span class="nc" id="L112">            Map&lt;String, LoadableResource&gt; found = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L113" title="All 2 branches missed.">            for (Location location : locations) {</span>
-<span class="nc bnc" id="L114" title="All 2 branches missed.">                if (!location.isClassPath()) {</span>
-<span class="nc" id="L115">                    continue;</span>
+<span class="nc" id="L112">            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(classLoader);</span>
+<span class="nc" id="L113">            Map&lt;String, LoadableResource&gt; found = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">            for (Location location : locations) {</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">                if (!location.isClassPath()) {</span>
+<span class="nc" id="L116">                    continue;</span>
                 }
                 try {
                     // classpath*: visits the location in every jar, not only the first one.
-<span class="nc bnc" id="L119" title="All 2 branches missed.">                    for (Resource resource : resolver.getResources(&quot;classpath*:&quot; + location.getPath() + &quot;/*&quot;)) {</span>
-<span class="nc" id="L120">                        String filename = resource.getFilename();</span>
-<span class="nc bnc" id="L121" title="All 4 branches missed.">                        if (filename == null || filename.isEmpty()) {</span>
-<span class="nc" id="L122">                            continue;</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                    for (Resource resource : resolver.getResources(&quot;classpath*:&quot; + location.getPath() + &quot;/*&quot;)) {</span>
+<span class="nc" id="L121">                        String filename = resource.getFilename();</span>
+<span class="nc bnc" id="L122" title="All 4 branches missed.">                        if (filename == null || filename.isEmpty()) {</span>
+<span class="nc" id="L123">                            continue;</span>
                         }
-<span class="nc" id="L124">                        String path = location.getPath() + &quot;/&quot; + filename;</span>
-<span class="nc" id="L125">                        found.putIfAbsent(path, new ClassPathResource(location, path, classLoader, encoding));</span>
+<span class="nc" id="L125">                        String path = location.getPath() + &quot;/&quot; + filename;</span>
+<span class="nc" id="L126">                        found.putIfAbsent(path, new ClassPathResource(location, path, classLoader, encoding));</span>
                     }
-<span class="nc" id="L127">                } catch (IOException e) {</span>
-<span class="nc" id="L128">                    throw new UncheckedIOException(&quot;Failed to list migrations in &quot; + location.getDescriptor(), e);</span>
-<span class="nc" id="L129">                }</span>
-<span class="nc" id="L130">            }</span>
-<span class="nc" id="L131">            return found;</span>
+<span class="nc" id="L128">                } catch (IOException e) {</span>
+<span class="nc" id="L129">                    throw new UncheckedIOException(&quot;Failed to list migrations in &quot; + location.getDescriptor(), e);</span>
+<span class="nc" id="L130">                }</span>
+<span class="nc" id="L131">            }</span>
+<span class="nc" id="L132">            return found;</span>
         }
     }
 
-<span class="nc" id="L135">    static class Hints implements RuntimeHintsRegistrar {</span>
+<span class="nc" id="L136">    static class Hints implements RuntimeHintsRegistrar {</span>
         @Override
         public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
             // Netty (yaci's node client) reads java.nio.Bits.UNALIGNED through Unsafe while initializing;
             // on the JVM this bypasses reflection, so the tracing agent doesn't record it.
-<span class="nc" id="L140">            hints.reflection().registerType(TypeReference.of(&quot;java.nio.Bits&quot;), type -&gt; type.withField(&quot;UNALIGNED&quot;));</span>
+<span class="nc" id="L141">            hints.reflection().registerType(TypeReference.of(&quot;java.nio.Bits&quot;), type -&gt; type.withField(&quot;UNALIGNED&quot;));</span>
             // Flyway migrations from all jars and vendors (a trace only sees the vendor it ran on).
-<span class="nc" id="L142">            hints.resources().registerPattern(&quot;db/store/**&quot;);</span>
-<span class="nc" id="L143">            hints.resources().registerPattern(&quot;db/migration/**&quot;);</span>
-<span class="nc" id="L144">        }</span>
+<span class="nc" id="L143">            hints.resources().registerPattern(&quot;db/store/**&quot;);</span>
+<span class="nc" id="L144">            hints.resources().registerPattern(&quot;db/migration/**&quot;);</span>
+            // /actuator/info: version and build time (spring-boot build-info) and commit (git-commit-id).
+<span class="nc" id="L146">            hints.resources().registerPattern(&quot;META-INF/build-info.properties&quot;);</span>
+<span class="nc" id="L147">            hints.resources().registerPattern(&quot;git.properties&quot;);</span>
+<span class="nc" id="L148">        }</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

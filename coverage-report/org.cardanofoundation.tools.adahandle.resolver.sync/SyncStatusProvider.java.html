@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SyncStatusProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.sync</a> &gt; <span class="el_source">SyncStatusProvider.java</span></div><h1>SyncStatusProvider.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.sync;
+
+import com.bloxbean.cardano.yaci.core.model.Era;
+import com.bloxbean.cardano.yaci.store.common.domain.HealthStatus;
+import com.bloxbean.cardano.yaci.store.common.domain.SyncStatus;
+import com.bloxbean.cardano.yaci.store.common.service.CursorService;
+import com.bloxbean.cardano.yaci.store.core.service.EraService;
+import com.bloxbean.cardano.yaci.store.core.service.HealthService;
+import com.bloxbean.cardano.yaci.store.core.service.SyncStatusService;
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+
+/**
+ * Keeps a snapshot of the sync status, built from Yaci Store's cursor, network tip and block-receive health. It is
+ * refreshed in the background, every few seconds, so an API request never waits for the database or the node: Yaci
+ * Store fetches the network tip from the node, which can take seconds. See ADR 12.
+ */
+<span class="fc" id="L23">@Slf4j</span>
+@Component
+public class SyncStatusProvider {
+
+    private final ObjectProvider&lt;SyncStatusService&gt; syncStatusService;
+    private final ObjectProvider&lt;HealthService&gt; healthService;
+    private final ObjectProvider&lt;CursorService&gt; cursorService;
+    private final ObjectProvider&lt;EraService&gt; eraService;
+
+<span class="fc" id="L32">    private volatile SyncStatusSnapshot snapshot = SyncStatusSnapshot.UNKNOWN;</span>
+
+    public SyncStatusProvider(ObjectProvider&lt;SyncStatusService&gt; syncStatusService,
+                              ObjectProvider&lt;HealthService&gt; healthService,
+                              ObjectProvider&lt;CursorService&gt; cursorService,
+<span class="fc" id="L37">                              ObjectProvider&lt;EraService&gt; eraService) {</span>
+<span class="fc" id="L38">        this.syncStatusService = syncStatusService;</span>
+<span class="fc" id="L39">        this.healthService = healthService;</span>
+<span class="fc" id="L40">        this.cursorService = cursorService;</span>
+<span class="fc" id="L41">        this.eraService = eraService;</span>
+<span class="fc" id="L42">    }</span>
+
+    public SyncStatusSnapshot current() {
+<span class="fc" id="L45">        return snapshot;</span>
+    }
+
+    @Scheduled(initialDelayString = &quot;${adahandle.sync-status.refresh-ms:5000}&quot;,
+            fixedDelayString = &quot;${adahandle.sync-status.refresh-ms:5000}&quot;)
+    public void refresh() {
+        try {
+<span class="fc" id="L52">            snapshot = read();</span>
+<span class="fc" id="L53">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L54">            log.debug(&quot;Could not read the sync status: {}&quot;, e.getMessage());</span>
+<span class="fc" id="L55">            snapshot = SyncStatusSnapshot.UNKNOWN;</span>
+<span class="fc" id="L56">        }</span>
+<span class="fc" id="L57">    }</span>
+
+    private SyncStatusSnapshot read() {
+<span class="fc" id="L60">        CursorService cursors = cursorService.getIfAvailable();</span>
+<span class="fc" id="L61">        SyncStatusService syncStatuses = syncStatusService.getIfAvailable();</span>
+<span class="fc" id="L62">        HealthService health = healthService.getIfAvailable();</span>
+<span class="pc bpc" id="L63" title="2 of 8 branches missed.">        if (cursors == null || syncStatuses == null || health == null || cursors.getCursor().isEmpty()) {</span>
+<span class="fc" id="L64">            return SyncStatusSnapshot.UNKNOWN;</span>
+        }
+<span class="fc" id="L66">        Era era = cursors.getCursor().get().getEra();</span>
+<span class="fc" id="L67">        SyncStatus sync = syncStatuses.getSyncStatus();</span>
+<span class="fc" id="L68">        return snapshot(sync, health.getHealthStatus(), blockTime(era, sync.slot()));</span>
+    }
+
+    /**
+     * The time of a slot, or null if it can't be computed: the {@code era} column of Yaci Store's {@code cursor_} table
+     * is nullable, and the conversion needs the era's start, which Yaci Store may not have stored yet.
+     */
+    private @Nullable Instant blockTime(@Nullable Era era, long slot) {
+<span class="fc" id="L76">        EraService eras = eraService.getIfAvailable();</span>
+<span class="pc bpc" id="L77" title="2 of 4 branches missed.">        if (eras == null || era == null) {</span>
+<span class="nc" id="L78">            return null;</span>
+        }
+        try {
+<span class="fc" id="L81">            return Instant.ofEpochSecond(eras.blockTime(era, slot));</span>
+<span class="fc" id="L82">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L83">            log.debug(&quot;Could not compute the time of slot {}: {}&quot;, slot, e.getMessage());</span>
+<span class="fc" id="L84">            return null;</span>
+        }
+    }
+
+    /**
+     * The decision itself. Not receiving blocks wins over everything else: a resolver cut off from the node may have
+     * been at the tip once, but its answers age from then on.
+     *
+     * @param blockTime the time of the cursor's slot, null if it couldn't be computed (see {@link #blockTime})
+     */
+    static SyncStatusSnapshot snapshot(SyncStatus sync, HealthStatus health, @Nullable Instant blockTime) {
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        if (sync.slot() &lt;= 0) {</span>
+<span class="fc" id="L96">            return SyncStatusSnapshot.UNKNOWN;</span>
+        }
+        // Yaci Store fetches the tip from the node on its own schedule: not yet just after start-up, or not after a
+        // failed fetch. Until then the tip is unknown.
+<span class="fc bfc" id="L100" title="All 2 branches covered.">        @Nullable Long tipSlot = sync.networkTipAvailable() ? sync.networkSlot() : null;</span>
+        SyncState state;
+<span class="fc bfc" id="L102" title="All 6 branches covered.">        if (!health.isReceivingBlocks() || health.isScheduleToStop() || health.isError()) {</span>
+<span class="fc" id="L103">            state = SyncState.STALE;</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">        } else if (tipSlot == null) {</span>
+<span class="fc" id="L105">            state = SyncState.UNKNOWN;</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        } else if (sync.synced()) {</span>
+<span class="fc" id="L107">            state = SyncState.SYNCED;</span>
+        } else {
+<span class="fc" id="L109">            state = SyncState.SYNCING;</span>
+        }
+<span class="fc" id="L111">        return new SyncStatusSnapshot(state, sync.slot(), sync.block(), blockTime, tipSlot);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

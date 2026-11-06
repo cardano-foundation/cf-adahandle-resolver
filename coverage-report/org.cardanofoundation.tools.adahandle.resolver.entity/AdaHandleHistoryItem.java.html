@@ -15,6 +15,7 @@ import org.jspecify.annotations.Nullable;
 public class AdaHandleHistoryItem {
     @Id
     private String name;
+    /** Null for a burn, and when the address has no stake part (see {@link AdaHandle}). */
     @Column(name = &quot;stake_address&quot;)
     private @Nullable String stakeAddress;
     /** Null only for a burn. */
@@ -27,23 +28,23 @@ public class AdaHandleHistoryItem {
     private boolean burned;
     /**
      * The token (policy id + asset name, hex) whose output or burn this change comes from. Not stored: it is only used
-     * to order the changes of one block, see {@code AdaHandleProcessor}.
+     * to order the changes of one block, see {@code AdaHandleProcessor}. Null on entries read from the database.
      */
     @Transient
     private @Nullable String token;
 
-<span class="fc" id="L35">    public AdaHandleHistoryItem(String name, @Nullable String stakeAddress, @Nullable String paymentAddress, long slot) {</span>
-<span class="fc" id="L36">        this.name = name;</span>
-<span class="fc" id="L37">        this.stakeAddress = stakeAddress;</span>
-<span class="fc" id="L38">        this.paymentAddress = paymentAddress;</span>
-<span class="fc" id="L39">        this.slot = slot;</span>
-<span class="fc" id="L40">    }</span>
+<span class="fc" id="L36">    public AdaHandleHistoryItem(String name, @Nullable String stakeAddress, @Nullable String paymentAddress, long slot) {</span>
+<span class="fc" id="L37">        this.name = name;</span>
+<span class="fc" id="L38">        this.stakeAddress = stakeAddress;</span>
+<span class="fc" id="L39">        this.paymentAddress = paymentAddress;</span>
+<span class="fc" id="L40">        this.slot = slot;</span>
+<span class="fc" id="L41">    }</span>
 
-    public static AdaHandleHistoryItem burn(String name, long slot, @Nullable String token) {
-<span class="fc" id="L43">        AdaHandleHistoryItem item = new AdaHandleHistoryItem(name, null, null, slot);</span>
-<span class="fc" id="L44">        item.burned = true;</span>
-<span class="fc" id="L45">        item.token = token;</span>
-<span class="fc" id="L46">        return item;</span>
+    public static AdaHandleHistoryItem burn(String name, long slot, String token) {
+<span class="fc" id="L44">        AdaHandleHistoryItem item = new AdaHandleHistoryItem(name, null, null, slot);</span>
+<span class="fc" id="L45">        item.burned = true;</span>
+<span class="fc" id="L46">        item.token = token;</span>
+<span class="fc" id="L47">        return item;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

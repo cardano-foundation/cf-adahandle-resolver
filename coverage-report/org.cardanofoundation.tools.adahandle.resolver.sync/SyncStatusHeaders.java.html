@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SyncStatusHeaders.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.sync</a> &gt; <span class="el_source">SyncStatusHeaders.java</span></div><h1>SyncStatusHeaders.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.sync;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
+
+import java.util.List;
+
+/**
+ * Adds the sync status to every API response, so a client can tell how current an answer is (#27): a handle resolved
+ * from out-of-date data may point at an address that no longer holds it.
+ */
+@Component
+@RequiredArgsConstructor
+public class SyncStatusHeaders implements HandlerInterceptor {
+
+    public static final String STATUS = &quot;X-Sync-Status&quot;;
+    public static final String SLOT = &quot;X-Sync-Slot&quot;;
+    public static final String BLOCK = &quot;X-Sync-Block&quot;;
+    public static final String BLOCK_TIME = &quot;X-Sync-Block-Time&quot;;
+    public static final String TIP_SLOT = &quot;X-Sync-Tip-Slot&quot;;
+<span class="fc" id="L24">    public static final List&lt;String&gt; ALL = List.of(STATUS, SLOT, BLOCK, BLOCK_TIME, TIP_SLOT);</span>
+
+    private final SyncStatusProvider provider;
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+<span class="fc" id="L30">        SyncStatusSnapshot status = provider.current();</span>
+<span class="fc" id="L31">        response.setHeader(STATUS, status.state().headerValue());</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        if (status.slot() != null) {</span>
+<span class="fc" id="L33">            response.setHeader(SLOT, status.slot().toString());</span>
+        }
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        if (status.block() != null) {</span>
+<span class="fc" id="L36">            response.setHeader(BLOCK, status.block().toString());</span>
+        }
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        if (status.blockTime() != null) {</span>
+<span class="fc" id="L39">            response.setHeader(BLOCK_TIME, status.blockTime().toString());</span>
+        }
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (status.tipSlot() != null) {</span>
+<span class="fc" id="L42">            response.setHeader(TIP_SLOT, status.tipSlot().toString());</span>
+        }
+<span class="fc" id="L44">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

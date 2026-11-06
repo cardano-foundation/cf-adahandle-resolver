@@ -31,8 +31,8 @@ public class AddressesController {
             @Parameter(description = &quot;Handle name, with or without the leading $&quot;, example = &quot;$alice&quot;)
             @PathVariable String adaHandle) {
 <span class="fc" id="L33">        Addresses addresses = adaHandleService.getAddressesByAdaHandle(adaHandle);</span>
-<span class="pc bpc" id="L34" title="1 of 2 branches missed.">        if (addresses == null) {</span>
-<span class="nc" id="L35">            return ResponseEntity.notFound().build();</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        if (addresses == null) {</span>
+<span class="fc" id="L35">            return ResponseEntity.notFound().build();</span>
         }
 <span class="fc" id="L37">        return ResponseEntity.ok(addresses);</span>
     }

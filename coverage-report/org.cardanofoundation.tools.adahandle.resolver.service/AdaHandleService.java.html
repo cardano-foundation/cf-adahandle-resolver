@@ -18,35 +18,36 @@ public class AdaHandleService {
 <span class="fc" id="L18">        adaHandleRepository.saveAll(adaHandles);</span>
 <span class="fc" id="L19">    }</span>
 
+    /** Null when no handle has this name (the API answers 404), see {@link AdaHandleRepository}. */
     public @Nullable Addresses getAddressesByAdaHandle(String adaHandle) {
-<span class="fc bfc" id="L22" title="All 4 branches covered.">        if (adaHandle.startsWith(&quot;$&quot;) &amp;&amp; adaHandle.length() &gt; 1) {</span>
-<span class="fc" id="L23">            adaHandle = adaHandle.substring(1);</span>
+<span class="fc bfc" id="L23" title="All 4 branches covered.">        if (adaHandle.startsWith(&quot;$&quot;) &amp;&amp; adaHandle.length() &gt; 1) {</span>
+<span class="fc" id="L24">            adaHandle = adaHandle.substring(1);</span>
         }
 
-<span class="fc" id="L26">        return adaHandleRepository.findAddressesByAdaHandle(adaHandle);</span>
+<span class="fc" id="L27">        return adaHandleRepository.findAddressesByAdaHandle(adaHandle);</span>
     }
 
     public List&lt;String&gt; getAdaHandlesByStakeAddress(String stakeAddress) {
-<span class="fc" id="L30">        return adaHandleRepository.findAdaHandlesByStakeAddress(stakeAddress);</span>
+<span class="fc" id="L31">        return adaHandleRepository.findAdaHandlesByStakeAddress(stakeAddress);</span>
     }
 
     public List&lt;String&gt; getAdaHandlesByPaymentAddress(String paymentAddress) {
-<span class="fc" id="L34">        return adaHandleRepository.findAdaHandlesByPaymentAddress(paymentAddress);</span>
+<span class="fc" id="L35">        return adaHandleRepository.findAdaHandlesByPaymentAddress(paymentAddress);</span>
     }
 
     /** Upsert a single handle row (name is the @Id, so save() merges). */
     public void upsert(AdaHandle adaHandle) {
-<span class="fc" id="L39">        adaHandleRepository.save(adaHandle);</span>
-<span class="fc" id="L40">    }</span>
+<span class="fc" id="L40">        adaHandleRepository.save(adaHandle);</span>
+<span class="fc" id="L41">    }</span>
 
     /** Delete handles by name (primary key), e.g. burned ones. Names without a row are skipped. */
     public void deleteAllByName(List&lt;String&gt; names) {
-<span class="fc" id="L44">        adaHandleRepository.deleteAllById(names);</span>
-<span class="fc" id="L45">    }</span>
+<span class="fc" id="L45">        adaHandleRepository.deleteAllById(names);</span>
+<span class="fc" id="L46">    }</span>
 
     /** Delete a single handle by its name (primary key). No-op if the row doesn't exist. */
     public void deleteByName(String name) {
-<span class="fc" id="L49">        adaHandleRepository.deleteById(name);</span>
-<span class="fc" id="L50">    }</span>
+<span class="fc" id="L50">        adaHandleRepository.deleteById(name);</span>
+<span class="fc" id="L51">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

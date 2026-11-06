@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SyncStatusSnapshot.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.sync</a> &gt; <span class="el_source">SyncStatusSnapshot.java</span></div><h1>SyncStatusSnapshot.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.sync;
+
+import org.jspecify.annotations.Nullable;
+
+import java.time.Instant;
+
+/**
+ * The sync status at one moment.
+ *
+ * @param state     how current the data is
+ * @param slot      slot of the last block indexed. Null only in {@link #UNKNOWN}: no block indexed yet, the first
+ *                  refresh hasn't run, or the status couldn't be read
+ * @param block     number of the last block indexed. Null only in {@link #UNKNOWN}, like {@code slot}
+ * @param blockTime time of the last block indexed. Null in {@link #UNKNOWN}, and when Yaci Store can't turn the slot
+ *                  into a time: the cursor has no era, or the era's start isn't stored yet
+ * @param tipSlot   slot of the network tip, as last fetched from the node. Null in {@link #UNKNOWN}, and before Yaci
+ *                  Store has fetched the tip, i.e. just after start-up, or when fetching it failed
+ */
+<span class="fc" id="L19">public record SyncStatusSnapshot(SyncState state, @Nullable Long slot, @Nullable Long block, @Nullable Instant blockTime,</span>
+                                 @Nullable Long tipSlot) {
+
+<span class="fc" id="L22">    public static final SyncStatusSnapshot UNKNOWN = new SyncStatusSnapshot(SyncState.UNKNOWN, null, null, null, null);</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

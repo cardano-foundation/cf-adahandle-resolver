@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SyncState.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ADA Handle Resolver</a> &gt; <a href="index.source.html" class="el_package">org.cardanofoundation.tools.adahandle.resolver.sync</a> &gt; <span class="el_source">SyncState.java</span></div><h1>SyncState.java</h1><pre class="source lang-java linenums">package org.cardanofoundation.tools.adahandle.resolver.sync;
+
+/**
+ * How current the resolver's data is, as reported in the X-Sync-* headers of every API response.
+ */
+<span class="fc" id="L6">public enum SyncState {</span>
+    /** At the network tip (within a few blocks) and still receiving blocks. */
+<span class="fc" id="L8">    SYNCED,</span>
+    /** Catching up with the network tip: answers can be out of date. */
+<span class="fc" id="L10">    SYNCING,</span>
+    /** No block received from the node for longer than store.block-receive-delay-seconds: answers can be out of date. */
+<span class="fc" id="L12">    STALE,</span>
+    /** Nothing indexed yet, or the network tip is not known. */
+<span class="fc" id="L14">    UNKNOWN;</span>
+
+    public String headerValue() {
+<span class="fc" id="L17">        return name().toLowerCase();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>
