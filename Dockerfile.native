@@ -10,7 +10,13 @@
 # /licenses/graalvm (the GFTC requires keeping them). The resolver itself is MIT (/licenses/LICENSE).
 #
 # The version is pinned so a GraalVM update (or a change of its license terms) is a reviewed change.
-FROM container-registry.oracle.com/graalvm/native-image:25i4-25.0.4.1.1-ol9 AS build
+#
+# The trust store (cacerts) is Eclipse Temurin's, like the JVM image's. native-image embeds the build JDK's
+# cacerts in the binary, so it is replaced before the build. Temurin 25.0.5+8 drops the roots that signed the
+# compromised eMudhra intermediate CAs: https://adoptium.net/news/2026/10/temurin-october-2026-emudhra/
+FROM eclipse-temurin:25.0.5_8-jre-noble AS cacerts
+
+FROM container-registry.oracle.com/graalvm/native-image:25i5-25.0.5.0.3-ol9 AS build
 
 # The Maven wrapper downloads Maven with curl and unpacks it with tar.
 RUN microdnf install -y findutils curl tar gzip && microdnf clean all
@@ -19,6 +25,10 @@ WORKDIR /app
 COPY pom.xml /app/pom.xml
 COPY mvnw /app/mvnw
 COPY .mvn /app/.mvn
+
+COPY --from=cacerts /opt/java/openjdk/lib/security/cacerts $JAVA_HOME/lib/security/cacerts
+# Fail the build if the trust store still trusts the roots removed for eMudhra.
+RUN ! keytool -list -v -cacerts -storepass changeit | grep -E "^Owner: .*CN=(emSign ECC Root CA - G3|AAA Certificate Services)\b"
 
 RUN ./mvnw -B -Pnative verify clean --fail-never
 COPY . /app
