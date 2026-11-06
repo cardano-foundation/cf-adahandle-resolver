@@ -84,6 +84,7 @@ public class NativeImageConfig {
             this.encoding = encoding;
         }
 
+        /** Null when there is no such resource, as Flyway's {@code ResourceProvider} contract requires. */
         @Override
         public @Nullable LoadableResource getResource(String name) {
             if (classLoader.getResource(name) == null) {

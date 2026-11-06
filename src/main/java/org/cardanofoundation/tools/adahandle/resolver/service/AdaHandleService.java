@@ -18,6 +18,7 @@ public class AdaHandleService {
         adaHandleRepository.saveAll(adaHandles);
     }
 
+    /** Null when no handle has this name (the API answers 404), see {@link AdaHandleRepository}. */
     public @Nullable Addresses getAddressesByAdaHandle(String adaHandle) {
         if (adaHandle.startsWith("$") && adaHandle.length() > 1) {
             adaHandle = adaHandle.substring(1);

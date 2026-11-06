@@ -33,6 +33,10 @@ public class VirtualSubHandleDatum {
     private static final byte[] RESOLVED_ADDRESSES = "resolved_addresses".getBytes(StandardCharsets.UTF_8);
     private static final byte[] ADA = "ada".getBytes(StandardCharsets.UTF_8);
 
+    /**
+     * @param stakeAddress null when the datum's address has no stake part, or is for another network than the one
+     *                     indexed: the stake address is only derived when the two agree
+     */
     public record Owner(String paymentAddress, @Nullable String stakeAddress) {
     }
 

@@ -68,6 +68,10 @@ public class SyncStatusProvider {
         return snapshot(sync, health.getHealthStatus(), blockTime(era, sync.slot()));
     }
 
+    /**
+     * The time of a slot, or null if it can't be computed: the {@code era} column of Yaci Store's {@code cursor_} table
+     * is nullable, and the conversion needs the era's start, which Yaci Store may not have stored yet.
+     */
     private @Nullable Instant blockTime(@Nullable Era era, long slot) {
         EraService eras = eraService.getIfAvailable();
         if (eras == null || era == null) {
@@ -84,15 +88,18 @@ public class SyncStatusProvider {
     /**
      * The decision itself. Not receiving blocks wins over everything else: a resolver cut off from the node may have
      * been at the tip once, but its answers age from then on.
+     *
+     * @param blockTime the time of the cursor's slot, null if it couldn't be computed (see {@link #blockTime})
      */
-    static SyncStatusSnapshot snapshot(@Nullable SyncStatus sync, @Nullable HealthStatus health,
-                                       @Nullable Instant blockTime) {
-        if (sync == null || sync.slot() <= 0) {
+    static SyncStatusSnapshot snapshot(SyncStatus sync, HealthStatus health, @Nullable Instant blockTime) {
+        if (sync.slot() <= 0) {
             return SyncStatusSnapshot.UNKNOWN;
         }
-        Long tipSlot = sync.networkTipAvailable() ? sync.networkSlot() : null;
+        // Yaci Store fetches the tip from the node on its own schedule: not yet just after start-up, or not after a
+        // failed fetch. Until then the tip is unknown.
+        @Nullable Long tipSlot = sync.networkTipAvailable() ? sync.networkSlot() : null;
         SyncState state;
-        if (health == null || !health.isReceivingBlocks() || health.isScheduleToStop() || health.isError()) {
+        if (!health.isReceivingBlocks() || health.isScheduleToStop() || health.isError()) {
             state = SyncState.STALE;
         } else if (tipSlot == null) {
             state = SyncState.UNKNOWN;
