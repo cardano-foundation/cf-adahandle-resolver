@@ -1,7 +1,8 @@
 name: Publish the Docker image
 
 # Publishes cardanofoundation/adahandle-resolver:<version> for a release, and for nothing else. A final release
-# (X.Y.Z) also moves :latest; a pre-release (X.Y.Z-preN, e.g. 1.0.0-pre1) doesn't, so :latest is always a final.
+# (X.Y.Z) also moves :latest; a pre-release (a release candidate X.Y.Z-rcN, e.g. 1.0.0-rc1, or X.Y.Z-preN)
+# doesn't, so :latest is always a final.
 #
 # - release.yaml calls it when release-please has just created a release. (A release created with the default
 #   GITHUB_TOKEN doesn't start other workflows, so `on: release` would never fire.)
@@ -44,10 +45,10 @@ jobs:
           VERSION=$(python3 -c "import xml.etree.ElementTree as E; print(E.parse('pom.xml').getroot().find('{http://maven.apache.org/POM/4.0.0}version').text)")
           if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "latest=true" >> "$GITHUB_OUTPUT"
-          elif [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-pre[1-9][0-9]*$ ]]; then
+          elif [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-(rc|pre)[1-9][0-9]*$ ]]; then
             echo "latest=false" >> "$GITHUB_OUTPUT"
           else
-            echo "::error::pom.xml version $VERSION is neither a release (X.Y.Z) nor a pre-release (X.Y.Z-preN); not published"
+            echo "::error::pom.xml version $VERSION is neither a release (X.Y.Z) nor a pre-release (X.Y.Z-rcN, X.Y.Z-preN); not published"
             exit 1
           fi
           if [[ "$TAG" != "v$VERSION" ]]; then

@@ -24,8 +24,9 @@ jobs:
           release-type: maven
           bump-minor-pre-major: true
           bump-patch-for-minor-pre-major: true
-          # Pre-releases (X.Y.Z-preN, e.g. 1.0.0-pre1) are marked as pre-releases on GitHub. Their version is set
-          # with a "Release-As: 1.0.0-pre1" footer on a commit to main, like every pre-release and the final after
+          # Pre-releases (release candidates X.Y.Z-rcN, e.g. 1.0.0-rc1, or X.Y.Z-preN) are marked as pre-releases
+          # on GitHub. Their version is set with a "Release-As: 1.0.0-rc1" footer on a commit to main, like every
+          # pre-release and the final after
           # them; see "Releases" in the README.
           prerelease: true
 

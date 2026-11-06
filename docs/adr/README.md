@@ -20,7 +20,7 @@ rules work with are described in [ADA Handle tokens and datums](../handle-datums
 | [12](0012-sync-status-headers.md) | Every API response says how current its data is, in X-Sync-* headers | Accepted |
 
 Guidelines shared by the Cardano Foundation's Java services, such as native image builds, testing layers, observability,
-packaging, CI and releases (including pre-releases `X.Y.Z-preN`), live in the Cardano Foundation's internal
+packaging, CI and releases (including release candidates `X.Y.Z-rcN`), live in the Cardano Foundation's internal
 `cf-java-nfrs` repository and are not repeated here. These ADRs record what is specific to the resolver, and where it
 departs from those guidelines.
 
