@@ -55,7 +55,7 @@ is rolled back.
 ### 🐳 Docker
 
 ```zsh
-docker run -p 9095:9095 -e JAVA_TOOL_OPTIONS=-Xmx4g cardanofoundation/adahandle-resolver:1.0.0-pre1
+docker run -p 9095:9095 -e JAVA_TOOL_OPTIONS=-Xmx4g cardanofoundation/adahandle-resolver:1.0.0-rc1
 ```
 
 Pin a version like this: `latest` follows final releases only, so it doesn't point at 1.0.0 until 1.0.0 is
@@ -96,16 +96,24 @@ A GraalVM native image starts in about a second and needs far less memory than t
 is published as `cardanofoundation/adahandle-resolver:<version>-native`, next to the JVM image `<version>`:
 
 ```zsh
-docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-pre1-native
+docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-rc1-native
 # build it yourself
 docker build -f Dockerfile.native -t adahandle-resolver:native .
 ```
 
 Configure it with the same environment variables as the JVM image. JVM flags such as `-Xmx` go on the
-command line (`docker run ... adahandle-resolver:1.0.0-pre1-native -Xmx2g`), not in `JAVA_TOOL_OPTIONS`.
+command line (`docker run ... adahandle-resolver:1.0.0-rc1-native -Xmx2g`), not in `JAVA_TOOL_OPTIONS`.
 
 The native image is also built and smoke-tested every week, without publishing anything, so a change
 that breaks it under GraalVM shows up before the next release.
+
+**Memory and metrics:** on mainnet the native image used about 1.1 GB during a full sync and about 250 MB at the
+tip (container memory). The JVM's per-pool memory metrics don't exist in it: GraalVM's native image with G1 has
+no eden, survivor or old-gen pools, and no GC pause events. `jvm_memory_used_bytes`, `jvm_memory_committed_bytes`
+and `jvm_memory_max_bytes` report the heap as a whole instead, under `area="heap", id="heap"`, and
+`process_memory_rss_bytes` the resident memory of the process. Its RSS also counts the executable's mapped
+pages, which the kernel can reclaim, so it reads higher than the container's memory usage (about 480 MB versus
+250 MB at the tip).
 
 **Licensing:** the native image is built with Oracle GraalVM, licensed under the
 [GraalVM Free Terms and Conditions](https://www.graalvm.org/faq/) (GFTC). The GraalVM parts compiled into
@@ -115,20 +123,21 @@ in `/licenses/graalvm`. The resolver's own code is MIT licensed, and the JVM ima
 
 ## 🏷️ Releases
 
-Releases follow [semantic versioning](https://semver.org). A release can be preceded by pre-releases, `1.0.0-pre1`,
-`1.0.0-pre2`, …, then the final `1.0.0`, following the Cardano Foundation's internal release guidelines
-(`cf-java-nfrs`, NFR-08). Each is a GitHub release, the pre-releases marked as such, and each is published to
-Docker Hub:
+Releases follow [semantic versioning](https://semver.org). A release can be preceded by release candidates,
+`1.0.0-rc1`, `1.0.0-rc2`, …, then the final `1.0.0`, following the Cardano Foundation's internal release guidelines
+(`cf-java-nfrs`, NFR-08). The first 1.0.0 pre-release was `1.0.0-pre1`. Each is a GitHub release, the release
+candidates and pre-releases marked as pre-releases, and each is published to Docker Hub:
 
 | Version      | JVM image                  | Native image          |
 |--------------|----------------------------|-----------------------|
 | `1.0.0-pre1` | `:1.0.0-pre1`              | `:1.0.0-pre1-native`  |
+| `1.0.0-rc1`  | `:1.0.0-rc1`               | `:1.0.0-rc1-native`   |
 | `1.0.0`      | `:1.0.0` and `:latest`     | `:1.0.0-native`       |
 
-`latest` always points at the newest final release, never at a pre-release.
+`latest` always points at the newest final release, never at a release candidate or pre-release.
 
-To cut a pre-release or a final, merge into `main` a commit whose message ends with a `Release-As:` footer, e.g.
-`Release-As: 1.0.0-pre1`, then merge the release PR that release-please opens.
+To cut a release candidate or a final, merge into `main` a commit whose message ends with a `Release-As:` footer,
+e.g. `Release-As: 1.0.0-rc1`, then merge the release PR that release-please opens.
 
 ## 🧪 Tests
 
@@ -158,6 +167,20 @@ To cut a pre-release or a final, merge into `main` a commit whose message ends w
 | http://localhost:9095/api/v1/ada-handles/by-stake-address/{stakeAddress}     | [GET]s the handles held by a stake address                                                   |
 | http://localhost:9095/api/v1/ada-handles/by-payment-address/{paymentAddress} | [GET]s the handles held by a payment address                                                 |
 
+Every API response says how current its data is, so a client can refuse to send funds to an address resolved from
+out-of-date data:
+
+| Header              | Value                                                                                              |
+|---------------------|----------------------------------------------------------------------------------------------------|
+| `X-Sync-Status`     | `synced` (at the tip, receiving blocks), `syncing` (catching up), `stale` (no block from the node for 300 s), `unknown` |
+| `X-Sync-Slot`       | Slot of the last block indexed                                                                     |
+| `X-Sync-Block`      | Number of the last block indexed                                                                   |
+| `X-Sync-Block-Time` | Time of the last block indexed, ISO 8601 UTC (e.g. `2026-11-06T10:00:00Z`)                         |
+| `X-Sync-Tip-Slot`   | Slot of the network tip, as last fetched from the node                                             |
+
+The status is refreshed every 5 seconds in the background ([ADR 12](docs/adr/0012-sync-status-headers.md) explains
+why). A `404` from an instance that is `syncing` may only mean the handle isn't indexed yet.
+
 ## 📈 Monitoring
 
 | Endpoint                     | What it tells you                                                                            |
@@ -183,6 +206,9 @@ Metrics about handles, next to Yaci Store's `yaci_store_*` sync metrics and the 
 | `adahandle_history_rows_total`        | Handle states written to the history                                          |
 | `adahandle_rollbacks_total{outcome}`  | Rollbacks, `noop` or `applied`                                                |
 | `adahandle_rollback_handles_total`    | Handles that rollbacks restored or removed                                    |
+
+Memory: `jvm_memory_*_bytes{area="heap"}` (per pool on the JVM, the heap as a whole in the native image) and
+`process_memory_rss_bytes`, the resident memory of the process (Linux).
 
 ## 👻 Disable Indexer
 

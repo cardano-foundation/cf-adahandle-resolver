@@ -31,6 +31,9 @@ public interface AdaHandleHistoryRepository extends JpaRepository<AdaHandleHisto
      * Latest remaining history entry for a handle. With the composite PK {@code (name, slot)}
      * this resolves as a PK index seek to the last entry — O(log n) — instead of the previous
      * full-table {@code GROUP BY name, MAX(slot)} over all history rows.
+     * <p>
+     * Null when no entry is left for the name: a rollback removed every change of a handle minted after the rollback
+     * point, so the handle didn't exist there.
      */
     @Nullable
     AdaHandleHistoryItem findFirstByNameOrderBySlotDesc(String name);
