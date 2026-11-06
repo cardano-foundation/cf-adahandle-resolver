@@ -20,4 +20,6 @@ FROM eclipse-temurin:25-jre-noble AS runtime
 RUN ! keytool -list -v -cacerts -storepass changeit | grep -E "^Owner: .*CN=(emSign ECC Root CA - G3|AAA Certificate Services)\b"
 WORKDIR /app
 COPY --from=build /app/target/*.jar /app/cf-adahandle-resolver.jar
+# The API port (server.port, PORT); change it here too if PORT is changed.
+EXPOSE 9095
 ENTRYPOINT ["java", "-jar", "cf-adahandle-resolver.jar"]

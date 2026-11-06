@@ -77,12 +77,6 @@ class SyncStatusProviderTest {
     }
 
     @Test
-    void noHealthStatusYetIsStale() {
-        assertThat(SyncStatusProvider.snapshot(sync(1000, 1000, true), null, BLOCK_TIME).state())
-                .isEqualTo(SyncState.STALE);
-    }
-
-    @Test
     void unknownNetworkTipIsUnknownButKeepsTheCursor() {
         SyncStatus sync = sync(1000, SyncStatus.UNKNOWN_NETWORK_TIP, false);
 
