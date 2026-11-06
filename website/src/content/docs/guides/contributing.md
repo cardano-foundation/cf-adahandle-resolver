@@ -71,9 +71,9 @@ mainnet data, and how a virtual sub-handle's datum becomes the address the API r
   [CONTRIBUTING.md](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/CONTRIBUTING.md).
 - Commit messages and pull request titles follow
   [Conventional Commits](https://www.conventionalcommits.org/): release-please builds the changelog from them.
-- `develop` is promoted to `main` for a release. A pre-release (`X.Y.Z-preN`) or a final release (`X.Y.Z`) gets its
-  version from a `Release-As:` footer on a commit, e.g. `Release-As: 1.1.0`; release-please then opens the release
-  pull request. Merging it tags the release and publishes the Docker images.
+- `develop` is promoted to `main` for a release. A release candidate (`X.Y.Z-rcN`) or a final release (`X.Y.Z`)
+  gets its version from a `Release-As:` footer on a commit, e.g. `Release-As: 1.1.0-rc1`; release-please then opens
+  the release pull request. Merging it tags the release and publishes the Docker images.
 
 ## This website
 
