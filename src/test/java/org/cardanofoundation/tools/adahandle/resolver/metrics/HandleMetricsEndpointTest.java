@@ -14,6 +14,7 @@ import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.not;
 
 /** The handle metrics in /actuator/prometheus, under the names the docs and dashboards use. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -46,5 +47,16 @@ class HandleMetricsEndpointTest {
                         containsString("adahandle_history_rows_total"),
                         containsString("adahandle_rollbacks_total{"),
                         containsString("adahandle_rollback_handles_total")));
+    }
+
+    @Test
+    void onTheJvmTheHeapKeepsMicrometersPerPoolMetrics() {
+        // MemoryMetrics adds id="heap" only where there are no heap pools (the native image).
+        when().get("/actuator/prometheus")
+                .then()
+                .statusCode(200)
+                .body(allOf(
+                        matchesPattern("(?s).*\\njvm_memory_used_bytes\\{[^}]*area=\"heap\"[^}]*} .*"),
+                        not(containsString("id=\"heap\""))));
     }
 }
