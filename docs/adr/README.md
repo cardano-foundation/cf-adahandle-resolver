@@ -17,6 +17,7 @@ rules work with are described in [ADA Handle tokens and datums](../handle-datums
 | [9](0009-testing-strategy.md) | Test on three levels: unit, devnet, mainnet against Kora | Accepted |
 | [10](0010-keep-jpa-writes.md) | Keep JPA for the indexer's writes: batched upserts didn't make the sync faster | Accepted |
 | [11](0011-apply-changes-at-commit.md) | Apply handle changes at Yaci Store's CommitEvent, in chain order | Accepted |
+| [12](0012-sync-status-headers.md) | Every API response says how current its data is, in X-Sync-* headers | Accepted |
 
 Guidelines shared by the Cardano Foundation's Java services, such as native image builds, testing layers, observability,
 packaging, CI and releases (including pre-releases `X.Y.Z-preN`), live in the Cardano Foundation's internal
