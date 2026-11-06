@@ -107,6 +107,14 @@ command line (`docker run ... adahandle-resolver:1.0.0-pre1-native -Xmx2g`), not
 The native image is also built and smoke-tested every week, without publishing anything, so a change
 that breaks it under GraalVM shows up before the next release.
 
+**Memory and metrics:** on mainnet the native image used about 1.1 GB during a full sync and about 250 MB at the
+tip (container memory). The JVM's per-pool memory metrics don't exist in it: GraalVM's native image with G1 has
+no eden, survivor or old-gen pools, and no GC pause events. `jvm_memory_used_bytes`, `jvm_memory_committed_bytes`
+and `jvm_memory_max_bytes` report the heap as a whole instead, under `area="heap", id="heap"`, and
+`process_memory_rss_bytes` the resident memory of the process. Its RSS also counts the executable's mapped
+pages, which the kernel can reclaim, so it reads higher than the container's memory usage (about 480 MB versus
+250 MB at the tip).
+
 **Licensing:** the native image is built with Oracle GraalVM, licensed under the
 [GraalVM Free Terms and Conditions](https://www.graalvm.org/faq/) (GFTC). The GraalVM parts compiled into
 the executable are covered by the GFTC, which allows free use, including production and hosted services,
@@ -197,6 +205,9 @@ Metrics about handles, next to Yaci Store's `yaci_store_*` sync metrics and the 
 | `adahandle_history_rows_total`        | Handle states written to the history                                          |
 | `adahandle_rollbacks_total{outcome}`  | Rollbacks, `noop` or `applied`                                                |
 | `adahandle_rollback_handles_total`    | Handles that rollbacks restored or removed                                    |
+
+Memory: `jvm_memory_*_bytes{area="heap"}` (per pool on the JVM, the heap as a whole in the native image) and
+`process_memory_rss_bytes`, the resident memory of the process (Linux).
 
 ## 👻 Disable Indexer
 
