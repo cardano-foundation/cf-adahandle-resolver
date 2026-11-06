@@ -75,11 +75,15 @@ case "$MODE" in
     wait_for_api
     expect_status /apidocs 200
     expect_status '/api/v1/addresses/by-ada-handle/$nobody' 404
-    # yaci-store-core and yaci-store-utxo both ship db/store/postgresql (3 migrations), plus ours:
-    # all of them must run, and ours last.
+    # yaci-store-core and yaci-store-utxo both ship db/store/postgresql, plus ours: all of them must run, and ours
+    # last. Yaci Store 3.0.0-beta5 has 4: V0_000_1, V0_000_2 (core), V0_200_1, V0_200_2 (utxo). Update the count
+    # when a Yaci Store upgrade adds one.
+    yaci_store_migrations=4
     ours=(src/main/resources/db/migration/adahandle/V*__*.sql)
     latest=$(printf '%s\n' "${ours[@]##*/V}" | cut -d_ -f1 | sort -n | tail -1)
-    docker logs "$NAME" 2>&1 | grep -E "Successfully applied $((3 + ${#ours[@]})) migrations to schema \"public\", now at version v$latest\b"
+    expected="Successfully applied $((yaci_store_migrations + ${#ours[@]})) migrations to schema \"public\", now at version v$latest\b"
+    docker logs "$NAME" 2>&1 | grep -E "$expected" \
+      || { echo "expected in the log: $expected; Flyway said:" >&2; docker logs "$NAME" 2>&1 | grep -E "Successfully applied|Migrating schema" >&2; false; }
     ;;
   sync)
     run -e SPRING_ACTIVE_PROFILES=mainnet,h2 -e DB_URL=jdbc:h2:/tmp/smoke-db
