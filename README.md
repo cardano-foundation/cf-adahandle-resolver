@@ -169,8 +169,8 @@ out-of-date data:
 | `X-Sync-Block-Time` | Time of the last block indexed, ISO 8601 UTC (e.g. `2026-11-06T10:00:00Z`)                         |
 | `X-Sync-Tip-Slot`   | Slot of the network tip, as last fetched from the node                                             |
 
-The status is refreshed every 5 seconds in the background. A `404` from an instance that is `syncing` may only mean
-the handle isn't indexed yet.
+The status is refreshed every 5 seconds in the background ([ADR 12](docs/adr/0012-sync-status-headers.md) explains
+why). A `404` from an instance that is `syncing` may only mean the handle isn't indexed yet.
 
 ## 📈 Monitoring
 

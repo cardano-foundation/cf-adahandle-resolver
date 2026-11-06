@@ -17,7 +17,7 @@ import java.time.Instant;
 /**
  * Keeps a snapshot of the sync status, built from Yaci Store's cursor, network tip and block-receive health. It is
  * refreshed in the background, every few seconds, so an API request never waits for the database or the node: Yaci
- * Store fetches the network tip from the node, which can take seconds.
+ * Store fetches the network tip from the node, which can take seconds. See ADR 12.
  */
 @Slf4j
 @Component
