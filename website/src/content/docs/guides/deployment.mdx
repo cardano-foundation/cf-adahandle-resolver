@@ -1,0 +1,119 @@
+---
+title: Deployment
+description: Deploy the resolver with Docker Compose or the bundled Helm chart.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+## Container image
+
+Every release is published to Docker Hub as
+[`cardanofoundation/adahandle-resolver`](https://hub.docker.com/r/cardanofoundation/adahandle-resolver),
+tagged with the release version and `latest`. Pin a version in production. The image is built for
+x86-64 (amd64) and runs on older CPUs too, including VMs with a generic CPU model.
+
+A release can be preceded by release candidates for testing, versioned `X.Y.Z-rcN` and published under that tag
+(`-native` for the native image). `latest` moves only with final releases, never to a release candidate.
+
+The JVM image is built on [Eclipse Temurin](https://adoptium.net/) 25 on Ubuntu 24.04 (`eclipse-temurin:25-jre-noble`),
+taking the latest Java 25 and Ubuntu updates at each release. The native image embeds the same Java trust store (its
+root certificates). The build fails if that trust store still contains the roots that signed the compromised eMudhra
+intermediate CAs, removed in Temurin 25.0.5
+([Adoptium's notice](https://adoptium.net/news/2026/10/temurin-october-2026-emudhra/)).
+
+### Native image (experimental)
+
+Each release is also published as a GraalVM native image, tagged `<version>-native`, next to the JVM
+image `<version>`. It starts in under two seconds, against about nine for the JVM image, and used about
+1.1 GB of memory throughout a mainnet sync. Configure it with the same environment variables; JVM flags go on
+the command line:
+
+```sh
+docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-native -Xmx2g
+```
+
+There is no moving native tag such as `latest`: pick the release you run. Like the JVM image, the native
+image is built for x86-64 (amd64) only.
+
+The native image is also built and smoke-tested every week, without publishing anything, so a change that
+breaks it under GraalVM shows up before the next release.
+
+To build it yourself, run `docker build -f Dockerfile.native -t adahandle-resolver:native .`. GraalVM's
+compiler needs a lot of memory: a build on an 8-core host took 28 minutes and used up to 17.5 GB of memory.
+The resulting executable is about 430 MB.
+
+It's built with Oracle GraalVM. The GraalVM parts compiled into the executable are covered by the
+[GraalVM Free Terms and Conditions](https://www.graalvm.org/faq/), which allow free use, including in
+production and hosted services, and free redistribution, but not redistribution for a fee. The image
+includes Oracle's license and notices in `/licenses/graalvm`. The resolver's own code is MIT licensed,
+and the JVM image contains no GraalVM.
+
+## Docker Compose
+
+The repository's `docker-compose.yml` runs PostgreSQL 17 and the API, each with a health check (for the API,
+see [Monitoring](../monitoring/#docker-compose)). All settings come from `.env`. Copy `.env.example` to get started. The [Quickstart](../../getting-started/quickstart/)
+walks through it.
+
+Both services use `restart: unless-stopped`, so the stack comes back after a crash and after a host
+reboot. After upgrading, run `docker compose up -d` once so existing containers pick up the policy.
+
+## Kubernetes with Helm
+
+The chart lives in `deploy/adahandle-resolver`. It creates a Deployment, a Service on port `9095`
+and, if enabled, an Ingress. You can choose between three storage setups:
+
+<Tabs>
+<TabItem label="Embedded H2">
+
+This is the default (`values.yaml`). H2 stores its data on a 5 Gi PersistentVolumeClaim mounted at
+`/data`.
+
+```sh
+helm install adahandle-resolver deploy/adahandle-resolver
+```
+
+</TabItem>
+<TabItem label="Bitnami PostgreSQL">
+
+This option installs PostgreSQL as a chart dependency with generated credentials.
+
+```sh
+helm dependency build deploy/adahandle-resolver
+helm install adahandle-resolver deploy/adahandle-resolver \
+  -f deploy/adahandle-resolver/values-postgres.yaml
+```
+
+</TabItem>
+<TabItem label="Zalando operator">
+
+This option provisions a PostgreSQL cluster through an existing
+[Zalando Postgres operator](https://github.com/zalando/postgres-operator) installation.
+
+```sh
+helm install adahandle-resolver deploy/adahandle-resolver \
+  -f deploy/adahandle-resolver/values-zpg.yaml
+```
+
+</TabItem>
+</Tabs>
+
+### Useful values
+
+| Value                    | Purpose                                                              | Default                 |
+| ------------------------ | -------------------------------------------------------------------- | ----------------------- |
+| `image.tag`              | Resolver image version: set it to the release you run                | `0.1.4`                 |
+| `springProfiles`         | Same as `SPRING_ACTIVE_PROFILES`                                     | `mainnet,h2`            |
+| `javaToolOptions`        | JVM flags                                                            | `-Xmx4g …`              |
+| `resources`              | Pod requests and limits                                              | none                    |
+| `domain`, `ingress.*`    | Ingress host and extra domains                                       | `example.com`, enabled  |
+| `serviceAccount.name`    | Existing ServiceAccount to run under (the chart doesn't create one)  | namespace default       |
+| `imagePullSecrets`       | `["regcred"]` or `[{name: regcred}]`                                 | `[]`                    |
+| `startupProbe.*`         | Startup probe timing                                                 | 60s delay, 20s period   |
+
+The liveness, readiness and startup probes use the health groups described in [Monitoring](../monitoring/#kubernetes).
+A new pod is not ready until its sync reaches the tip, about 6.5 hours on mainnet.
+
+<Aside type="caution" title="Memory limit vs. heap">
+Keep `resources.limits.memory` above the `-Xmx` in `javaToolOptions`, roughly `-Xmx` plus 0.5 Gi.
+Otherwise Kubernetes kills the pod (OOMKilled) as soon as the heap grows during the mainnet sync.
+</Aside>
