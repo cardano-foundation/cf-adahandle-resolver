@@ -87,7 +87,8 @@ responses never include the `$` prefix.
 - Burned handles are gone: they return `404` and don't appear in the list endpoints.
 - Addresses must be bech32 (`addr1…`, `stake1…`, or the `_test` variants on testnets).
 - Results show the **current** owner, as of the last block the indexer has processed. During the
-  initial sync, recently transferred handles may still show an older owner.
+  initial sync, recently transferred handles may still show an older owner. Every response says how
+  current it is: see [How current is an answer](#how-current-is-an-answer).
 
 ## Differences from handle.me
 
@@ -97,9 +98,66 @@ regression suite compares the two. These differences are known and deliberate, f
 - **Datum hashes.** A virtual sub-handle's address is read from an inline datum only, not from a datum
   given by hash. No virtual sub-handle on mainnet uses a datum hash today.
 - **Status codes.** handle.me answers `202` while it's catching up or rolling back, and `451` for
-  legally restricted names. The resolver answers `200` and `404`.
+  legally restricted names. The resolver answers `200` and `404`, and says in the `X-Sync-Status` header
+  whether it is caught up.
 - **Other chains.** handle.me can serve addresses on other blockchains from a handle's metadata. The
   resolver serves Cardano addresses only.
+
+## How current is an answer
+
+A handle resolved from out-of-date data can point at an address that no longer holds it, and funds sent
+there go to the wrong owner. The resolver's data is out of date while it syncs (about 6.5 hours on mainnet
+for a new instance) and when it loses its connection to the Cardano node. So every response, `404`s
+included, says how current its data is, in these headers:
+
+| Header              | Value |
+| ------------------- | ----- |
+| `X-Sync-Status`     | `synced`: at the network tip and receiving blocks.<br/>`syncing`: catching up with the tip; the answer can be out of date.<br/>`stale`: no block from the node for 300 seconds; the answer can be out of date.<br/>`unknown`: nothing indexed yet, or the network tip isn't known. |
+| `X-Sync-Slot`       | Slot of the last block indexed. |
+| `X-Sync-Block`      | Number of the last block indexed. |
+| `X-Sync-Block-Time` | Time of the last block indexed, ISO 8601 in UTC. Compare it with the current time to see how old the data is. |
+| `X-Sync-Tip-Slot`   | Slot of the network tip, as last fetched from the node. |
+
+A header whose value isn't known is left out.
+
+```sh
+curl -i 'http://localhost:9095/api/v1/addresses/by-ada-handle/$alice'
+```
+
+```http
+HTTP/1.1 200
+X-Sync-Status: synced
+X-Sync-Slot: 175000000
+X-Sync-Block: 12000000
+X-Sync-Block-Time: 2026-11-06T10:00:00Z
+X-Sync-Tip-Slot: 175000020
+Content-Type: application/json
+
+{"stakeAddress":"stake1u8…","paymentAddress":"addr1q9…"}
+```
+
+Before sending funds to a resolved address, check the status, or the age of the data:
+
+```js
+const response = await fetch(`${resolver}/api/v1/addresses/by-ada-handle/${encodeURIComponent(handle)}`);
+const status = response.headers.get('X-Sync-Status');
+const blockTime = Date.parse(response.headers.get('X-Sync-Block-Time') ?? '');
+const ageSeconds = (Date.now() - blockTime) / 1000;
+
+if (status !== 'synced' || !(ageSeconds < 300)) {
+  throw new Error(`Resolver data is not current (${status}, ${Math.round(ageSeconds)} s old); try again later`);
+}
+const { paymentAddress } = await response.json();
+```
+
+<Aside>
+- A `404` from an instance that is `syncing` may only mean the handle isn't indexed yet.
+- The status is refreshed in the background every 5 seconds, so the headers can lag the data by up to
+  one block. When they lag, they show the data as older than it is, never newer.
+- `stale` uses the same 300-second threshold as the [liveness probe](../../guides/monitoring/), so the
+  headers and the health checks agree. Change it with `STORE_BLOCK_RECEIVE_DELAY_SECONDS`.
+- Browsers can read the headers: CORS exposes them to scripts on any origin.
+</Aside>
 
 ## Sync status
 
@@ -121,4 +179,5 @@ curl http://localhost:9095/api/v1/sync/status
 `sync_percentage`: it counts from the start of the chain, not from the first ADA Handle block where the resolver
 starts, so it reads high from the beginning.
 
-For health probes and Prometheus metrics, see [Monitoring](../../guides/monitoring/).
+To check how current a single answer is, use its [headers](#how-current-is-an-answer) instead. For health
+probes and Prometheus metrics, see [Monitoring](../../guides/monitoring/).
