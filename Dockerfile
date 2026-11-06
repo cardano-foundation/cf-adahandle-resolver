@@ -15,4 +15,6 @@ RUN ./mvnw clean package -DskipTests
 FROM eclipse-temurin:25-jre-noble AS runtime
 WORKDIR /app
 COPY --from=build /app/target/*.jar /app/cf-adahandle-resolver.jar
+# The API port (server.port, PORT); change it here too if PORT is changed.
+EXPOSE 9095
 ENTRYPOINT ["java", "-jar", "cf-adahandle-resolver.jar"]

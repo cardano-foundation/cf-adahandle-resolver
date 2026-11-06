@@ -42,6 +42,8 @@ WORKDIR /app
 COPY --from=build /licenses /licenses
 COPY LICENSE /licenses/LICENSE
 COPY --from=build /app/target/adahandle-resolver /app/adahandle-resolver
+# The API port (server.port, PORT); change it here too if PORT is changed.
+EXPOSE 9095
 ENTRYPOINT ["/app/adahandle-resolver"]
 # A native binary ignores JAVA_TOOL_OPTIONS; runtime flags go on the command line (e.g. add -Xmx to
 # cap the heap). networkaddress.cache.ttl=0 re-resolves the relay hostname on every reconnect.
