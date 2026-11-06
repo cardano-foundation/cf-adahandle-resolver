@@ -8,6 +8,7 @@ import com.bloxbean.cardano.yaci.store.core.service.EraService;
 import com.bloxbean.cardano.yaci.store.core.service.HealthService;
 import com.bloxbean.cardano.yaci.store.core.service.SyncStatusService;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -67,7 +68,7 @@ public class SyncStatusProvider {
         return snapshot(sync, health.getHealthStatus(), blockTime(era, sync.slot()));
     }
 
-    private Instant blockTime(Era era, long slot) {
+    private @Nullable Instant blockTime(@Nullable Era era, long slot) {
         EraService eras = eraService.getIfAvailable();
         if (eras == null || era == null) {
             return null;
@@ -84,7 +85,8 @@ public class SyncStatusProvider {
      * The decision itself. Not receiving blocks wins over everything else: a resolver cut off from the node may have
      * been at the tip once, but its answers age from then on.
      */
-    static SyncStatusSnapshot snapshot(SyncStatus sync, HealthStatus health, Instant blockTime) {
+    static SyncStatusSnapshot snapshot(@Nullable SyncStatus sync, @Nullable HealthStatus health,
+                                       @Nullable Instant blockTime) {
         if (sync == null || sync.slot() <= 0) {
             return SyncStatusSnapshot.UNKNOWN;
         }
