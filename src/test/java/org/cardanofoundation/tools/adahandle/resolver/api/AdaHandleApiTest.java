@@ -74,4 +74,13 @@ public class AdaHandleApiTest {
                 .body("stakeAddress", equalTo("stake1q8skl6ew6gu3gglq68n6dfv0p4hltwe3sh0z"))
                 .body("paymentAddress", equalTo("addr1q8skl6ew6ghxrr7g0l2w5wsd6hg70wlm7u3gglq68n6dfv0p4hltws7gdl77ayrt3ls"));
     }
+
+    @Test
+    public void testResponsesSayHowCurrentTheyAre() {
+        // The indexer is off here, so nothing is indexed and the status is unknown (#27).
+        when().get(ADA_HANDLE_ENDPOINT + "/by-stake-address/stake1q8skl6ew6gu3gglq68n6dfv0p4hltwe3sh0z")
+                .then()
+                .statusCode(200)
+                .header("X-Sync-Status", "unknown");
+    }
 }

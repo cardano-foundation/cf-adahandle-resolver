@@ -11,6 +11,7 @@ import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 
@@ -63,6 +64,21 @@ public class OpenApiDocsTest {
                 .then()
                 .statusCode(200)
                 .body("paths.keySet().findAll { it.contains('/admin/') }", empty());
+    }
+
+    @Test
+    public void testApiDocsDescribeTheSyncStatusHeaders() {
+        String ok = "paths.'/api/v1/ada-handles/by-stake-address/{stakeAddress}'.get.responses.'200'.headers";
+        String notFound = "paths.'/api/v1/addresses/by-ada-handle/{adaHandle}'.get.responses.'404'.headers";
+        when().get("/apidocs")
+                .then()
+                .statusCode(200)
+                .body(ok + ".'X-Sync-Status'.schema.enum", hasItems("synced", "syncing", "stale", "unknown"))
+                .body(ok + ".'X-Sync-Slot'", notNullValue())
+                .body(ok + ".'X-Sync-Block'", notNullValue())
+                .body(ok + ".'X-Sync-Block-Time'.schema.format", equalTo("date-time"))
+                .body(ok + ".'X-Sync-Tip-Slot'", notNullValue())
+                .body(notFound + ".'X-Sync-Status'", notNullValue());
     }
 
     @Test

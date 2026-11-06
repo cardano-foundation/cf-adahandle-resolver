@@ -55,10 +55,11 @@ is rolled back.
 ### 🐳 Docker
 
 ```zsh
-docker run -p 9095:9095 -e JAVA_TOOL_OPTIONS=-Xmx4g cardanofoundation/adahandle-resolver:latest
+docker run -p 9095:9095 -e JAVA_TOOL_OPTIONS=-Xmx4g cardanofoundation/adahandle-resolver:1.0.0-pre1
 ```
 
-This syncs mainnet into an embedded H2 database. A mainnet sync needs about 4 GB of heap; pass JVM flags
+Pin a version like this: `latest` follows final releases only, so it doesn't point at 1.0.0 until 1.0.0 is
+released (see Releases below). This syncs mainnet into an embedded H2 database. A mainnet sync needs about 4 GB of heap; pass JVM flags
 in `JAVA_TOOL_OPTIONS` (`JAVA_OPTS` is ignored by the image).
 
 ### 🐘 Docker Compose with PostgreSQL
@@ -86,7 +87,7 @@ Java 25
 git clone https://github.com/cardano-foundation/cf-adahandle-resolver.git
 cd cf-adahandle-resolver
 ./mvnw clean package
-java -Xmx4g -jar target/cf-adahandle-resolver-*-SNAPSHOT.jar
+java -Xmx4g -jar target/cf-adahandle-resolver-*.jar
 ```
 
 ### ⚡ Native image (experimental)
@@ -95,16 +96,24 @@ A GraalVM native image starts in about a second and needs far less memory than t
 is published as `cardanofoundation/adahandle-resolver:<version>-native`, next to the JVM image `<version>`:
 
 ```zsh
-docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-native
+docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-pre1-native
 # build it yourself
 docker build -f Dockerfile.native -t adahandle-resolver:native .
 ```
 
 Configure it with the same environment variables as the JVM image. JVM flags such as `-Xmx` go on the
-command line (`docker run ... adahandle-resolver:1.0.0-native -Xmx2g`), not in `JAVA_TOOL_OPTIONS`.
+command line (`docker run ... adahandle-resolver:1.0.0-pre1-native -Xmx2g`), not in `JAVA_TOOL_OPTIONS`.
 
 The native image is also built and smoke-tested every week, without publishing anything, so a change
 that breaks it under GraalVM shows up before the next release.
+
+**Memory and metrics:** on mainnet the native image used about 1.1 GB during a full sync and about 250 MB at the
+tip (container memory). The JVM's per-pool memory metrics don't exist in it: GraalVM's native image with G1 has
+no eden, survivor or old-gen pools, and no GC pause events. `jvm_memory_used_bytes`, `jvm_memory_committed_bytes`
+and `jvm_memory_max_bytes` report the heap as a whole instead, under `area="heap", id="heap"`, and
+`process_memory_rss_bytes` the resident memory of the process. Its RSS also counts the executable's mapped
+pages, which the kernel can reclaim, so it reads higher than the container's memory usage (about 480 MB versus
+250 MB at the tip).
 
 **Licensing:** the native image is built with Oracle GraalVM, licensed under the
 [GraalVM Free Terms and Conditions](https://www.graalvm.org/faq/) (GFTC). The GraalVM parts compiled into
@@ -115,8 +124,9 @@ in `/licenses/graalvm`. The resolver's own code is MIT licensed, and the JVM ima
 ## 🏷️ Releases
 
 Releases follow [semantic versioning](https://semver.org). A release can be preceded by pre-releases, `1.0.0-pre1`,
-`1.0.0-pre2`, …, then the final `1.0.0` ([ADR 13](docs/adr/0013-pre-releases.md)). Each is a GitHub release, the
-pre-releases marked as such, and each is published to Docker Hub:
+`1.0.0-pre2`, …, then the final `1.0.0`, following the Cardano Foundation's internal release guidelines
+(`cf-java-nfrs`, NFR-08). Each is a GitHub release, the pre-releases marked as such, and each is published to
+Docker Hub:
 
 | Version      | JVM image                  | Native image          |
 |--------------|----------------------------|-----------------------|
@@ -139,7 +149,7 @@ To cut a pre-release or a final, merge into `main` a commit whose message ends w
   yaci-devkit up --enable-yaci-store          # npm install -g @bloxbean/yaci-devkit
   ADAHANDLE_POLICY_IDS=3a888d65f16790950a72daee1f63aa05add6d268434107cfa5b67712,db63f51afa43f19d42687acb2671c1bdfe04ab8dceb9526e8ceb6935 \
     SPRING_ACTIVE_PROFILES=devnet,postgres DB_URL=jdbc:postgresql://localhost:5432/adahandle \
-    DB_USERNAME=adahandle DB_PASSWORD=adahandle java -jar target/cf-adahandle-resolver-*-SNAPSHOT.jar &
+    DB_USERNAME=adahandle DB_PASSWORD=adahandle java -jar target/cf-adahandle-resolver-*.jar &
   ./mvnw verify -DskipUTs=true -DskipITs=false
   ```
 - **Mainnet regression** (Claude Code skills in `.claude/skills`): a full mainnet sync on a remote host,
@@ -155,6 +165,20 @@ To cut a pre-release or a final, merge into `main` a commit whose message ends w
 | http://localhost:9095/api/v1/addresses/by-ada-handle/{adaHandle}            | [GET]s the payment and stake address a handle resolves to (with or without the leading `$`) |
 | http://localhost:9095/api/v1/ada-handles/by-stake-address/{stakeAddress}     | [GET]s the handles held by a stake address                                                   |
 | http://localhost:9095/api/v1/ada-handles/by-payment-address/{paymentAddress} | [GET]s the handles held by a payment address                                                 |
+
+Every API response says how current its data is, so a client can refuse to send funds to an address resolved from
+out-of-date data:
+
+| Header              | Value                                                                                              |
+|---------------------|----------------------------------------------------------------------------------------------------|
+| `X-Sync-Status`     | `synced` (at the tip, receiving blocks), `syncing` (catching up), `stale` (no block from the node for 300 s), `unknown` |
+| `X-Sync-Slot`       | Slot of the last block indexed                                                                     |
+| `X-Sync-Block`      | Number of the last block indexed                                                                   |
+| `X-Sync-Block-Time` | Time of the last block indexed, ISO 8601 UTC (e.g. `2026-11-06T10:00:00Z`)                         |
+| `X-Sync-Tip-Slot`   | Slot of the network tip, as last fetched from the node                                             |
+
+The status is refreshed every 5 seconds in the background ([ADR 12](docs/adr/0012-sync-status-headers.md) explains
+why). A `404` from an instance that is `syncing` may only mean the handle isn't indexed yet.
 
 ## 📈 Monitoring
 
@@ -182,6 +206,9 @@ Metrics about handles, next to Yaci Store's `yaci_store_*` sync metrics and the 
 | `adahandle_rollbacks_total{outcome}`  | Rollbacks, `noop` or `applied`                                                |
 | `adahandle_rollback_handles_total`    | Handles that rollbacks restored or removed                                    |
 
+Memory: `jvm_memory_*_bytes{area="heap"}` (per pool on the JVM, the heap as a whole in the native image) and
+`process_memory_rss_bytes`, the resident memory of the process (Linux).
+
 ## 👻 Disable Indexer
 
 If you intend to scale this service, running multiple instances of the API is advisable. 
@@ -189,7 +216,7 @@ However, you may not want a crawl job on every instance. To disable the indexer 
 utilize the `disable-indexer` profile as an environment variable.
 
 ```zsh
-SPRING_ACTIVE_PROFILES=mainnet,postgres,disable-indexer java -jar target/cf-adahandle-resolver-*-SNAPSHOT.jar
+SPRING_ACTIVE_PROFILES=mainnet,postgres,disable-indexer java -jar target/cf-adahandle-resolver-*.jar
 ```
 
 ## 🌱 Environment Variables

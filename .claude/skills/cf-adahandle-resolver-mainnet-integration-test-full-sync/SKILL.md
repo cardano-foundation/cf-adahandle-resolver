@@ -49,6 +49,7 @@ Load config from (in priority order):
 | `ENV_FILE` | `.env` (mainnet) | no |
 | `LOCAL_API_PORT` | `9095` | no |
 | `LOCAL_DB_PORT` | `5432` | no |
+| `REMOTE_DB_PORT` | `5432` | no — Postgres port on the remote host, if the stack publishes it elsewhere |
 | `SAMPLE_N` | `10` | no — number of handles sampled for REST spot-checks |
 
 If `REMOTE_SSH_HOST` is missing, refuse to start and tell the user to either supply it as an arg or fill in `config.env`. **Never invent or default a hostname.**
@@ -81,7 +82,7 @@ Run `scripts/start-remote.sh`. Confirms `$ENV_FILE` is present, builds the `api`
 
 ### Step 4 — Open SSH tunnels
 
-Run `scripts/open-tunnels.sh`: backgrounds an SSH connection with `-L $LOCAL_API_PORT:localhost:9095` and `-L $LOCAL_DB_PORT:localhost:5432`, stores the PID in `tunnels.pid`, and sanity-checks `http://localhost:$LOCAL_API_PORT/actuator/health`.
+Run `scripts/open-tunnels.sh`: backgrounds an SSH connection with `-L $LOCAL_API_PORT:localhost:9095` and `-L $LOCAL_DB_PORT:localhost:$REMOTE_DB_PORT` (default 5432), stores the PID in `tunnels.pid`, and sanity-checks `http://localhost:$LOCAL_API_PORT/actuator/health`.
 
 ### Step 5 — Monitor sync to tip
 
