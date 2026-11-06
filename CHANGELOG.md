@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.0.0-rc2](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v1.0.0-rc1...v1.0.0-rc2) (2026-11-06)
+
+
+### Bug Fixes
+
+* **docker:** docker build works in a git worktree again ([#114](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/114)) ([de2110b](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/de2110bb062867dfe899f4dbc1fff43556156b33))
+
+
+### Documentation
+
+* README for 1.0.0-rc2; rc1 has no native image ([#115](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/115)) ([9e84081](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/9e84081ef3a9266373840eb011b903fbc2267cd8))
+
+
+### Miscellaneous Chores
+
+* release 1.0.0-rc2 ([16a18e1](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/16a18e150c0fe2ddf3f455c2112e896e8afeb41e))
+
 ## [1.0.0-rc1](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v1.0.0-pre1...v1.0.0-rc1) (2026-11-06)
 
 
