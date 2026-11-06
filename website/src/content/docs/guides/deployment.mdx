@@ -15,6 +15,12 @@ x86-64 (amd64) and runs on older CPUs too, including VMs with a generic CPU mode
 A release can be preceded by release candidates for testing, versioned `X.Y.Z-rcN` and published under that tag
 (`-native` for the native image). `latest` moves only with final releases, never to a release candidate.
 
+The JVM image is built on [Eclipse Temurin](https://adoptium.net/) 25 on Ubuntu 24.04 (`eclipse-temurin:25-jre-noble`),
+taking the latest Java 25 and Ubuntu updates at each release. The native image embeds the same Java trust store (its
+root certificates). The build fails if that trust store still contains the roots that signed the compromised eMudhra
+intermediate CAs, removed in Temurin 25.0.5
+([Adoptium's notice](https://adoptium.net/news/2026/10/temurin-october-2026-emudhra/)).
+
 ### Native image (experimental)
 
 Each release is also published as a GraalVM native image, tagged `<version>-native`, next to the JVM

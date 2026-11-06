@@ -81,6 +81,18 @@ indexer instance.
 average, so normal 2-minute gaps happen several times a day. Each would fail liveness and restart the pod. A 5-minute
 gap happens about once in two years.
 
+## Build information
+
+`/actuator/info` says which build is running: the version, the build time and the git commit it was built from.
+
+```sh
+curl -s localhost:9095/actuator/info
+```
+
+```json
+{"git":{"commit":{"id":"5abb774", …}},"build":{"version":"1.0.0-rc1","name":"ADA Handle Resolver", …}}
+```
+
 ## Metrics
 
 `/actuator/prometheus` serves metrics in the Prometheus format, and `/actuator/metrics` serves the same as JSON. Every
@@ -131,10 +143,25 @@ The sync metrics from Yaci Store:
 ### Others
 
 The standard Spring Boot metrics:
-- the JVM: memory, GC, threads;
+- the JVM: memory, GC, threads (see [Memory](#memory) for the native image);
 - the HikariCP connection pool;
 - `http_server_requests_seconds`, timings for each API endpoint;
 - `spring_data_repository_invocations_seconds`, timings for each database query.
+
+### Memory
+
+The JVM image reports `jvm_memory_used_bytes`, `jvm_memory_committed_bytes` and `jvm_memory_max_bytes` per memory pool
+(G1 Eden, G1 Old Gen, and so on). The native image has no such pools, so it reports the heap as a whole, with the labels
+`area="heap", id="heap"`. To chart the heap on both images, sum over `area="heap"`:
+
+```promql
+sum by (instance) (jvm_memory_used_bytes{area="heap"})
+```
+
+The native image reports no GC pause metrics.
+
+Both images also report `process_memory_rss_bytes` on Linux: the memory the process actually holds in RAM (its
+resident set size), heap and everything else. This is the number to compare with a container's memory limit.
 
 ### Alerts
 

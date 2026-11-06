@@ -121,7 +121,8 @@ process runs out of memory during the initial sync. Use at least `-Xmx4g`, passe
 </Aside>
 
 <Aside type="caution" title="Upgrading to 1.0.0 needs a full resync">
-Yaci Store 2.x changed its schema, and 1.0.0 indexes handles that earlier versions didn't. Stop the
+0.x ran on Yaci Store 0.1.x and 1.0.0 runs on Yaci Store 3.x, which ships a changed version of one of its database
+migrations (since 2.x). 1.0.0 also indexes handles that earlier versions didn't. Stop the
 resolver, drop the database (`docker compose down -v`, or delete `./data/db*` for H2), then start
 1.0.0. A database created by 0.x fails on startup with
 `Migration checksum mismatch for migration version 0.200.1`.
