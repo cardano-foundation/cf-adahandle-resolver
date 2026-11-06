@@ -158,6 +158,20 @@ To cut a pre-release or a final, merge into `main` a commit whose message ends w
 | http://localhost:9095/api/v1/ada-handles/by-stake-address/{stakeAddress}     | [GET]s the handles held by a stake address                                                   |
 | http://localhost:9095/api/v1/ada-handles/by-payment-address/{paymentAddress} | [GET]s the handles held by a payment address                                                 |
 
+Every API response says how current its data is, so a client can refuse to send funds to an address resolved from
+out-of-date data:
+
+| Header              | Value                                                                                              |
+|---------------------|----------------------------------------------------------------------------------------------------|
+| `X-Sync-Status`     | `synced` (at the tip, receiving blocks), `syncing` (catching up), `stale` (no block from the node for 300 s), `unknown` |
+| `X-Sync-Slot`       | Slot of the last block indexed                                                                     |
+| `X-Sync-Block`      | Number of the last block indexed                                                                   |
+| `X-Sync-Block-Time` | Time of the last block indexed, ISO 8601 UTC (e.g. `2026-11-06T10:00:00Z`)                         |
+| `X-Sync-Tip-Slot`   | Slot of the network tip, as last fetched from the node                                             |
+
+The status is refreshed every 5 seconds in the background. A `404` from an instance that is `syncing` may only mean
+the handle isn't indexed yet.
+
 ## 📈 Monitoring
 
 | Endpoint                     | What it tells you                                                                            |
