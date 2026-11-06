@@ -32,6 +32,9 @@ RUN ! keytool -list -v -cacerts -storepass changeit | grep -E "^Owner: .*CN=(emS
 
 RUN ./mvnw -B -Pnative verify clean --fail-never
 COPY . /app
+# In a git worktree, .git is a file pointing to the main checkout, which isn't copied: drop it so the build runs
+# as without git (no commit on /actuator/info) instead of failing. A normal checkout's .git directory stays.
+RUN if [ -f .git ]; then rm .git; fi
 RUN ./mvnw -B -Pnative -DskipTests package
 
 RUN mkdir -p /licenses/graalvm \

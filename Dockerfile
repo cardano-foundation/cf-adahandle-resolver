@@ -8,6 +8,9 @@ COPY .mvn /app/.mvn
 
 RUN ./mvnw verify clean --fail-never
 COPY . /app
+# In a git worktree, .git is a file pointing to the main checkout, which isn't copied: drop it so the build runs
+# as without git (no commit on /actuator/info) instead of failing. A normal checkout's .git directory stays.
+RUN if [ -f .git ]; then rm .git; fi
 RUN ./mvnw clean package -DskipTests
 
 # Ubuntu 24.04 (noble) JRE. Not ubi10-minimal: UBI 10 requires an x86-64-v3 CPU (AVX2) and
