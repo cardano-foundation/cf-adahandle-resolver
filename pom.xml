@@ -81,12 +81,12 @@
              rendering, XsltView) concern features this service doesn't use. -->
         <tomcat.version>10.1.61</tomcat.version>
         <jackson-bom.version>2.21.8</jackson-bom.version>
-        <netty.version>4.1.139.Final</netty.version>
+        <netty.version>4.1.140.Final</netty.version>
         <commons-lang3.version>3.21.0</commons-lang3.version>
         <log4j2.version>2.26.1</log4j2.version>
         <!-- Not managed by Spring Boot; transitive via yaci-store / cardano-client-lib. -->
         <bouncycastle.version>1.86</bouncycastle.version>
-        <guava.version>33.7.2-jre</guava.version>
+        <guava.version>33.8.0-jre</guava.version>
     </properties>
 
     <dependencyManagement>
