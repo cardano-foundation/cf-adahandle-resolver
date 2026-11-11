@@ -1,5 +1,5 @@
 # Eclipse Temurin on floating JDK 25 tags, so every build gets the latest JDK 25 and Ubuntu security updates.
-FROM eclipse-temurin:25-jdk-noble AS build
+FROM eclipse-temurin:25-jdk-resolute AS build
 
 WORKDIR /app
 COPY pom.xml /app/pom.xml
@@ -13,10 +13,10 @@ COPY . /app
 RUN if [ -f .git ]; then rm .git; fi
 RUN ./mvnw clean package -DskipTests
 
-# Ubuntu 24.04 (noble) JRE. Not ubi10-minimal: UBI 10 requires an x86-64-v3 CPU (AVX2) and
-# fails at startup on older hosts and generic VM CPU models with
+# Ubuntu 26.04 LTS (resolute) JRE; like 24.04, it runs on x86-64-v2 CPUs. Not ubi10-minimal: UBI 10 requires an
+# x86-64-v3 CPU (AVX2) and fails at startup on older hosts and generic VM CPU models with
 # "Fatal glibc error: CPU does not support x86-64-v3". Temurin 25 has no ubi9-minimal image.
-FROM eclipse-temurin:25-jre-noble AS runtime
+FROM eclipse-temurin:25-jre-resolute AS runtime
 # Fail the build on a JDK older than 25.0.5+8 (e.g. a stale cached base image): its trust store still has the
 # roots that signed the compromised eMudhra intermediate CAs.
 # https://adoptium.net/news/2026/10/temurin-october-2026-emudhra/
