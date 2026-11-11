@@ -30,6 +30,9 @@ spec:
     - matches:
         - path:
             value: /api/v1
+        - path:
+            type: Exact
+            value: /apidocs
       backendRefs:
         - kind: Service
           name: {{ include "adahandle-resolver.fullname" . }}
