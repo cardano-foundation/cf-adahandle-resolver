@@ -14,7 +14,7 @@
 # The trust store (cacerts) is Eclipse Temurin's latest JDK 25, like the JVM image's. native-image embeds the
 # build JDK's cacerts in the binary, so it is replaced before the build. Since 25.0.5+8, Temurin drops the roots
 # that signed the compromised eMudhra intermediate CAs: https://adoptium.net/news/2026/10/temurin-october-2026-emudhra/
-FROM eclipse-temurin:25-jre-noble AS cacerts
+FROM eclipse-temurin:25-jre-resolute AS cacerts
 
 FROM container-registry.oracle.com/graalvm/native-image:25i5-25.0.5.0.3-ol9 AS build
 
