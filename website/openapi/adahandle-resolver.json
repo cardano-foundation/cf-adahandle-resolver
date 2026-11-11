@@ -15,8 +15,12 @@
 	},
 	"servers": [
 		{
+			"url": "https://adahandle.mainnet.cardanofoundation.org",
+			"description": "Public mainnet instance (Cardano Foundation)"
+		},
+		{
 			"url": "http://localhost:9095",
-			"description": "Local resolver (default port)"
+			"description": "Your own resolver (default port)"
 		}
 	],
 	"tags": [

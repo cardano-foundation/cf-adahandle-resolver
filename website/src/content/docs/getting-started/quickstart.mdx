@@ -5,6 +5,17 @@ description: Run the ADA Handle Resolver with Docker, Docker Compose and Postgre
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 
+<Aside type="tip" title="Just want to try the API?">
+The Cardano Foundation runs a public **mainnet** resolver: no setup, no API key.
+
+```sh
+curl 'https://adahandle.mainnet.cardanofoundation.org/api/v1/addresses/by-ada-handle/$hosky'
+```
+
+See [Public mainnet instance](../../reference/api/#public-mainnet-instance). Run your own, below, for preprod or
+preview, or to depend on no one else's server.
+</Aside>
+
 <Tabs syncKey="runtime">
 <TabItem label="Docker" icon="seti:docker">
 

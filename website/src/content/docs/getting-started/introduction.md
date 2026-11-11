@@ -27,6 +27,14 @@ handle.me and most wallets, and are explained in [How indexing works](../../refe
 and datums behind each kind are decoded field by field in
 [ADA Handle tokens and datums](https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/docs/handle-datums.md).
 
+## Use it, or run it
+
+- **Use the public instance.** The Cardano Foundation hosts a resolver for mainnet at
+  `https://adahandle.mainnet.cardanofoundation.org`, open to anyone without an API key. See
+  [Public mainnet instance](../../reference/api/#public-mainnet-instance).
+- **Run your own** for preprod or preview, for full control, or to depend on no one else's server. See the
+  [Quickstart](../quickstart/).
+
 ## What you can ask it
 
 | Question                                     | Endpoint                                                  |

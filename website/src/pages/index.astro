@@ -89,8 +89,9 @@ GET /api/v1/ada-handles/by-stake-address/stake1u8…k2w9
 					Resolve any $handle, straight from chain
 				</h1>
 				<p class="mt-8 max-w-2xl text-lg leading-relaxed tracking-tight text-cf-ink-soft">
-					The ADA Handle Resolver is a self-hosted indexer from the Cardano Foundation. It turns ADA Handles into
-					addresses, and addresses back into handles, with nothing between you and the chain but a Cardano node.
+					The ADA Handle Resolver is an indexer from the Cardano Foundation. It turns ADA Handles into addresses,
+					and addresses back into handles, with nothing between you and the chain but a Cardano node. Run it
+					yourself, or use the Cardano Foundation's public mainnet instance.
 				</p>
 				<div class="mt-10 flex flex-wrap gap-3">
 					<a
@@ -100,10 +101,10 @@ GET /api/v1/ada-handles/by-stake-address/stake1u8…k2w9
 						Run it
 					</a>
 					<a
-						href={docs('reference/api')}
+						href={`${docs('reference/api')}#public-mainnet-instance`}
 						class="rounded-full bg-neutral-100 px-6 py-4 text-sm font-semibold text-neutral-900 transition hover:bg-white"
 					>
-						Query the API
+						Try the public API
 					</a>
 				</div>
 			</section>

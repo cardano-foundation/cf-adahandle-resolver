@@ -32,8 +32,11 @@ if (/SNAPSHOT/i.test(spec.info.version)) {
 	);
 }
 
-// springdoc reports the URL it was fetched from; publish the default local one instead.
-spec.servers = [{ url: 'http://localhost:9095', description: 'Local resolver (default port)' }];
+// springdoc reports the URL it was fetched from; publish the public mainnet instance and the default local one instead.
+spec.servers = [
+	{ url: 'https://adahandle.mainnet.cardanofoundation.org', description: 'Public mainnet instance (Cardano Foundation)' },
+	{ url: 'http://localhost:9095', description: 'Your own resolver (default port)' },
+];
 
 const rank = (name) => {
 	const index = tagOrder.indexOf(name);
