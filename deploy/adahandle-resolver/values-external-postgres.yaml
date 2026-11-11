@@ -1,0 +1,17 @@
+# PostgreSQL you run yourself (managed service, existing cluster, ...).
+#
+# Create the secret first, in the release namespace, with these keys:
+#
+#   kubectl create secret generic postgres-secrets \
+#     --from-literal=POSTGRES_HOST=<host> --from-literal=POSTGRES_PORT=5432 \
+#     --from-literal=POSTGRES_DB=adahandle --from-literal=POSTGRES_USER=<user> \
+#     --from-literal=POSTGRES_PASSWORD=<password>
+#
+#   helm install adahandle-resolver deploy/adahandle-resolver -f deploy/adahandle-resolver/values-external-postgres.yaml
+springProfiles: mainnet,postgres
+
+database:
+  type: postgres
+  postgres:
+    secret:
+      name: postgres-secrets
