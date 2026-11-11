@@ -55,7 +55,7 @@ public class OpenApiDocsTest {
     }
 
     @Test
-    public void testYaciStorePluginApiIsOffByDefault() {
+    public void testYaciStorePluginApiIsOff() {
         // Yaci Store enables its plugin monitoring API unless store.plugins.api-enabled is false.
         when().get("/api/v1/admin/plugins")
                 .then()

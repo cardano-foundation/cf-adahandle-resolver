@@ -4,9 +4,6 @@ database:
   # Can be h2 or postgres
   type: postgres
 
-postgresql:
-  enabled: false
-
 zpgCluster:
   enabled: true
   resources:

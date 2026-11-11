@@ -55,7 +55,7 @@ is rolled back.
 ### 🐳 Docker
 
 ```zsh
-docker run -p 9095:9095 -e JAVA_TOOL_OPTIONS=-Xmx4g cardanofoundation/adahandle-resolver:1.0.0-pre1
+docker run -p 9095:9095 -e JAVA_TOOL_OPTIONS=-Xmx4g cardanofoundation/adahandle-resolver:1.0.0-rc2
 ```
 
 Pin a version like this: `latest` follows final releases only, so it doesn't point at 1.0.0 until 1.0.0 is
@@ -96,13 +96,13 @@ A GraalVM native image starts in about a second and needs far less memory than t
 is published as `cardanofoundation/adahandle-resolver:<version>-native`, next to the JVM image `<version>`:
 
 ```zsh
-docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-pre1-native
+docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-rc2-native
 # build it yourself
 docker build -f Dockerfile.native -t adahandle-resolver:native .
 ```
 
 Configure it with the same environment variables as the JVM image. JVM flags such as `-Xmx` go on the
-command line (`docker run ... adahandle-resolver:1.0.0-pre1-native -Xmx2g`), not in `JAVA_TOOL_OPTIONS`.
+command line (`docker run ... adahandle-resolver:1.0.0-rc2-native -Xmx2g`), not in `JAVA_TOOL_OPTIONS`.
 
 The native image is also built and smoke-tested every week, without publishing anything, so a change
 that breaks it under GraalVM shows up before the next release.
@@ -123,20 +123,25 @@ in `/licenses/graalvm`. The resolver's own code is MIT licensed, and the JVM ima
 
 ## 🏷️ Releases
 
-Releases follow [semantic versioning](https://semver.org). A release can be preceded by pre-releases, `1.0.0-pre1`,
-`1.0.0-pre2`, …, then the final `1.0.0`, following the Cardano Foundation's internal release guidelines
-(`cf-java-nfrs`, NFR-08). Each is a GitHub release, the pre-releases marked as such, and each is published to
-Docker Hub:
+Releases follow [semantic versioning](https://semver.org). A release can be preceded by release candidates,
+`1.0.0-rc1`, `1.0.0-rc2`, …, then the final `1.0.0`, following the Cardano Foundation's internal release guidelines
+(`cf-java-nfrs`, NFR-08). The first 1.0.0 pre-release was `1.0.0-pre1`. Each is a GitHub release, the release
+candidates and pre-releases marked as pre-releases, and each is published to Docker Hub:
 
 | Version      | JVM image                  | Native image          |
 |--------------|----------------------------|-----------------------|
 | `1.0.0-pre1` | `:1.0.0-pre1`              | `:1.0.0-pre1-native`  |
+| `1.0.0-rc1`  | `:1.0.0-rc1`               | none (1)              |
+| `1.0.0-rc2`  | `:1.0.0-rc2`               | `:1.0.0-rc2-native`   |
 | `1.0.0`      | `:1.0.0` and `:latest`     | `:1.0.0-native`       |
 
-`latest` always points at the newest final release, never at a pre-release.
+(1) The release build of `1.0.0-rc1-native` failed on an outdated check (#113); `1.0.0-rc2` has the same code with
+its native image.
 
-To cut a pre-release or a final, merge into `main` a commit whose message ends with a `Release-As:` footer, e.g.
-`Release-As: 1.0.0-pre1`, then merge the release PR that release-please opens.
+`latest` always points at the newest final release, never at a release candidate or pre-release.
+
+To cut a release candidate or a final, merge into `main` a commit whose message ends with a `Release-As:` footer,
+e.g. `Release-As: 1.0.0-rc2`, then merge the release PR that release-please opens.
 
 ## 🧪 Tests
 

@@ -13,6 +13,7 @@ import java.util.List;
 @Repository
 public interface AdaHandleRepository extends JpaRepository<AdaHandle, String> {
 
+    /** Null when no handle has this name: never minted, burned, or not reached by the sync yet. */
     @Query("SELECT handle.stakeAddress AS stakeAddress , handle.paymentAddress AS paymentAddress FROM AdaHandle " +
             "AS handle WHERE handle.name = :adaHandle")
     @Nullable

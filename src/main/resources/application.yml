@@ -36,8 +36,8 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
   paths-to-match: /api/**
-  # Only the resolver's own controllers. Yaci Store's endpoints (/api/v1/sync/status, /api/v1/genesis, and the
-  # plugin API when switched on) still answer, but stay out of the API documentation.
+  # Only the resolver's own controllers. Yaci Store's endpoints (/api/v1/sync/status, /api/v1/genesis) still answer,
+  # but stay out of the API documentation.
   packages-to-scan: org.cardanofoundation.tools.adahandle.resolver
 
 logging:
@@ -91,10 +91,10 @@ store:
   # probes. Yaci Store's default, 120 s, is too short for mainnet: a block comes every 20 s on average, so a gap over
   # 120 s happens several times a day. Over 300 s, about once in two years.
   block-receive-delay-seconds: ${STORE_BLOCK_RECEIVE_DELAY_SECONDS:300}
-  # Yaci Store's plugin system is off unless store.plugins.enabled is set; the resolver doesn't document or support it.
-  # Its read-only monitoring API ({apiPrefix}/admin/plugins) is on by default in Yaci Store; off here, so the public API
-  # serves only the resolver's endpoints.
+  # Yaci Store's plugin system: off. store.plugins.enabled (whether plugins run) is off by default already; its read-only
+  # monitoring API ({apiPrefix}/admin/plugins/**) is on by default, and would be public next to the resolver's API.
   plugins:
+    enabled: false
     api-enabled: false
 ---
 spring:

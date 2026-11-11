@@ -1,5 +1,50 @@
 # Changelog
 
+## [1.0.0-rc2](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v1.0.0-rc1...v1.0.0-rc2) (2026-11-06)
+
+
+### Bug Fixes
+
+* **docker:** docker build works in a git worktree again ([#114](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/114)) ([de2110b](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/de2110bb062867dfe899f4dbc1fff43556156b33))
+
+
+### Documentation
+
+* README for 1.0.0-rc2; rc1 has no native image ([#115](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/115)) ([9e84081](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/9e84081ef3a9266373840eb011b903fbc2267cd8))
+
+
+### Miscellaneous Chores
+
+* release 1.0.0-rc2 ([16a18e1](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/16a18e150c0fe2ddf3f455c2112e896e8afeb41e))
+
+## [1.0.0-rc1](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v1.0.0-pre1...v1.0.0-rc1) (2026-11-06)
+
+
+### Features
+
+* API responses say how current their data is (X-Sync-* headers) ([#102](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/102)) ([2c007b3](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/2c007b3d506b6583040ececdeb162a6efa8f1dba))
+
+
+### Bug Fixes
+
+* **docker:** latest Eclipse Temurin 25, without the eMudhra-compromised roots ([#109](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/109)) ([1f5f597](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/1f5f597122088c04406df76b63a1c495f6617d09))
+* **metrics:** heap and resident memory metrics in the native image ([#105](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/105)) ([024eafb](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/024eafbcc756a283f9de9116e00a37e2d7f93d50))
+
+
+### Documentation
+
+* **adr:** leave generic rules to cf-java-nfrs; remove ADR 13 ([497668f](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/497668f98e1ee614f859ce6b339c49aefcf555ad))
+* name cf-java-nfrs without linking it (internal repository) ([7d94c59](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/7d94c596503a13a0e87674bf87f1055de496c3c3))
+* README examples for 1.0.0-pre1 ([ad87017](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/ad87017f1fc3d4f3e31afafbf5e5ac36b4115a2e))
+* README: plain reference to the Releases section ([5866f54](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/5866f54f3e7d00f33f94c2382df4d19354f15a25))
+* **skills:** document REMOTE_DB_PORT for the regression suite's SSH tunnel ([13108d1](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/13108d1ac26ac125e6c99771b48a28fb0f85faf0))
+
+
+### Miscellaneous Chores
+
+* release 1.0.0-pre2 ([8801af5](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/8801af52ecabc4a64ad98fee4126bcd46d5a87b7))
+* release 1.0.0-rc1 ([f93b814](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/f93b81485db639b7a6a61eca05f644b8813e70ff))
+
 ## [1.0.0-pre1](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v0.1.5...v1.0.0-pre1) (2026-11-05)
 
 

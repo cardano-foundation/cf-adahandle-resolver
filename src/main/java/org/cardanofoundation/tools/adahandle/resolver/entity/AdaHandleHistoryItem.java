@@ -15,6 +15,7 @@ import org.jspecify.annotations.Nullable;
 public class AdaHandleHistoryItem {
     @Id
     private String name;
+    /** Null for a burn, and when the address has no stake part (see {@link AdaHandle}). */
     @Column(name = "stake_address")
     private @Nullable String stakeAddress;
     /** Null only for a burn. */
@@ -27,7 +28,7 @@ public class AdaHandleHistoryItem {
     private boolean burned;
     /**
      * The token (policy id + asset name, hex) whose output or burn this change comes from. Not stored: it is only used
-     * to order the changes of one block, see {@code AdaHandleProcessor}.
+     * to order the changes of one block, see {@code AdaHandleProcessor}. Null on entries read from the database.
      */
     @Transient
     private @Nullable String token;
@@ -39,7 +40,7 @@ public class AdaHandleHistoryItem {
         this.slot = slot;
     }
 
-    public static AdaHandleHistoryItem burn(String name, long slot, @Nullable String token) {
+    public static AdaHandleHistoryItem burn(String name, long slot, String token) {
         AdaHandleHistoryItem item = new AdaHandleHistoryItem(name, null, null, slot);
         item.burned = true;
         item.token = token;

@@ -1,0 +1,34 @@
+name: Helm appVersion
+
+# Keeps the chart deploying the release it belongs to: on release-please's release PR, sets
+# Chart.yaml appVersion (the default image tag) to the version being released. release-please's
+# extra-files can't do this, because its post-release SNAPSHOT PRs would set a SNAPSHOT version,
+# for which no image is published.
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  app-version:
+    if: github.head_ref == 'release-please--branches--main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the release PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Set appVersion and push
+        run: |
+          version=$(.github/scripts/helm-app-version.sh)
+          if [[ -n "$version" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -am "chore(helm): set appVersion to $version"
+            git push
+          fi
