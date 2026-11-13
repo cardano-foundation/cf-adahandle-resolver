@@ -13,9 +13,16 @@ on:
       - '.github/workflows/docs.yaml'
   workflow_dispatch:
 
+# Read-only by default (CodeQL actions/missing-workflow-permissions). The docs job pushes the built site to gh-pages,
+# but only on main (the publish step's `if`); on pull requests it only builds.
+permissions:
+  contents: read
+
 jobs:
   docs:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     defaults:
       run:
         working-directory: website
