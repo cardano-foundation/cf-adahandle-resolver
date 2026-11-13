@@ -15,7 +15,7 @@ x86-64 (amd64) and runs on older CPUs too, including VMs with a generic CPU mode
 A release can be preceded by release candidates for testing, versioned `X.Y.Z-rcN` and published under that tag
 (`-native` for the native image). `latest` moves only with final releases, never to a release candidate.
 
-The JVM image is built on [Eclipse Temurin](https://adoptium.net/) 25 on Ubuntu 24.04 (`eclipse-temurin:25-jre-noble`),
+The JVM image is built on [Eclipse Temurin](https://adoptium.net/) 25 on Ubuntu 26.04 LTS (`eclipse-temurin:25-jre-resolute`),
 taking the latest Java 25 and Ubuntu updates at each release. The native image embeds the same Java trust store (its
 root certificates). The build fails if that trust store still contains the roots that signed the compromised eMudhra
 intermediate CAs, removed in Temurin 25.0.5
@@ -29,7 +29,7 @@ image `<version>`. It starts in under two seconds, against about nine for the JV
 the command line:
 
 ```sh
-docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-native -Xmx2g
+docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-rc3-native -Xmx2g
 ```
 
 There is no moving native tag such as `latest`: pick the release you run. Like the JVM image, the native
@@ -59,28 +59,17 @@ reboot. After upgrading, run `docker compose up -d` once so existing containers 
 
 ## Kubernetes with Helm
 
-The chart lives in `deploy/adahandle-resolver`. It creates a Deployment, a Service on port `9095`
-and, if enabled, an Ingress. You can choose between three storage setups:
+The chart lives in `deploy/adahandle-resolver`. It creates a Deployment, a Service on port `9095`, and either an
+Ingress (on by default) or a Gateway API HTTPRoute. By default it deploys the resolver release the chart belongs to
+(its `appVersion`); set `image.tag` to run another one. You can choose between three storage setups:
 
 <Tabs>
 <TabItem label="Embedded H2">
 
-This is the default (`values.yaml`). H2 stores its data on a 5 Gi PersistentVolumeClaim mounted at
-`/data`.
+This is the default (`values.yaml`). H2 stores its data on a 20 Gi PersistentVolumeClaim mounted at `/data`.
 
 ```sh
 helm install adahandle-resolver deploy/adahandle-resolver
-```
-
-</TabItem>
-<TabItem label="Bitnami PostgreSQL">
-
-This option installs PostgreSQL as a chart dependency with generated credentials.
-
-```sh
-helm dependency build deploy/adahandle-resolver
-helm install adahandle-resolver deploy/adahandle-resolver \
-  -f deploy/adahandle-resolver/values-postgres.yaml
 ```
 
 </TabItem>
@@ -95,17 +84,36 @@ helm install adahandle-resolver deploy/adahandle-resolver \
 ```
 
 </TabItem>
+<TabItem label="Your own PostgreSQL">
+
+Any PostgreSQL you run yourself, such as a managed service. The connection details come from a secret you create
+first, in the release namespace:
+
+```sh
+kubectl create secret generic postgres-secrets \
+  --from-literal=POSTGRES_HOST=<host> --from-literal=POSTGRES_PORT=5432 \
+  --from-literal=POSTGRES_DB=adahandle --from-literal=POSTGRES_USER=<user> \
+  --from-literal=POSTGRES_PASSWORD=<password>
+
+helm install adahandle-resolver deploy/adahandle-resolver \
+  -f deploy/adahandle-resolver/values-external-postgres.yaml
+```
+
+</TabItem>
 </Tabs>
+
+A synced mainnet database is about 5 GB and grows with the chain.
 
 ### Useful values
 
 | Value                    | Purpose                                                              | Default                 |
 | ------------------------ | -------------------------------------------------------------------- | ----------------------- |
-| `image.tag`              | Resolver image version: set it to the release you run                | `0.1.4`                 |
+| `image.tag`              | Resolver image version                                               | the chart's `appVersion` |
 | `springProfiles`         | Same as `SPRING_ACTIVE_PROFILES`                                     | `mainnet,h2`            |
-| `javaToolOptions`        | JVM flags                                                            | `-Xmx4g …`              |
-| `resources`              | Pod requests and limits                                              | none                    |
+| `javaToolOptions`        | JVM flags, including the heap                                        | `-Xmx4g …`              |
+| `resources`              | Pod requests and limits. Keep the memory limit about 0.5 Gi above `-Xmx`, or the pod is OOMKilled. | none |
 | `domain`, `ingress.*`    | Ingress host and extra domains                                       | `example.com`, enabled  |
+| `httpRoute.*`            | Gateway API HTTPRoute instead of the Ingress: `enabled`, `hosts`, `parentRef` (the Gateway). It routes `/api/v1` and `/apidocs`. | disabled |
 | `serviceAccount.name`    | Existing ServiceAccount to run under (the chart doesn't create one)  | namespace default       |
 | `imagePullSecrets`       | `["regcred"]` or `[{name: regcred}]`                                 | `[]`                    |
 | `startupProbe.*`         | Startup probe timing                                                 | 60s delay, 20s period   |

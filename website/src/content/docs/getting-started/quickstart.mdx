@@ -31,7 +31,7 @@ database.
      -p 9095:9095 \
      -e JAVA_TOOL_OPTIONS=-Xmx4g \
      -v adahandle-data:/app/data \
-     cardanofoundation/adahandle-resolver:1.0.0
+     cardanofoundation/adahandle-resolver:1.0.0-rc3
    ```
 
    Pin the version you run rather than using `latest`, so that an upgrade, which can need a full resync, happens
@@ -57,7 +57,7 @@ seconds. JVM flags go on the command line instead of `JAVA_TOOL_OPTIONS`:
 
 ```sh
 docker run -d --name adahandle-resolver -p 9095:9095 -v adahandle-data:/app/data \
-  cardanofoundation/adahandle-resolver:1.0.0-native -Xmx2g
+  cardanofoundation/adahandle-resolver:1.0.0-rc3-native -Xmx2g
 ```
 
 See [Deployment](../../guides/deployment/#native-image-experimental) for its licence (Oracle GraalVM).

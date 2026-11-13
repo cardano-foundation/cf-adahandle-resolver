@@ -90,7 +90,7 @@ curl -s localhost:9095/actuator/info
 ```
 
 ```json
-{"git":{"commit":{"id":"5abb774", …}},"build":{"version":"1.0.0-rc1","name":"ADA Handle Resolver", …}}
+{"git":{"commit":{"id":"6088cac", …}},"build":{"version":"1.0.0-rc3","name":"ADA Handle Resolver", …}}
 ```
 
 ## Metrics
