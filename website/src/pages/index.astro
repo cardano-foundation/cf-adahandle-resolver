@@ -1,0 +1,173 @@
+---
+import '../styles/landing.css';
+
+// Styled after cardanofoundation.org, like the CF Token Metadata Registry's site: Switzer, a greyscale palette,
+// regular-weight headings with tight tracking, pill buttons, the soft orange-to-blue hero glow and a dark footer.
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const docs = (slug: string) => `${base}/${slug}/`;
+const repo = 'https://github.com/cardano-foundation/cf-adahandle-resolver';
+
+const kinds = [
+	{
+		label: 'CIP-25 · CIP-68',
+		title: 'Handles',
+		text: 'Legacy and CIP-68 handles resolve to the address holding the token. A burned handle is gone, as on handle.me.',
+		href: docs('reference/architecture'),
+	},
+	{
+		label: 'sub@root',
+		title: 'Sub-handles',
+		text: 'NFT sub-handles resolve to their holder; virtual sub-handles to the address written in their datum.',
+		href: docs('reference/architecture'),
+	},
+	{
+		label: 'DeMi',
+		title: 'Both policies',
+		text: 'The original ADA Handle policy and DeMi, decentralized minting: the same on mainnet, preprod and preview.',
+		href: docs('getting-started/introduction'),
+	},
+];
+
+const features = [
+	{
+		title: 'Talks to a node, nothing else',
+		text: 'Syncs blocks from a Cardano relay or your own node through Yaci Store. No Ogmios, no Blockfrost, no db-sync.',
+	},
+	{
+		title: 'Small on disk',
+		text: 'Two tables, the current handles and their history, and no UTxOs. Embedded H2 for a single box, PostgreSQL for production.',
+	},
+	{
+		title: 'Fork-safe, checked against handle.me',
+		text: 'Every change is kept by slot, so rollbacks restore the previous state. A full mainnet sync is compared with Kora Labs’ API.',
+	},
+];
+
+const example = `GET /api/v1/addresses/by-ada-handle/$alice
+
+{
+  "stakeAddress":   "stake1u8…k2w9",
+  "paymentAddress": "addr1q9…7xyz"
+}
+
+GET /api/v1/ada-handles/by-stake-address/stake1u8…k2w9
+
+["alice", "sub@alice"]`;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>ADA Handle Resolver</title>
+		<meta
+			name="description"
+			content="A self-hosted indexer from the Cardano Foundation that resolves ADA Handles to addresses, and addresses back to handles: every kind of handle, under both ADA Handle policies."
+		/>
+		<link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+	</head>
+	<body class="bg-cf-paper font-sans text-cf-ink antialiased">
+		<div class="relative overflow-hidden">
+			<div class="cf-glow pointer-events-none absolute inset-0 -z-0" aria-hidden="true"></div>
+
+			<header class="relative mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
+				<a href={`${base}/`} class="flex items-center gap-4">
+					<img src={`${base}/images/cf-logo-text.svg`} alt="Cardano Foundation" class="h-10 w-auto" />
+					<span class="hidden h-7 w-px bg-cf-ink-soft/30 md:block" aria-hidden="true"></span>
+					<span class="hidden text-lg tracking-tight text-cf-ink-soft md:block">ADA Handle Resolver</span>
+				</a>
+				<nav class="flex items-center gap-7 text-[15px] font-medium tracking-tight text-cf-ink-soft">
+					<a href={docs('getting-started/introduction')} class="hover:text-cf-ink">Docs</a>
+					<a href={`${base}/api/`} class="hover:text-cf-ink">API</a>
+					<a href={repo} class="hidden hover:text-cf-ink sm:inline">GitHub</a>
+				</nav>
+			</header>
+
+			<section class="relative mx-auto max-w-7xl px-6 pb-28 pt-16 md:pt-28">
+				<h1 class="max-w-4xl text-5xl leading-[1.05] tracking-[-0.03em] text-cf-ink-soft md:text-7xl">
+					Resolve any $handle, straight from chain
+				</h1>
+				<p class="mt-8 max-w-2xl text-lg leading-relaxed tracking-tight text-cf-ink-soft">
+					The ADA Handle Resolver is an indexer from the Cardano Foundation. It turns ADA Handles into addresses,
+					and addresses back into handles, with nothing between you and the chain but a Cardano node. Run it
+					yourself, or use the Cardano Foundation's public mainnet instance.
+				</p>
+				<div class="mt-10 flex flex-wrap gap-3">
+					<a
+						href={docs('getting-started/quickstart')}
+						class="rounded-full bg-cf-ink-soft px-6 py-4 text-sm font-medium text-white transition hover:bg-cf-ink"
+					>
+						Run it
+					</a>
+					<a
+						href={`${docs('reference/api')}#public-mainnet-instance`}
+						class="rounded-full bg-neutral-100 px-6 py-4 text-sm font-semibold text-neutral-900 transition hover:bg-white"
+					>
+						Try the public API
+					</a>
+				</div>
+			</section>
+		</div>
+
+		<main>
+			<section class="mx-auto max-w-7xl px-6 py-20">
+				<h2 class="max-w-3xl text-4xl leading-tight tracking-[-0.02em] text-cf-ink-soft md:text-5xl">
+					Every kind of handle
+				</h2>
+				<div class="mt-12 grid gap-5 md:grid-cols-3">
+					{
+						kinds.map((k) => (
+							<a href={k.href} class="group rounded-3xl bg-white/70 p-8 transition hover:bg-white">
+								<p class="text-sm font-medium text-cf-accent">{k.label}</p>
+								<h3 class="mt-3 text-2xl tracking-tight text-cf-ink-soft">{k.title}</h3>
+								<p class="mt-3 leading-relaxed text-cf-ink-soft/80">{k.text}</p>
+								<p class="mt-6 text-sm font-medium text-cf-ink-soft group-hover:underline">Read more →</p>
+							</a>
+						))
+					}
+				</div>
+			</section>
+
+			<section class="mx-auto grid max-w-7xl items-start gap-12 px-6 pb-28 md:grid-cols-2">
+				<div class="space-y-10">
+					{
+						features.map((f) => (
+							<div>
+								<h3 class="text-2xl tracking-tight text-cf-ink-soft">{f.title}</h3>
+								<p class="mt-3 leading-relaxed text-cf-ink-soft/80">{f.text}</p>
+							</div>
+						))
+					}
+				</div>
+				<pre
+					class="overflow-x-auto rounded-3xl bg-cf-night p-7 text-sm leading-relaxed text-neutral-200"><code>{example}</code></pre>
+			</section>
+		</main>
+
+		<footer class="bg-cf-night text-white">
+			<div class="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-14 md:flex-row md:items-end md:justify-between">
+				<div>
+					<img src={`${base}/images/cf-logo-text-white.svg`} alt="Cardano Foundation" class="h-10 w-auto" />
+					<p class="mt-5 max-w-sm text-sm leading-relaxed text-white/60">
+						The ADA Handle Resolver is developed by the Cardano Foundation, open source under MIT. ADA Handle is a
+						project by <a href="https://handle.me" class="underline hover:text-white">Kora Labs</a>.
+					</p>
+				</div>
+				<div class="space-y-2 text-sm text-white/60 md:text-right">
+					<p>
+						<a href={repo} class="hover:text-white">GitHub</a>
+						<span class="mx-2">·</span>
+						<a href={docs('getting-started/introduction')} class="hover:text-white">Docs</a>
+						<span class="mx-2">·</span>
+						<a href="https://cardanofoundation.org" class="hover:text-white">cardanofoundation.org</a>
+					</p>
+					<p>
+						Built on <a href="https://github.com/bloxbean/yaci-store" class="underline hover:text-white">Yaci Store</a>{' '}by
+						BloxBean.
+					</p>
+				</div>
+			</div>
+		</footer>
+	</body>
+</html>

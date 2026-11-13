@@ -1,0 +1,208 @@
+---
+title: REST API
+description: Endpoints for resolving ADA Handles to addresses and addresses to handles.
+---
+
+import { Aside, Badge } from '@astrojs/starlight/components';
+
+All endpoints are `GET`, return JSON, and live under `/api/v1`. A resolver you run yourself listens on port
+`9095` by default. Any website can call them from a browser (CORS), without credentials.
+
+## Public mainnet instance
+
+The Cardano Foundation hosts a resolver for **mainnet** that anyone can use, with no account or API key:
+
+```
+https://adahandle.mainnet.cardanofoundation.org
+```
+
+```sh
+curl 'https://adahandle.mainnet.cardanofoundation.org/api/v1/addresses/by-ada-handle/$hosky'
+```
+
+- **Mainnet only.** There is no public instance for preprod or preview; [run your own](../../getting-started/quickstart/)
+  for those.
+- **What it serves:** the three endpoints below, Yaci Store's [sync status](#sync-status), and the OpenAPI spec at
+  [`https://adahandle.mainnet.cardanofoundation.org/apidocs`](https://adahandle.mainnet.cardanofoundation.org/apidocs). The actuator endpoints (health, metrics) are not public.
+- **Check `X-Sync-Status`.** Like any instance, it says in every response [how current its answer
+  is](#how-current-is-an-answer). Act on an address only when it says `synced`.
+- **Running something critical?** [Run your own resolver](../../getting-started/quickstart/), so its
+  availability is in your hands.
+
+The examples on this page use the public instance. For your own, replace the base URL, for example with
+`http://localhost:9095`.
+
+<Aside type="tip" title="OpenAPI">
+The resolver publishes its OpenAPI 3 spec at **`/apidocs`** and serves Swagger UI at
+**`/swagger-ui.html`**. The [OpenAPI section](../../api/) of this site is generated from the same
+spec, and documents only the resolver's own endpoints, below.
+</Aside>
+
+## Resolve a handle to addresses
+
+<Badge text="GET" variant="success" /> `/api/v1/addresses/by-ada-handle/{adaHandle}`
+
+Returns the addresses that currently hold the handle.
+
+| Parameter   | In   | Description                                          |
+| ----------- | ---- | ---------------------------------------------------- |
+| `adaHandle` | path | Handle name, with or without the leading `$`; a sub-handle as `sub@root` |
+
+```sh
+curl 'https://adahandle.mainnet.cardanofoundation.org/api/v1/addresses/by-ada-handle/$hosky'
+```
+
+**200 OK**
+
+```json
+{
+  "stakeAddress": "stake1u8…",
+  "paymentAddress": "addr1q9…"
+}
+```
+
+`stakeAddress` is `null` when the handle sits at an address without a stake part, such as an
+enterprise or script address. A virtual sub-handle returns the address in its datum, not the script
+address that holds its token.
+
+**404 Not Found**: the handle doesn't exist, has been burned, or hasn't been indexed yet.
+
+## Handles held by a stake address
+
+<Badge text="GET" variant="success" /> `/api/v1/ada-handles/by-stake-address/{stakeAddress}`
+
+Lists every handle held by any payment address that delegates to this stake key.
+
+```sh
+curl https://adahandle.mainnet.cardanofoundation.org/api/v1/ada-handles/by-stake-address/stake1u8…
+```
+
+**200 OK**
+
+```json
+["alice", "sub@alice"]
+```
+
+## Handles at a payment address
+
+<Badge text="GET" variant="success" /> `/api/v1/ada-handles/by-payment-address/{paymentAddress}`
+
+Lists the handles held at exactly this address, including virtual sub-handles whose datum points to it.
+
+```sh
+curl https://adahandle.mainnet.cardanofoundation.org/api/v1/ada-handles/by-payment-address/addr1q9…
+```
+
+**200 OK**
+
+```json
+["alice"]
+```
+
+<Aside>
+Both list endpoints return `200` with an empty array `[]` when the address holds no handles. Handles in
+responses never include the `$` prefix.
+</Aside>
+
+## Matching rules
+
+- Handle lookups are exact, apart from the optional leading `$`. ADA Handles are lowercase on
+  chain, so send them in lowercase.
+- Burned handles are gone: they return `404` and don't appear in the list endpoints.
+- Addresses must be bech32 (`addr1…`, `stake1…`, or the `_test` variants on testnets).
+- Results show the **current** owner, as of the last block the indexer has processed. During the
+  initial sync, recently transferred handles may still show an older owner. Every response says how
+  current it is: see [How current is an answer](#how-current-is-an-answer).
+
+## Differences from handle.me
+
+The resolver aims to answer exactly as Kora Labs' [api.handle.me](https://api.handle.me) does, and the
+regression suite compares the two. These differences are known and deliberate, for now:
+
+- **Datum hashes.** A virtual sub-handle's address is read from an inline datum only, not from a datum
+  given by hash. No virtual sub-handle on mainnet uses a datum hash today.
+- **Status codes.** handle.me answers `202` while it's catching up or rolling back, and `451` for
+  legally restricted names. The resolver answers `200` and `404`, and says in the `X-Sync-Status` header
+  whether it is caught up.
+- **Other chains.** handle.me can serve addresses on other blockchains from a handle's metadata. The
+  resolver serves Cardano addresses only.
+
+## How current is an answer
+
+A handle resolved from out-of-date data can point at an address that no longer holds it, and funds sent
+there go to the wrong owner. The resolver's data is out of date while it syncs (about 6.5 hours on mainnet
+for a new instance) and when it loses its connection to the Cardano node. So every response, `404`s
+included, says how current its data is, in these headers:
+
+| Header              | Value |
+| ------------------- | ----- |
+| `X-Sync-Status`     | `synced`: at the network tip and receiving blocks.<br/>`syncing`: catching up with the tip; the answer can be out of date.<br/>`stale`: no block from the node for 300 seconds; the answer can be out of date.<br/>`unknown`: nothing indexed yet, or the network tip isn't known. |
+| `X-Sync-Slot`       | Slot of the last block indexed. |
+| `X-Sync-Block`      | Number of the last block indexed. |
+| `X-Sync-Block-Time` | Time of the last block indexed, ISO 8601 in UTC. Compare it with the current time to see how old the data is. |
+| `X-Sync-Tip-Slot`   | Slot of the network tip, as last fetched from the node. |
+
+A header whose value isn't known is left out.
+
+```sh
+curl -i 'https://adahandle.mainnet.cardanofoundation.org/api/v1/addresses/by-ada-handle/$hosky'
+```
+
+```http
+HTTP/1.1 200
+X-Sync-Status: synced
+X-Sync-Slot: 175000000
+X-Sync-Block: 12000000
+X-Sync-Block-Time: 2026-11-06T10:00:00Z
+X-Sync-Tip-Slot: 175000020
+Content-Type: application/json
+
+{"stakeAddress":"stake1u8…","paymentAddress":"addr1q9…"}
+```
+
+Before sending funds to a resolved address, check the status, or the age of the data:
+
+```js
+const resolver = 'https://adahandle.mainnet.cardanofoundation.org'; // or your own instance
+const response = await fetch(`${resolver}/api/v1/addresses/by-ada-handle/${encodeURIComponent(handle)}`);
+const status = response.headers.get('X-Sync-Status');
+const blockTime = Date.parse(response.headers.get('X-Sync-Block-Time') ?? '');
+const ageSeconds = (Date.now() - blockTime) / 1000;
+
+if (status !== 'synced' || !(ageSeconds < 300)) {
+  throw new Error(`Resolver data is not current (${status}, ${Math.round(ageSeconds)} s old); try again later`);
+}
+const { paymentAddress } = await response.json();
+```
+
+<Aside>
+- A `404` from an instance that is `syncing` may only mean the handle isn't indexed yet.
+- The status is refreshed in the background every 5 seconds, so the headers can lag the data by up to
+  one block. When they lag, they show the data as older than it is, never newer.
+- `stale` uses the same 300-second threshold as the [liveness probe](../../guides/monitoring/), so the
+  headers and the health checks agree. Change it with `STORE_BLOCK_RECEIVE_DELAY_SECONDS`.
+- Browsers can read the headers: CORS exposes them to scripts on any origin.
+</Aside>
+
+## Sync status
+
+Yaci Store, which the resolver is built on, adds endpoints of its own. They are for operators, not for
+looking up handles, so they are left out of the OpenAPI spec, but they work as usual:
+
+- `/api/v1/sync/status`: the block the indexer has reached, the chain tip, and whether it has caught up.
+- `/api/v1/genesis`: the network's genesis parameters.
+
+```sh
+curl https://adahandle.mainnet.cardanofoundation.org/api/v1/sync/status
+```
+
+```json
+{"block":6638041,"slot":48154092,"era":"Alonzo","network_block":14157046,"lag_blocks":7519005,"synced":false, …}
+```
+
+`synced` turns `true` and `lag_blocks` drops to about `0` once the resolver follows the tip. Ignore
+`sync_percentage`: it counts from the start of the chain, not from the first ADA Handle block where the resolver
+starts, so it reads high from the beginning.
+
+To check how current a single answer is, use its [headers](#how-current-is-an-answer) instead. For health
+probes and Prometheus metrics, see [Monitoring](../../guides/monitoring/).
