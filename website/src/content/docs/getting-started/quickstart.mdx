@@ -1,0 +1,151 @@
+---
+title: Quickstart
+description: Run the ADA Handle Resolver with Docker, Docker Compose and PostgreSQL, or from source.
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+<Aside type="tip" title="Just want to try the API?">
+The Cardano Foundation runs a public **mainnet** resolver: no setup, no API key.
+
+```sh
+curl 'https://adahandle.mainnet.cardanofoundation.org/api/v1/addresses/by-ada-handle/$hosky'
+```
+
+See [Public mainnet instance](../../reference/api/#public-mainnet-instance). Run your own, below, for preprod or
+preview, or to depend on no one else's server.
+</Aside>
+
+<Tabs syncKey="runtime">
+<TabItem label="Docker" icon="seti:docker">
+
+This is the fastest way to try the resolver. By default it syncs **mainnet** into an embedded H2
+database.
+
+<Steps>
+
+1. Start the container. The volume keeps the H2 database between restarts:
+
+   ```sh
+   docker run -d --name adahandle-resolver \
+     -p 9095:9095 \
+     -e JAVA_TOOL_OPTIONS=-Xmx4g \
+     -v adahandle-data:/app/data \
+     cardanofoundation/adahandle-resolver:1.0.0-rc3
+   ```
+
+   Pin the version you run rather than using `latest`, so that an upgrade, which can need a full resync, happens
+   when you choose.
+
+2. Follow the sync. The resolver starts at the first ADA Handle mint and works its way to the tip:
+
+   ```sh
+   docker logs -f adahandle-resolver
+   ```
+
+3. Resolve a handle:
+
+   ```sh
+   curl http://localhost:9095/api/v1/addresses/by-ada-handle/\$alice
+   ```
+
+</Steps>
+
+<Aside type="tip" title="Native image (experimental)">
+Each release is also published as a GraalVM native image, tagged `<version>-native`. It starts in under two
+seconds. JVM flags go on the command line instead of `JAVA_TOOL_OPTIONS`:
+
+```sh
+docker run -d --name adahandle-resolver -p 9095:9095 -v adahandle-data:/app/data \
+  cardanofoundation/adahandle-resolver:1.0.0-rc3-native -Xmx2g
+```
+
+See [Deployment](../../guides/deployment/#native-image-experimental) for its licence (Oracle GraalVM).
+</Aside>
+
+</TabItem>
+<TabItem label="Compose + PostgreSQL" icon="seti:db">
+
+The repository ships a `docker-compose.yml` that runs PostgreSQL 17 and builds the API from your
+checkout. It's the setup we use for full mainnet sync tests.
+
+<Steps>
+
+1. Clone the repository and create your local env file:
+
+   ```sh
+   git clone https://github.com/cardano-foundation/cf-adahandle-resolver.git
+   cd cf-adahandle-resolver
+   cp .env.example .env
+   ```
+
+2. Review `.env`. The defaults sync mainnet from the Cardano Foundation backbone relay into
+   PostgreSQL, with a 4 GB JVM heap. Change `DB_PASSWORD`.
+
+3. Start the stack:
+
+   ```sh
+   docker compose --env-file .env up -d
+   docker compose logs -f api
+   ```
+
+   Both services restart after a crash and after a host reboot.
+
+</Steps>
+
+</TabItem>
+<TabItem label="From source" icon="seti:maven">
+
+You need **Java 25**.
+
+<Steps>
+
+1. Build the jar:
+
+   ```sh
+   git clone https://github.com/cardano-foundation/cf-adahandle-resolver.git
+   cd cf-adahandle-resolver
+   ./mvnw clean package
+   ```
+
+2. Run it:
+
+   ```sh
+   java -Xmx4g -jar target/cf-adahandle-resolver-*.jar
+   ```
+
+3. To pick a network or database, set profiles:
+
+   ```sh
+   SPRING_ACTIVE_PROFILES=preprod,h2 java -jar target/cf-adahandle-resolver-*.jar
+   ```
+
+</Steps>
+
+</TabItem>
+</Tabs>
+
+<Aside type="caution" title="Give the JVM enough heap for mainnet">
+A full mainnet index holds about 266,000 handles and some 15 million history rows. With `-Xmx2g` the
+process runs out of memory during the initial sync. Use at least `-Xmx4g`, passed through
+`JAVA_TOOL_OPTIONS` when running in a container.
+</Aside>
+
+<Aside type="caution" title="Upgrading to 1.0.0 needs a full resync">
+0.x ran on Yaci Store 0.1.x and 1.0.0 runs on Yaci Store 3.x, which ships a changed version of one of its database
+migrations (since 2.x). 1.0.0 also indexes handles that earlier versions didn't. Stop the
+resolver, drop the database (`docker compose down -v`, or delete `./data/db*` for H2), then start
+1.0.0. A database created by 0.x fails on startup with
+`Migration checksum mismatch for migration version 0.200.1`.
+</Aside>
+
+<Aside type="tip">
+The leading `$` in a handle is optional. `$alice` and `alice` resolve to the same handle. In a shell,
+escape the `$` or wrap the URL in single quotes so it isn't expanded as a variable.
+</Aside>
+
+## Next steps
+
+- Set network, database and node connection options in [Configuration](../../guides/configuration/).
+- Deploy to Kubernetes with the Helm chart: [Deployment](../../guides/deployment/).
+- Browse the endpoints in the [REST API reference](../../reference/api/).

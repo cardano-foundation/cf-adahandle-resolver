@@ -1,0 +1,345 @@
+{
+	"openapi": "3.1.0",
+	"info": {
+		"title": "ADA Handle Resolver API",
+		"description": "Resolves ADA Handles to the addresses that hold them, and addresses back to handles. Data is indexed directly from the Cardano blockchain using Yaci Store.\n\nEvery kind of ADA Handle is indexed, under both ADA Handle minting policies (the original one and DeMi's, decentralized minting): legacy (CIP-25) and CIP-68 handles, NFT sub-handles and virtual sub-handles (`sub@root`). A handle resolves to the address holding its token, except a virtual sub-handle, which resolves to the address in its datum. Burned handles are removed. The rules follow Kora Labs' implementation (api.handle.me).",
+		"contact": {
+			"name": "Cardano Foundation",
+			"url": "https://github.com/cardano-foundation/cf-adahandle-resolver"
+		},
+		"license": {
+			"name": "MIT",
+			"url": "https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/LICENSE"
+		},
+		"version": "1.0.0-rc3"
+	},
+	"servers": [
+		{
+			"url": "https://adahandle.mainnet.cardanofoundation.org",
+			"description": "Public mainnet instance (Cardano Foundation)"
+		},
+		{
+			"url": "http://localhost:9095",
+			"description": "Your own resolver (default port)"
+		}
+	],
+	"tags": [
+		{
+			"name": "Addresses",
+			"description": "Resolve an ADA Handle to the addresses that hold it"
+		},
+		{
+			"name": "ADA Handles",
+			"description": "Look up the ADA Handles held by an address"
+		}
+	],
+	"paths": {
+		"/api/v1/addresses/by-ada-handle/{adaHandle}": {
+			"get": {
+				"tags": [
+					"Addresses"
+				],
+				"summary": "Resolve a handle to its addresses",
+				"description": "Returns the payment address and, for a base address, the stake address the handle resolves to. Works for every kind of handle, under both ADA Handle policies (the original one and DeMi's): legacy and CIP-68 handles and NFT sub-handles resolve to the address holding the token; a virtual sub-handle resolves to the address in its datum (`extra.resolved_addresses.ada`), not to the script holding its token.",
+				"operationId": "getAddressesByAdaHandle",
+				"parameters": [
+					{
+						"name": "adaHandle",
+						"in": "path",
+						"description": "Handle name, with or without the leading $. A sub-handle, NFT or virtual, is written `sub@root`.",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"examples": {
+							"handle": {
+								"description": "handle",
+								"value": "$alice"
+							},
+							"sub-handle": {
+								"description": "sub-handle",
+								"value": "$sub@alice"
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Handle found",
+						"headers": {
+							"X-Sync-Slot": {
+								"description": "Slot of the last block indexed. Absent if nothing is indexed yet.",
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							},
+							"X-Sync-Status": {
+								"description": "How current the data behind this answer is. synced: at the network tip and receiving blocks. syncing: catching up, so the answer can be out of date. stale: no block received from the node for a while, so the answer can be out of date. unknown: nothing indexed yet, or the network tip is not known.",
+								"schema": {
+									"type": "string",
+									"enum": [
+										"synced",
+										"syncing",
+										"stale",
+										"unknown"
+									]
+								}
+							},
+							"X-Sync-Block": {
+								"description": "Number of the last block indexed. Absent if nothing is indexed yet.",
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							},
+							"X-Sync-Tip-Slot": {
+								"description": "Slot of the network tip, as last fetched from the node (refreshed every few minutes). Absent if not known.",
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							},
+							"X-Sync-Block-Time": {
+								"description": "Time of the last block indexed (ISO 8601, UTC). Compare it with the current time to see how old the data is.",
+								"schema": {
+									"type": "string",
+									"format": "date-time"
+								}
+							}
+						},
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/Addresses"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Handle not found, burned, or not indexed yet",
+						"headers": {
+							"X-Sync-Slot": {
+								"description": "Slot of the last block indexed. Absent if nothing is indexed yet.",
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							},
+							"X-Sync-Status": {
+								"description": "How current the data behind this answer is. synced: at the network tip and receiving blocks. syncing: catching up, so the answer can be out of date. stale: no block received from the node for a while, so the answer can be out of date. unknown: nothing indexed yet, or the network tip is not known.",
+								"schema": {
+									"type": "string",
+									"enum": [
+										"synced",
+										"syncing",
+										"stale",
+										"unknown"
+									]
+								}
+							},
+							"X-Sync-Block": {
+								"description": "Number of the last block indexed. Absent if nothing is indexed yet.",
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							},
+							"X-Sync-Tip-Slot": {
+								"description": "Slot of the network tip, as last fetched from the node (refreshed every few minutes). Absent if not known.",
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							},
+							"X-Sync-Block-Time": {
+								"description": "Time of the last block indexed (ISO 8601, UTC). Compare it with the current time to see how old the data is.",
+								"schema": {
+									"type": "string",
+									"format": "date-time"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/ada-handles/by-stake-address/{stakeAddress}": {
+			"get": {
+				"tags": [
+					"ADA Handles"
+				],
+				"summary": "Handles held by a stake address",
+				"description": "Returns the names (without the leading $) of all handles held by addresses that belong to the given stake address: handles and NFT sub-handles held there, and virtual sub-handles whose datum points to such an address. Burned handles are not listed. Returns an empty list if there are none.",
+				"operationId": "getAdaHandlesByStakeAddress",
+				"parameters": [
+					{
+						"name": "stakeAddress",
+						"in": "path",
+						"description": "Bech32 stake address",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"headers": {
+							"X-Sync-Slot": {
+								"description": "Slot of the last block indexed. Absent if nothing is indexed yet.",
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							},
+							"X-Sync-Status": {
+								"description": "How current the data behind this answer is. synced: at the network tip and receiving blocks. syncing: catching up, so the answer can be out of date. stale: no block received from the node for a while, so the answer can be out of date. unknown: nothing indexed yet, or the network tip is not known.",
+								"schema": {
+									"type": "string",
+									"enum": [
+										"synced",
+										"syncing",
+										"stale",
+										"unknown"
+									]
+								}
+							},
+							"X-Sync-Block": {
+								"description": "Number of the last block indexed. Absent if nothing is indexed yet.",
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							},
+							"X-Sync-Tip-Slot": {
+								"description": "Slot of the network tip, as last fetched from the node (refreshed every few minutes). Absent if not known.",
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							},
+							"X-Sync-Block-Time": {
+								"description": "Time of the last block indexed (ISO 8601, UTC). Compare it with the current time to see how old the data is.",
+								"schema": {
+									"type": "string",
+									"format": "date-time"
+								}
+							}
+						},
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/ada-handles/by-payment-address/{paymentAddress}": {
+			"get": {
+				"tags": [
+					"ADA Handles"
+				],
+				"summary": "Handles held at a payment address",
+				"description": "Returns the names (without the leading $) of all handles held at exactly the given address: handles and NFT sub-handles held there, and virtual sub-handles whose datum points to it. Burned handles are not listed. Returns an empty list if there are none.",
+				"operationId": "getAdaHandlesByPaymentAddress",
+				"parameters": [
+					{
+						"name": "paymentAddress",
+						"in": "path",
+						"description": "Bech32 payment address",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"headers": {
+							"X-Sync-Slot": {
+								"description": "Slot of the last block indexed. Absent if nothing is indexed yet.",
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							},
+							"X-Sync-Status": {
+								"description": "How current the data behind this answer is. synced: at the network tip and receiving blocks. syncing: catching up, so the answer can be out of date. stale: no block received from the node for a while, so the answer can be out of date. unknown: nothing indexed yet, or the network tip is not known.",
+								"schema": {
+									"type": "string",
+									"enum": [
+										"synced",
+										"syncing",
+										"stale",
+										"unknown"
+									]
+								}
+							},
+							"X-Sync-Block": {
+								"description": "Number of the last block indexed. Absent if nothing is indexed yet.",
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							},
+							"X-Sync-Tip-Slot": {
+								"description": "Slot of the network tip, as last fetched from the node (refreshed every few minutes). Absent if not known.",
+								"schema": {
+									"type": "integer",
+									"format": "int64"
+								}
+							},
+							"X-Sync-Block-Time": {
+								"description": "Time of the last block indexed (ISO 8601, UTC). Compare it with the current time to see how old the data is.",
+								"schema": {
+									"type": "string",
+									"format": "date-time"
+								}
+							}
+						},
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"Addresses": {
+				"type": "object",
+				"description": "Addresses that currently hold an ADA Handle",
+				"properties": {
+					"stakeAddress": {
+						"type": [
+							"string",
+							"null"
+						],
+						"description": "Bech32 stake address, or null if the holding address has no stake part"
+					},
+					"paymentAddress": {
+						"type": "string",
+						"description": "Bech32 payment address that holds the handle"
+					}
+				}
+			}
+		}
+	}
+}

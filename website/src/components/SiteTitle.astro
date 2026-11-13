@@ -1,0 +1,21 @@
+---
+// The header shows the Cardano Foundation logo and the product name next to it; the full title ("ADA Handle
+// Resolver") stays in the browser tab.
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<a href={`${base}/`} class="cf-site-title">
+	<!-- the dark logo on the light theme, the white one on the dark theme -->
+	<img class="dark:sl-hidden" src={`${base}/images/cf-logo-text.svg`} alt="Cardano Foundation" height="34" />
+	<img class="light:sl-hidden" src={`${base}/images/cf-logo-text-white.svg`} alt="Cardano Foundation" height="34" />
+	<span class="divider" aria-hidden="true"></span>
+	<span class="name">ADA Handle Resolver</span>
+</a>
+
+<style>
+	.cf-site-title { display: flex; align-items: center; gap: 0.875rem; text-decoration: none; color: var(--sl-color-white); white-space: nowrap; }
+	.cf-site-title img { height: 2.1rem; width: auto; }
+	.divider { width: 1px; height: 1.6rem; background: var(--sl-color-gray-5); }
+	.name { font-size: var(--sl-text-lg); letter-spacing: -0.01em; }
+	@media (max-width: 50rem) { .divider, .name { display: none; } }
+</style>
