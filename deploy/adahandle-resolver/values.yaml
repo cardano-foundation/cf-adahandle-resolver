@@ -35,6 +35,15 @@ ingress:
   enabled: true
   additionalDomains: []
 
+httpRoute:
+  enabled: false
+  annotations: {}
+  hosts: []                 # hostnames this route serves
+  parentRef:
+    kind: Gateway
+    name: envoy
+    namespace: infra-system
+
 resources: {}
   # limits:
   #   cpu: 100m
