@@ -23,7 +23,9 @@ public class AdaHandleController {
 
     @Operation(summary = "Handles held by a stake address",
             description = "Returns the names (without the leading $) of all handles held by addresses that " +
-                    "belong to the given stake address. Returns an empty list if there are none.")
+                    "belong to the given stake address: handles and NFT sub-handles held there, and virtual " +
+                    "sub-handles whose datum points to such an address. Burned handles are not listed. Returns an " +
+                    "empty list if there are none.")
     @GetMapping("/by-stake-address/{stakeAddress}")
     public ResponseEntity<List<String>> getAdaHandlesByStakeAddress(
             @Parameter(description = "Bech32 stake address")
@@ -33,7 +35,8 @@ public class AdaHandleController {
 
     @Operation(summary = "Handles held at a payment address",
             description = "Returns the names (without the leading $) of all handles held at exactly the given " +
-                    "address. Returns an empty list if there are none.")
+                    "address: handles and NFT sub-handles held there, and virtual sub-handles whose datum points " +
+                    "to it. Burned handles are not listed. Returns an empty list if there are none.")
     @GetMapping("/by-payment-address/{paymentAddress}")
     public ResponseEntity<List<String>> getAdaHandlesByPaymentAddress(
             @Parameter(description = "Bech32 payment address")

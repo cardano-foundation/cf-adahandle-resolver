@@ -114,7 +114,7 @@ class SyncStatusHeadersTest {
                 .get(BY_STAKE)
                 .then()
                 .statusCode(200)
-                .header("Access-Control-Allow-Origin", equalTo("https://example.com"))
+                .header("Access-Control-Allow-Origin", equalTo("*"))
                 .header("Access-Control-Expose-Headers", allOf(containsString("X-Sync-Status"),
                         containsString("X-Sync-Slot"), containsString("X-Sync-Block"),
                         containsString("X-Sync-Block-Time"), containsString("X-Sync-Tip-Slot")));

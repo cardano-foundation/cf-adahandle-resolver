@@ -1,13 +1,9 @@
 apiVersion: v2
 name: adahandle-resolver
 type: application
-appVersion: "0.0.6"
-
-dependencies:
-  - name: postgresql
-    version: 13.1.5
-    repository: https://charts.bitnami.com/bitnami
-    condition: postgresql.enabled
+# Version of the resolver image deployed by default (image.tag empty). Set on release PRs by
+# .github/workflows/helm-app-version.yaml.
+appVersion: "1.0.0"
 
 description: >
   A Helm chart for deploying the ADA Handle Resolver app, 
@@ -28,6 +24,7 @@ maintainers:
   - name: Cardano Foundation
     url: https://cardanofoundation.org
 sources:
-  - https://github.com/cardano-foundation/adahandle-resolver
+  - https://github.com/cardano-foundation/cf-adahandle-resolver
 
-version: 0.1.0
+# 1.0.0: dropped the Bitnami PostgreSQL dependency (its image is no longer published).
+version: 1.0.0

@@ -20,12 +20,14 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
 
+        // A public, read-only API: any site may call it from a browser, but only with GET and without credentials
+        // (cookies, HTTP authentication), so a page can't make a visitor's browser act on their behalf.
         registry.addMapping("/api/**")
-                .allowedOriginPatterns("*")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH")
+                .allowedOrigins("*")
+                .allowedMethods("GET", "HEAD")
                 // Without this, a browser hides the sync status headers from the page's scripts.
                 .exposedHeaders(SyncStatusHeaders.ALL.toArray(String[]::new))
-                .allowCredentials(true).maxAge(3600);
+                .allowCredentials(false).maxAge(3600);
     }
 
     @Override

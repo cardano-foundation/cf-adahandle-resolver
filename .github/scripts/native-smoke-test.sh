@@ -68,6 +68,9 @@ case "$MODE" in
     expect_status /api/v1/ada-handles/by-stake-address/stake1nobody 200
     expect_status /api/v1/ada-handles/by-payment-address/addr1nobody 200
     expect_status /api/v1/sync/status 200
+    # Yaci Store's plugin monitoring API is off (store.plugins.api-enabled: false). In a native image Spring decides at
+    # build time whether its controller exists, so check the image, not just the JVM tests.
+    expect_status /api/v1/admin/plugins 404
     ;;
   postgres)
     run -e SPRING_ACTIVE_PROFILES=mainnet,postgres,disable-indexer \
