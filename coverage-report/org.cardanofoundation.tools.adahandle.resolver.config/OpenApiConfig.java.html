@@ -26,13 +26,19 @@ import java.util.Map;
 <span class="fc" id="L26">                        .title(&quot;ADA Handle Resolver API&quot;)</span>
 <span class="fc" id="L27">                        .version(version)</span>
 <span class="fc" id="L28">                        .description(&quot;Resolves ADA Handles to the addresses that hold them, and addresses back to &quot; +</span>
-                                &quot;handles. Data is indexed directly from the Cardano blockchain using Yaci Store.&quot;)
-<span class="fc" id="L30">                        .contact(new Contact()</span>
-<span class="fc" id="L31">                                .name(&quot;Cardano Foundation&quot;)</span>
-<span class="fc" id="L32">                                .url(&quot;https://github.com/cardano-foundation/cf-adahandle-resolver&quot;))</span>
-<span class="fc" id="L33">                        .license(new License()</span>
-<span class="fc" id="L34">                                .name(&quot;MIT&quot;)</span>
-<span class="fc" id="L35">                                .url(&quot;https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/LICENSE&quot;)));</span>
+                                &quot;handles. Data is indexed directly from the Cardano blockchain using Yaci Store.\n\n&quot; +
+                                &quot;Every kind of ADA Handle is indexed, under both ADA Handle minting policies (the &quot; +
+                                &quot;original one and DeMi's, decentralized minting): legacy (CIP-25) and CIP-68 &quot; +
+                                &quot;handles, NFT sub-handles and virtual sub-handles (`sub@root`). A handle resolves to &quot; +
+                                &quot;the address holding its token, except a virtual sub-handle, which resolves to the &quot; +
+                                &quot;address in its datum. Burned handles are removed. The rules follow Kora Labs' &quot; +
+                                &quot;implementation (api.handle.me).&quot;)
+<span class="fc" id="L36">                        .contact(new Contact()</span>
+<span class="fc" id="L37">                                .name(&quot;Cardano Foundation&quot;)</span>
+<span class="fc" id="L38">                                .url(&quot;https://github.com/cardano-foundation/cf-adahandle-resolver&quot;))</span>
+<span class="fc" id="L39">                        .license(new License()</span>
+<span class="fc" id="L40">                                .name(&quot;MIT&quot;)</span>
+<span class="fc" id="L41">                                .url(&quot;https://github.com/cardano-foundation/cf-adahandle-resolver/blob/main/LICENSE&quot;)));</span>
     }
 
     /**
@@ -40,29 +46,29 @@ import java.util.Map;
      */
     @Bean
     public OpenApiCustomizer syncStatusHeadersCustomizer() {
-<span class="fc" id="L43">        Map&lt;String, Header&gt; headers = Map.of(</span>
+<span class="fc" id="L49">        Map&lt;String, Header&gt; headers = Map.of(</span>
                 SyncStatusHeaders.STATUS, new Header()
-<span class="fc" id="L45">                        .description(&quot;How current the data behind this answer is. synced: at the network tip and &quot; +</span>
+<span class="fc" id="L51">                        .description(&quot;How current the data behind this answer is. synced: at the network tip and &quot; +</span>
                                 &quot;receiving blocks. syncing: catching up, so the answer can be out of date. stale: no &quot; +
                                 &quot;block received from the node for a while, so the answer can be out of date. &quot; +
                                 &quot;unknown: nothing indexed yet, or the network tip is not known.&quot;)
-<span class="fc" id="L49">                        .schema(new StringSchema()._enum(List.of(&quot;synced&quot;, &quot;syncing&quot;, &quot;stale&quot;, &quot;unknown&quot;))),</span>
+<span class="fc" id="L55">                        .schema(new StringSchema()._enum(List.of(&quot;synced&quot;, &quot;syncing&quot;, &quot;stale&quot;, &quot;unknown&quot;))),</span>
                 SyncStatusHeaders.SLOT, new Header()
-<span class="fc" id="L51">                        .description(&quot;Slot of the last block indexed. Absent if nothing is indexed yet.&quot;)</span>
-<span class="fc" id="L52">                        .schema(new IntegerSchema().format(&quot;int64&quot;)),</span>
+<span class="fc" id="L57">                        .description(&quot;Slot of the last block indexed. Absent if nothing is indexed yet.&quot;)</span>
+<span class="fc" id="L58">                        .schema(new IntegerSchema().format(&quot;int64&quot;)),</span>
                 SyncStatusHeaders.BLOCK, new Header()
-<span class="fc" id="L54">                        .description(&quot;Number of the last block indexed. Absent if nothing is indexed yet.&quot;)</span>
-<span class="fc" id="L55">                        .schema(new IntegerSchema().format(&quot;int64&quot;)),</span>
+<span class="fc" id="L60">                        .description(&quot;Number of the last block indexed. Absent if nothing is indexed yet.&quot;)</span>
+<span class="fc" id="L61">                        .schema(new IntegerSchema().format(&quot;int64&quot;)),</span>
                 SyncStatusHeaders.BLOCK_TIME, new Header()
-<span class="fc" id="L57">                        .description(&quot;Time of the last block indexed (ISO 8601, UTC). Compare it with the current &quot; +</span>
+<span class="fc" id="L63">                        .description(&quot;Time of the last block indexed (ISO 8601, UTC). Compare it with the current &quot; +</span>
                                 &quot;time to see how old the data is.&quot;)
-<span class="fc" id="L59">                        .schema(new StringSchema().format(&quot;date-time&quot;)),</span>
+<span class="fc" id="L65">                        .schema(new StringSchema().format(&quot;date-time&quot;)),</span>
                 SyncStatusHeaders.TIP_SLOT, new Header()
-<span class="fc" id="L61">                        .description(&quot;Slot of the network tip, as last fetched from the node (refreshed every few &quot; +</span>
+<span class="fc" id="L67">                        .description(&quot;Slot of the network tip, as last fetched from the node (refreshed every few &quot; +</span>
                                 &quot;minutes). Absent if not known.&quot;)
-<span class="fc" id="L63">                        .schema(new IntegerSchema().format(&quot;int64&quot;)));</span>
-<span class="fc" id="L64">        return openApi -&gt; openApi.getPaths().values().forEach(path -&gt; path.readOperations().forEach(operation -&gt;</span>
-<span class="fc" id="L65">                operation.getResponses().values().forEach(response -&gt; headers.forEach(response::addHeaderObject))));</span>
+<span class="fc" id="L69">                        .schema(new IntegerSchema().format(&quot;int64&quot;)));</span>
+<span class="fc" id="L70">        return openApi -&gt; openApi.getPaths().values().forEach(path -&gt; path.readOperations().forEach(operation -&gt;</span>
+<span class="fc" id="L71">                operation.getResponses().values().forEach(response -&gt; headers.forEach(response::addHeaderObject))));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

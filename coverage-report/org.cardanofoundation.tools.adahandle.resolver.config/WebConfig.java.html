@@ -20,17 +20,19 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
 
-<span class="fc" id="L23">        registry.addMapping(&quot;/api/**&quot;)</span>
-<span class="fc" id="L24">                .allowedOriginPatterns(&quot;*&quot;)</span>
-<span class="fc" id="L25">                .allowedMethods(&quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;, &quot;PATCH&quot;)</span>
+        // A public, read-only API: any site may call it from a browser, but only with GET and without credentials
+        // (cookies, HTTP authentication), so a page can't make a visitor's browser act on their behalf.
+<span class="fc" id="L25">        registry.addMapping(&quot;/api/**&quot;)</span>
+<span class="fc" id="L26">                .allowedOrigins(&quot;*&quot;)</span>
+<span class="fc" id="L27">                .allowedMethods(&quot;GET&quot;, &quot;HEAD&quot;)</span>
                 // Without this, a browser hides the sync status headers from the page's scripts.
-<span class="fc" id="L27">                .exposedHeaders(SyncStatusHeaders.ALL.toArray(String[]::new))</span>
-<span class="fc" id="L28">                .allowCredentials(true).maxAge(3600);</span>
-<span class="fc" id="L29">    }</span>
+<span class="fc" id="L29">                .exposedHeaders(SyncStatusHeaders.ALL.toArray(String[]::new))</span>
+<span class="fc" id="L30">                .allowCredentials(false).maxAge(3600);</span>
+<span class="fc" id="L31">    }</span>
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-<span class="fc" id="L33">        registry.addInterceptor(syncStatusHeaders).addPathPatterns(&quot;/api/**&quot;);</span>
-<span class="fc" id="L34">    }</span>
+<span class="fc" id="L35">        registry.addInterceptor(syncStatusHeaders).addPathPatterns(&quot;/api/**&quot;);</span>
+<span class="fc" id="L36">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

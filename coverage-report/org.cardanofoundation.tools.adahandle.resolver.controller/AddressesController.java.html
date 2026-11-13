@@ -3,6 +3,7 @@
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -23,18 +24,25 @@ public class AddressesController {
     private final AdaHandleService adaHandleService;
 
     @Operation(summary = &quot;Resolve a handle to its addresses&quot;,
-            description = &quot;Returns the stake and payment address that currently hold the handle.&quot;)
+            description = &quot;Returns the payment address and, for a base address, the stake address the handle &quot; +
+                    &quot;resolves to. Works for every kind of handle, under both ADA Handle policies (the original one &quot; +
+                    &quot;and DeMi's): legacy and CIP-68 handles and NFT sub-handles resolve to the address holding the &quot; +
+                    &quot;token; a virtual sub-handle resolves to the address in its datum &quot; +
+                    &quot;(`extra.resolved_addresses.ada`), not to the script holding its token.&quot;)
     @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Handle found&quot;)
-    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Handle not found or not indexed yet&quot;, content = @Content)
+    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Handle not found, burned, or not indexed yet&quot;, content = @Content)
     @GetMapping(&quot;/by-ada-handle/{adaHandle}&quot;)
     public ResponseEntity&lt;Addresses&gt; getAddressesByAdaHandle(
-            @Parameter(description = &quot;Handle name, with or without the leading $&quot;, example = &quot;$alice&quot;)
+            @Parameter(description = &quot;Handle name, with or without the leading $. A sub-handle, NFT or virtual, &quot; +
+                    &quot;is written `sub@root`.&quot;, examples = {
+                    @ExampleObject(name = &quot;handle&quot;, value = &quot;$alice&quot;),
+                    @ExampleObject(name = &quot;sub-handle&quot;, value = &quot;$sub@alice&quot;)})
             @PathVariable String adaHandle) {
-<span class="fc" id="L33">        Addresses addresses = adaHandleService.getAddressesByAdaHandle(adaHandle);</span>
-<span class="fc bfc" id="L34" title="All 2 branches covered.">        if (addresses == null) {</span>
-<span class="fc" id="L35">            return ResponseEntity.notFound().build();</span>
+<span class="fc" id="L41">        Addresses addresses = adaHandleService.getAddressesByAdaHandle(adaHandle);</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        if (addresses == null) {</span>
+<span class="fc" id="L43">            return ResponseEntity.notFound().build();</span>
         }
-<span class="fc" id="L37">        return ResponseEntity.ok(addresses);</span>
+<span class="fc" id="L45">        return ResponseEntity.ok(addresses);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>
