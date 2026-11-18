@@ -25,4 +25,12 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar /app/cf-adahandle-resolver.jar
 # The API port (server.port, PORT); change it here too if PORT is changed.
 EXPOSE 9095
+# Mitigation for the reported CVE-2026-114938 ("Java4Shell"): memory corruption in HotSpot's java.util.Base64
+# intrinsic on x64 CPUs with AVX-512 VBMI. With the intrinsic off, java.util.Base64 runs in plain Java; untrusted
+# input reaches it, e.g. Tomcat decodes RFC 2047 names in multipart bodies sent to any URL. The java launcher reads
+# JDK_JAVA_OPTIONS itself (the exec-form ENTRYPOINT never expands $JAVA_OPTS), and docker-compose.yml and the Helm
+# chart pass JAVA_TOOL_OPTIONS, so this default survives them. An operator who sets JDK_JAVA_OPTIONS replaces it and
+# should keep the flag. Remove once the floating Temurin tag ships a fixed JDK (25.0.5.1+2 or later).
+# https://adoptium.net/news/2026/11/temurin-november-2026-cspu-java4shell
+ENV JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"
 ENTRYPOINT ["java", "-jar", "cf-adahandle-resolver.jar"]
