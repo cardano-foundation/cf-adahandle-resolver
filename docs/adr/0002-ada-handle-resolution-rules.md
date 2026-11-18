@@ -55,7 +55,7 @@ printable ASCII and can't start with one.
 
 ### Addresses
 
-The resolver serves the Cardano payment address and, for base addresses, the stake address. A handle held by an enterprise
+The resolver serves the ada payment address and, for base addresses, the stake address. A handle held by an enterprise
 or script address has no stake address. Handle names are looked up as given, with or without a leading `$`.
 
 ### What we don't follow (yet)
@@ -63,7 +63,7 @@ or script address has no stake address. Handle names are looked up as given, wit
 - Kora also reads a virtual sub-handle's datum from the transaction's witnesses when the output carries only a datum
   hash; we read inline datums only. No mainnet virtual sub-handle uses a datum hash today (all 1,082 match Kora).
 - Kora answers 202 while it is catching up or rolling back, and 451 for legally restricted names; we answer 200 and 404.
-- Kora serves addresses on other chains from the reference datum; we serve Cardano addresses only.
+- Kora serves addresses on other chains from the reference datum; we serve ada only.
 
 ## Consequences
 
