@@ -304,8 +304,8 @@ Each of the first two elements is a list of 5 elements:
 Decoded datum of `hal`'s settings token:
 
 ```text
-[ [0, 1, [[1, 5000000]], {}, 0],         nft:     no public minting, personalization on, 5 ADA, no default styles
-  [0, 1, [[1, 2000000]], {}, 0],         virtual: no public minting, personalization on, 2 ADA, no default styles
+[ [0, 1, [[1, 5000000]], {}, 0],         nft:     no public minting, personalization on, 5 ada, no default styles
+  [0, 1, [[1, 2000000]], {}, 0],         virtual: no public minting, personalization on, 2 ada, no default styles
   0, 0, 0,                               buy-down price, paid, percent
   "https://handle.me/$/tou",             agreed_terms
   0,                                     migrate_sig_required
