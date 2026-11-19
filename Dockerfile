@@ -17,6 +17,10 @@ RUN ./mvnw clean package -DskipTests
 # x86-64-v3 CPU (AVX2) and fails at startup on older hosts and generic VM CPU models with
 # "Fatal glibc error: CPU does not support x86-64-v3". Temurin 25 has no ubi9-minimal image.
 FROM eclipse-temurin:25-jre-resolute AS runtime
+# Fail the build on a JRE older than 25.0.5.1+2 (e.g. a stale cached base image): it lacks the fix for CVE-2026-114938
+# ("Java4Shell", memory corruption in the java.util.Base64 decoder intrinsic on x64 CPUs with AVX-512 VBMI).
+# https://adoptium.net/news/2026/11/temurin-november-2026-cspu-java4shell
+RUN java -XshowSettings:properties -version 2>&1 | grep -E "java.runtime.version = 25\.0\.(5\.[1-9]|[6-9]|[1-9][0-9])"
 # Fail the build on a JDK older than 25.0.5+8 (e.g. a stale cached base image): its trust store still has the
 # roots that signed the compromised eMudhra intermediate CAs.
 # https://adoptium.net/news/2026/10/temurin-october-2026-emudhra/
