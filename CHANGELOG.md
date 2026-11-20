@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.0.0-rc3](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v1.0.0-rc2...v1.0.0-rc3) (2026-11-13)
+
+
+### Bug Fixes
+
+* **security:** plugin admin API off, API docs only for the resolver, read-only CORS ([#124](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/124)) ([b432ea5](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/b432ea51b5fa3c07b1cc07393cd1c8fef0f311fd))
+
+
+### Documentation
+
+* **api:** describe every kind of handle in the OpenAPI spec ([#125](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/125)) ([74db5a7](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/74db5a73c6ea93a2b223e971f4e6af38a5438a12))
+* README for 1.0.0-rc3 ([#128](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/128)) ([323aa18](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/323aa1802923676f9183444a114bba49810c1a67))
+
+
+### Miscellaneous Chores
+
+* release 1.0.0-rc3 ([cd15ad1](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/cd15ad14697256431218e67aa8b4eb3d557c7491))
+
 ## [1.0.0-rc2](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v1.0.0-rc1...v1.0.0-rc2) (2026-11-06)
 
 
