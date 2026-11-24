@@ -3,7 +3,7 @@ name: adahandle-resolver
 type: application
 # Version of the resolver image deployed by default (image.tag empty). Set on release PRs by
 # .github/workflows/helm-app-version.yaml.
-appVersion: "1.0.0"
+appVersion: "1.0.0-rc3"
 
 description: >
   A Helm chart for deploying the ADA Handle Resolver app, 
