@@ -55,11 +55,11 @@ is rolled back.
 ### 🐳 Docker
 
 ```zsh
-docker run -p 9095:9095 -e JAVA_TOOL_OPTIONS=-Xmx4g cardanofoundation/adahandle-resolver:1.0.0-rc3
+docker run -p 9095:9095 -e JAVA_TOOL_OPTIONS=-Xmx4g cardanofoundation/adahandle-resolver:1.0.0
 ```
 
-Pin a version like this: `latest` follows final releases only, so it doesn't point at 1.0.0 until 1.0.0 is
-released (see Releases below). This syncs mainnet into an embedded H2 database. A mainnet sync needs about 4 GB of heap; pass JVM flags
+Pin a version like this rather than `latest`, which always moves to the newest final release (see Releases
+below). This syncs mainnet into an embedded H2 database. A mainnet sync needs about 4 GB of heap; pass JVM flags
 in `JAVA_TOOL_OPTIONS` (`JAVA_OPTS` is ignored by the image).
 
 ### 🐘 Docker Compose with PostgreSQL
@@ -96,13 +96,13 @@ A GraalVM native image starts in about a second and needs far less memory than t
 is published as `cardanofoundation/adahandle-resolver:<version>-native`, next to the JVM image `<version>`:
 
 ```zsh
-docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-rc3-native
+docker run -p 9095:9095 cardanofoundation/adahandle-resolver:1.0.0-native
 # build it yourself
 docker build -f Dockerfile.native -t adahandle-resolver:native .
 ```
 
 Configure it with the same environment variables as the JVM image. JVM flags such as `-Xmx` go on the
-command line (`docker run ... adahandle-resolver:1.0.0-rc3-native -Xmx2g`), not in `JAVA_TOOL_OPTIONS`.
+command line (`docker run ... adahandle-resolver:1.0.0-native -Xmx2g`), not in `JAVA_TOOL_OPTIONS`.
 
 The native image is also built and smoke-tested every week, without publishing anything, so a change
 that breaks it under GraalVM shows up before the next release.
