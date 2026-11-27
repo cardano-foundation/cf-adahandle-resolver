@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
   pull-requests: write
 
 jobs:
@@ -19,19 +20,12 @@ jobs:
     steps:
       - name: 🚀 release-please-action
         id: release
-        uses: google-github-actions/release-please-action@v3
+        uses: googleapis/release-please-action@v4
         with:
-          release-type: maven
-          bump-minor-pre-major: true
-          bump-patch-for-minor-pre-major: true
-          # Pre-releases (release candidates X.Y.Z-rcN, e.g. 1.0.0-rc1, or X.Y.Z-preN) are marked as pre-releases
-          # on GitHub. Their version is set with a "Release-As: 1.0.0-rc1" footer on a commit to main, like every
-          # pre-release and the final after
-          # them; see "Releases" in the README.
-          prerelease: true
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
 
-  # Only when release-please has just created a release, i.e. its release PR was merged. Its snapshot PRs
-  # (X.Y.Z-SNAPSHOT) create no release, so they publish nothing.
+  # Only when release-please has just created a release, i.e. its release PR was merged.
   publish:
     needs: create_release
     if: needs.create_release.outputs.release_created == 'true'
