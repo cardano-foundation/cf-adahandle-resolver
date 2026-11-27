@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.0.0](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v1.0.0-rc3...v1.0.0) (2026-11-27)
+
+
+### Bug Fixes
+
+* **docker:** require Temurin 25.0.5.1+2, which fixes CVE-2026-114938 ([#136](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/136)) ([dc7e93e](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/dc7e93e1104ec1968b06abeaa5c1316782dd1b3a))
+
+
+### Documentation
+
+* documentation site (Astro + Starlight) ([#85](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/85)) ([44ee636](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/44ee6362421adb4bcf33151a573ffc52c67c9f65))
+* documentation site (Astro + Starlight) ([#85](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/85)) ([#133](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/133)) ([c520bb2](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/c520bb2c424646650c845c23a7df55ab015fda3e))
+* write the currency as ada, not ADA ([#134](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/134)) ([a8bad87](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/a8bad87445fc9d7f639c4322bed06372624007db))
+
+
+### Miscellaneous Chores
+
+* release 1.0.0 ([#137](https://github.com/cardano-foundation/cf-adahandle-resolver/issues/137)) ([b74134a](https://github.com/cardano-foundation/cf-adahandle-resolver/commit/b74134a481511c775db3f2d12b5b5e9c831d6448))
+
 ## [1.0.0-rc3](https://github.com/cardano-foundation/cf-adahandle-resolver/compare/v1.0.0-rc2...v1.0.0-rc3) (2026-11-13)
 
 
